@@ -1,0 +1,67 @@
+{
+  "assumptions": [
+    "This is a hardcoded fixture used when VITE_USE_MOCK_DATA=true — replace this file with real Suggestion Agent output to demo actual generation."
+  ],
+  "suggestions": [
+    {
+      "id": "concept-1",
+      "title": "Sole Canyon Dive",
+      "genre": "first-person canyon-dive descent through the shoe's own midsole layers",
+      "one_line_pitch": "Dive through the exploded layers of our newest sole and land the perfect stride.",
+      "core_loop": [
+        "Camera free-falls through a canyon built from the shoe's foam/midsole cross-section",
+        "Steer left/right through gaps in the layered geometry",
+        "Time a final landing on a glowing footprint pad to score a stride bonus"
+      ],
+      "spatial_design": "A true vertical descent — camera dollies downward through foreground rock-like foam formations, midground gap obstacles, and a background glow that grows as you approach the landing pad.",
+      "brand_integration": "The canyon walls are literally extruded from the shoe's midsole cross-section geometry and textured with the product image if supplied.",
+      "conversion_mechanic": "Landing within the glowing pad on the final drop unlocks a redemption code rendered on a 3D reward plinth.",
+      "marketing_alignment": "Awareness-oriented: the product's own construction is the entire visual centerpiece from frame one.",
+      "session_length_estimate": "25-35s per run",
+      "build_complexity": "medium",
+      "shareability_hook": "The camera flash + slow-mo landing moment on a perfect stride.",
+      "visual_style_direction": "Warm rim-lit canyon walls in brand orange, moody dark background, subtle bloom on the landing pad glow.",
+      "cta_placement": "Persistent small brand badge top-left during play; large CTA button on game-over screen."
+    },
+    {
+      "id": "concept-2",
+      "title": "Aisle Sprint 3000",
+      "genre": "lane-weaving sprint down a store aisle built from real packaging geometry",
+      "one_line_pitch": "Sprint down our own store aisle, dodging endcaps, chasing the drop.",
+      "core_loop": [
+        "Player character sprints forward down a 3-lane store aisle",
+        "Swipe/steer between lanes to dodge shelf endcaps and grab floating product icons",
+        "Speed ramps up with every 10 points collected"
+      ],
+      "spatial_design": "Camera rides just behind and above the runner with real depth — shelves recede into the background, endcaps loom in midground, collectibles glint in the foreground lane.",
+      "brand_integration": "Shelf and endcap geometry is modeled after the brand's actual product packaging silhouette, not generic boxes.",
+      "conversion_mechanic": "Reaching 50 points spawns an in-aisle 'today only' sign that reveals a real redemption code when the player runs through it.",
+      "marketing_alignment": "Foot-traffic goal: a QR code on the game-over screen redeems in-store, tying the run directly to a physical visit.",
+      "session_length_estimate": "30-45s per run",
+      "build_complexity": "medium",
+      "shareability_hook": "A visible personal-best banner and a 'beat this score' share button.",
+      "visual_style_direction": "Bright, glossy shelf materials, punchy brand-color accent lighting, light vignette for speed sensation.",
+      "cta_placement": "CTA button + QR-style code block on the game-over screen."
+    },
+    {
+      "id": "concept-3",
+      "title": "Mascot Orbit Rally",
+      "genre": "orbit-and-launch trick game around a giant mascot centerpiece",
+      "one_line_pitch": "Orbit our mascot, time your launch, stick the trick.",
+      "core_loop": [
+        "Camera orbits a large stylized mascot model at the center of the scene",
+        "Player times a launch off the mascot's arm to fly through a ring gauntlet",
+        "Score multiplies with clean ring chains before landing back on the mascot"
+      ],
+      "spatial_design": "Full orbital camera around a large foreground hero object, with a distant background skyline for scale contrast and rings arranged in true 3D depth around the mascot.",
+      "brand_integration": "The mascot model is the literal launch mechanic and centerpiece — not a background prop.",
+      "conversion_mechanic": "A clean 5-ring chain unlocks a shareable mascot 'skin' plus a redemption code shown on a trophy podium camera beat.",
+      "marketing_alignment": "Social virality goal: the ring-chain peak moment is designed to be screenshot-worthy, with a built-in challenge-a-friend share button.",
+      "session_length_estimate": "20-30s per run",
+      "build_complexity": "high",
+      "shareability_hook": "The trophy podium camera beat after a clean chain, framed for a screenshot.",
+      "visual_style_direction": "Glossy toy-like mascot material, saturated brand-color rim light, light bloom on ring trails.",
+      "cta_placement": "Small persistent brand mark on the mascot's chest; full CTA on the trophy screen."
+    }
+  ]
+}

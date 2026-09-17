@@ -1,0 +1,24 @@
+{
+  "assumptions": [
+    "This is a hardcoded fixture used when VITE_USE_MOCK_DATA=true — replace this file with real Remix Agent output to demo actual generation.",
+    "Interpreted 'I like the theme of the canyon dive but the pace of the aisle sprint' as: keep the midsole-canyon world and reward beat from concept-1, but adopt concept-2's continuous speed-ramp pacing instead of concept-1's single timed landing."
+  ],
+  "id": "concept-remix-1",
+  "title": "Sole Canyon Sprint",
+  "genre": "continuous canyon-dive sprint through the shoe's own midsole layers",
+  "one_line_pitch": "Keep diving through our sole's own layers, faster with every gap you clear.",
+  "core_loop": [
+    "Camera continuously descends through the midsole canyon rather than a single timed drop",
+    "Steer left/right through gaps in the layered foam geometry",
+    "Speed ramps up every 10 gaps cleared, same as the aisle sprint's pacing"
+  ],
+  "spatial_design": "Same vertical canyon descent as before, but now a continuous run rather than a single drop — foreground foam formations rush past, midground gaps demand quick reads, background glow intensifies as speed increases.",
+  "brand_integration": "Canyon walls remain extruded from the shoe's midsole cross-section, textured with the product image if supplied.",
+  "conversion_mechanic": "Clearing 50 gaps unlocks a landing pad reward beat identical to the original concept — a redemption code on a 3D reward plinth.",
+  "marketing_alignment": "Awareness goal: the product's own construction stays the entire visual centerpiece, now sustained across a longer, replayable run.",
+  "session_length_estimate": "30-45s per run",
+  "build_complexity": "medium",
+  "shareability_hook": "A personal-best gap-streak banner plus the reward-plinth camera beat.",
+  "visual_style_direction": "Warm rim-lit canyon walls in brand orange, moody dark background, bloom intensifying with speed.",
+  "cta_placement": "Persistent small brand badge top-left during play; large CTA button on game-over screen."
+}

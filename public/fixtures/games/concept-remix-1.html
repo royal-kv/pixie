@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Sole Canyon Sprint (fixture remix)</title>
+<style>
+  :root { --accent:#FF5A1F; --bg:#101820; --fg:#f5f5f5; }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin:0; height:100%; background:var(--bg); color:var(--fg); font-family: system-ui, sans-serif; overflow:hidden; }
+  #canvas-wrap { position:absolute; inset:0; }
+  canvas { display:block; width:100%; height:100%; }
+  .overlay { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:24px; gap:12px; }
+  .badge { position:absolute; top:12px; left:12px; background:rgba(0,0,0,0.4); padding:4px 10px; border-radius:999px; font-size:11px; letter-spacing:.04em; }
+  .hud { position:absolute; top:12px; right:12px; font-size:14px; background:rgba(0,0,0,0.4); padding:6px 12px; border-radius:8px; }
+  h1 { margin:0; font-size:28px; }
+  p.pitch { max-width:320px; opacity:0.85; margin:0; }
+  button { background:var(--accent); color:#101820; border:none; padding:12px 22px; border-radius:999px; font-weight:700; font-size:15px; cursor:pointer; }
+  .cta { margin-top:6px; background:transparent; border:1px solid var(--accent); color:var(--accent); }
+</style>
+</head>
+<body>
+<div class="badge">FIXTURE PLACEHOLDER — replace via public/fixtures/games/concept-remix-1.html</div>
+<div id="canvas-wrap"></div>
+<div class="hud" id="hud" style="display:none">Gaps cleared: <span id="score">0</span></div>
+
+<div class="overlay" id="start-screen">
+  <h1>Sole Canyon Sprint</h1>
+  <p class="pitch">Keep diving through our sole's own layers, faster with every gap you clear.</p>
+  <button id="start-btn">Tap to start</button>
+</div>
+
+<div class="overlay" id="end-screen" style="display:none">
+  <h1>Run complete!</h1>
+  <p class="pitch">Gaps cleared: <span id="final-score">0</span></p>
+  <div id="reward" style="display:none">
+    <p class="pitch">Your code: <strong id="reward-code"></strong></p>
+  </div>
+  <button id="restart-btn">Restart</button>
+  <button class="cta" onclick="window.open('https://example.com/shop','_blank','noopener')">Shop now</button>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script>
+(function () {
+  var REDEMPTION_CODES = ["FIXTURE10"];
+  var wrap = document.getElementById('canvas-wrap');
+  var scene, camera, renderer, mesh;
+  var score = 0;
+  var running = false;
+  var speed = 0.006;
+
+  function initThree() {
+    scene = new THREE.Scene();
+    scene.fog = new THREE.Fog(0x101820, 4, 20);
+    camera = new THREE.PerspectiveCamera(60, wrap.clientWidth / wrap.clientHeight, 0.1, 100);
+    camera.position.set(0, 1, 5);
+    renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+    wrap.appendChild(renderer.domElement);
+
+    var key = new THREE.DirectionalLight(0xffffff, 1.2);
+    key.position.set(3, 5, 2);
+    scene.add(key);
+    scene.add(new THREE.AmbientLight(0x404040, 0.6));
+    var rim = new THREE.PointLight(0xff5a1f, 1.5, 15);
+    rim.position.set(-2, 1, -3);
+    scene.add(rim);
+
+    var geo = new THREE.TorusKnotGeometry(1, 0.35, 128, 16);
+    var mat = new THREE.MeshStandardMaterial({ color: 0xff5a1f, roughness: 0.35, metalness: 0.4 });
+    mesh = new THREE.Mesh(geo, mat);
+    scene.add(mesh);
+
+    window.addEventListener('resize', onResize);
+  }
+
+  function onResize() {
+    camera.aspect = wrap.clientWidth / wrap.clientHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(wrap.clientWidth, wrap.clientHeight);
+  }
+
+  function animate() {
+    requestAnimationFrame(animate);
+    if (mesh && running) {
+      mesh.rotation.x += speed;
+      mesh.rotation.y += speed * 1.6;
+    }
+    renderer.render(scene, camera);
+  }
+
+  function collect() {
+    if (!running) return;
+    score += 1;
+    document.getElementById('score').textContent = score;
+    if (score % 10 === 0) speed += 0.003;
+    if (score >= 12) endRun();
+  }
+
+  function startRun() {
+    score = 0;
+    speed = 0.006;
+    running = true;
+    document.getElementById('start-screen').style.display = 'none';
+    document.getElementById('end-screen').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('score').textContent = '0';
+  }
+
+  function endRun() {
+    running = false;
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('final-score').textContent = score;
+    var rewardEl = document.getElementById('reward');
+    if (score >= 5) {
+      var code = REDEMPTION_CODES[Math.floor(Math.random() * REDEMPTION_CODES.length)];
+      document.getElementById('reward-code').textContent = code;
+      rewardEl.style.display = 'block';
+      try {
+        window.parent.postMessage({ type: 'game-conversion', gameId: 'concept-remix-1', score: score, code: code }, '*');
+      } catch (e) {}
+    } else {
+      rewardEl.style.display = 'none';
+    }
+    document.getElementById('end-screen').style.display = 'flex';
+  }
+
+  document.getElementById('start-btn').addEventListener('click', startRun);
+  document.getElementById('restart-btn').addEventListener('click', startRun);
+  wrap.addEventListener('click', collect);
+  wrap.addEventListener('touchstart', function (e) { e.preventDefault(); collect(); }, { passive: false });
+
+  initThree();
+  animate();
+})();
+</script>
+</body>
+</html>

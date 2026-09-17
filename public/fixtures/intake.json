@@ -1,0 +1,25 @@
+{
+  "extracted": {
+    "brand_name": "Fixture Brand Co.",
+    "industry": "Sportswear",
+    "product_or_service": "Performance running shoes",
+    "tagline": "Move like it's the only thing that matters.",
+    "logo_url": null,
+    "product_image_url": null,
+    "brand_colors": ["#FF5A1F", "#101820"],
+    "fonts": ["Inter"],
+    "cta_url": "https://example.com/shop",
+    "social_links": { "instagram": "https://instagram.com/fixturebrand" }
+  },
+  "tone": "energetic, bold, a little irreverent (mock/fixture inference, not sourced from a real site)",
+  "low_confidence_notes": [
+    "This is a hardcoded fixture used when VITE_USE_MOCK_DATA=true — no real site was fetched."
+  ],
+  "needs_user_input": {
+    "marketing_goal": "Not derivable from the website — ask the user directly.",
+    "target_audience": "Not derivable — ask the user.",
+    "distribution_channels": "Not derivable from the website alone — ask the user where this specific game will run.",
+    "constraints": "Not derivable from the website — ask the user directly."
+  },
+  "sources": ["mock fixture — public/fixtures/intake.json"]
+}
