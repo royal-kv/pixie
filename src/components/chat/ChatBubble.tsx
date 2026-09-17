@@ -31,12 +31,12 @@ export default function ChatBubble({ message, session, onFinalize, onGameEvent }
       {message.kind === 'final' && concepts[0] && (
         <FinalCard
           concept={concepts[0]}
-          game={session.games.find((g) => g.conceptId === concepts[0].id)!}
+          game={session.games.find((g) => g.conceptId === concepts[0].id)}
           onEvent={onGameEvent(concepts[0].id)}
         />
       )}
       {message.kind !== 'final' && concepts.length > 0 && (
-        <div className="flex w-full max-w-full gap-3 overflow-x-auto pb-1">
+        <div className="grid w-full max-w-full grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {concepts.map((concept) => {
             const game: Game | undefined = session.games.find((g) => g.conceptId === concept.id);
             return (

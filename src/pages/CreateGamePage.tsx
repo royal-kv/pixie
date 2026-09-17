@@ -108,7 +108,14 @@ export default function CreateGamePage({ session, updateSession, onStartNew }: P
     try {
       const effectiveBrief = composeEffectiveBrief(session);
       const result = await runSuggestionAgent(effectiveBrief);
-      updateSession((prev) => ({ ...prev, concepts: result.suggestions, stage: 'concepts_ready' }));
+      updateSession((prev) =>
+        appendChatMessage(
+          { ...prev, concepts: result.suggestions, stage: 'concepts_ready' },
+          'assistant',
+          "Here are 3 concepts — building them into playable games now…",
+          { kind: 'concepts', conceptIds: result.suggestions.map((c) => c.id) },
+        ),
+      );
       setBusyLabel('Building all 3 as playable games…');
       await Promise.allSettled(
         result.suggestions.map(async (concept) => {
@@ -143,8 +150,7 @@ export default function CreateGamePage({ session, updateSession, onStartNew }: P
         return appendChatMessage(
           { ...prev, stage: 'games_ready' },
           'assistant',
-          `${assumptionsText}Here are 3 concepts — tap Play to try them, then tell me what you'd like to combine or change.`,
-          { kind: 'concepts', conceptIds: result.suggestions.map((c) => c.id) },
+          `${assumptionsText}All 3 games are ready — tell me what you'd like to combine or change.`,
         );
       });
     } catch (err) {
@@ -172,23 +178,30 @@ export default function CreateGamePage({ session, updateSession, onStartNew }: P
       const result = await runRemixAgent({ priorConcepts: session.concepts, feedback });
       const { assumptions: rawAssumptions, ...concept } = result;
       const assumptions = filterAssumptions(rawAssumptions);
+      updateSession((prev) =>
+        appendChatMessage(
+          {
+            ...prev,
+            stage: 'iterating',
+            concepts: [...prev.concepts, concept],
+            currentGameId: concept.id,
+          },
+          'assistant',
+          `Here's the remix: "${concept.title}" — building it now…`,
+          { kind: 'concepts', conceptIds: [concept.id] },
+        ),
+      );
+      setBusyLabel('Building the remixed game…');
       const effectiveBrief = composeEffectiveBrief(session);
       const html = await runBuildAgent({ concept, brief: effectiveBrief });
       updateSession((prev) => {
         const next: Session = {
           ...prev,
-          stage: 'iterating',
-          concepts: [...prev.concepts, concept],
           games: [...prev.games, { conceptId: concept.id, html, createdAt: Date.now() }],
-          currentGameId: concept.id,
         };
-        const assumptionsText = assumptions.length ? `\n\nAssumptions: ${assumptions.join('; ')}` : '';
-        return appendChatMessage(
-          next,
-          'assistant',
-          `Here's the remix: "${concept.title}".${assumptionsText}`,
-          { kind: 'concepts', conceptIds: [concept.id] },
-        );
+        return assumptions.length
+          ? appendChatMessage(next, 'assistant', `Assumptions: ${assumptions.join('; ')}`)
+          : next;
       });
     } catch (err) {
       console.error(err);
@@ -257,7 +270,7 @@ export default function CreateGamePage({ session, updateSession, onStartNew }: P
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <ScrollArea className="flex-1">
-        <div className="mx-auto flex max-w-3xl flex-col gap-4 p-6">
+        <div className="mx-auto flex max-w-5xl flex-col gap-5 p-6">
           {session.chatMessages.map((m, i) => (
             <ChatBubble
               key={i}
