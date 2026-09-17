@@ -443,6 +443,196 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
 
 // ─── Chat Screen ─────────────────────────────────────────────────────────────
 
+// Flow stages
+type FlowStage =
+  | 'idle'        // empty welcome
+  | 'cooking'     // user sent brief, AI "cooking" animation
+  | 'targeting'   // ask age group
+  | 'hallucinating' // user picked age, AI generating games
+  | 'concepts'    // show 3 game iframes + style cards
+  | 'finalizing'  // user picked style, show lead-rush
+  | 'done'        // fully shipped
+
+const AGE_GROUPS = ['10 – 20', '20 – 30', '30 – 40', '40 – 50', '50+']
+
+const STYLE_CARDS = [
+  {
+    id: 'aesthetic',
+    label: 'Aesthetic',
+    desc: 'Smooth visuals, color-forward, feel-good play',
+    icon: '🎨',
+    bg: 'bg-purple-50',
+    border: 'border-purple-100',
+    text: 'text-purple-700',
+  },
+  {
+    id: 'logic',
+    label: 'Logic',
+    desc: 'Puzzle-driven, thoughtful, rewarding depth',
+    icon: '🧠',
+    bg: 'bg-blue-50',
+    border: 'border-blue-100',
+    text: 'text-blue-700',
+  },
+  {
+    id: 'pace',
+    label: 'Pace',
+    desc: 'Fast-reflex, score-chasing, instant replay',
+    icon: '⚡',
+    bg: 'bg-orange-50',
+    border: 'border-orange-100',
+    text: 'text-orange-700',
+  },
+]
+
+const GAME_PREVIEWS = [
+  { file: '/lead-catcher.html', title: 'Lead Catcher', genre: 'Catcher', color: 'from-green-400 to-green-600' },
+  { file: '/lead-dodger.html', title: 'Lead Dodger', genre: 'Dodger', color: 'from-teal-400 to-teal-600' },
+  { file: '/lead-rush-cyber.html', title: 'Lead Rush Cyber', genre: 'Runner', color: 'from-violet-500 to-indigo-700' },
+]
+
+// Cooking animation component
+function CookingAnimation({ label }: { label: string }) {
+  const sparks = ['✦', '✧', '⋆', '✦', '✧']
+  return (
+    <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100 rounded-2xl rounded-tl-sm p-5 max-w-xs">
+      <div className="flex items-center gap-2 mb-3">
+        <div className="relative w-8 h-8">
+          {sparks.map((s, i) => (
+            <span
+              key={i}
+              className="absolute text-blue-400 text-xs font-bold"
+              style={{
+                top: `${50 + 40 * Math.sin((i / sparks.length) * Math.PI * 2)}%`,
+                left: `${50 + 40 * Math.cos((i / sparks.length) * Math.PI * 2)}%`,
+                animation: `cookSpark 1.4s ${i * 0.28}s ease-in-out infinite`,
+                transform: 'translate(-50%, -50%)',
+              }}
+            >
+              {s}
+            </span>
+          ))}
+          <span className="absolute inset-0 flex items-center justify-center text-base">🍳</span>
+        </div>
+        <span className="text-sm font-semibold text-blue-700">{label}</span>
+      </div>
+      <div className="flex gap-1 items-center">
+        {[0, 1, 2, 3, 4].map(i => (
+          <div
+            key={i}
+            className="h-1 rounded-full bg-blue-300"
+            style={{
+              width: `${12 + i * 6}px`,
+              animation: `cookBar 1.2s ${i * 0.18}s ease-in-out infinite alternate`,
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// Hallucinating animation — shows a stream of fake code/tokens
+function HallucinatingAnimation() {
+  const lines = [
+    'analyzing brand brief…',
+    'generating game mechanics…',
+    'calibrating difficulty curve…',
+    'wiring lead-capture hooks…',
+    'testing engagement loops…',
+    'building 3 variants…',
+  ]
+  const [visible, setVisible] = React.useState(1)
+  useEffect(() => {
+    const t = setInterval(() => setVisible(v => Math.min(v + 1, lines.length)), 420)
+    return () => clearInterval(t)
+  }, [])
+  return (
+    <div className="bg-[#07071a] border border-[#00ff9c33] rounded-2xl rounded-tl-sm p-4 max-w-sm font-mono text-xs">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="w-2 h-2 rounded-full bg-[#00ff9c] animate-pulse" />
+        <span className="text-[#00ff9c] text-[10px] tracking-widest uppercase">Pixie is hallucinating…</span>
+      </div>
+      {lines.slice(0, visible).map((l, i) => (
+        <div key={i} className="flex items-center gap-2 py-0.5 animate-fade-in-up">
+          <span className="text-[#5566aa]">{'>'}</span>
+          <span className={i === visible - 1 ? 'text-[#00ff9c]' : 'text-[#5566aa]'}>{l}</span>
+          {i === visible - 1 && <span className="text-[#00ff9c] animate-pulse">▊</span>}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// Game iframe card
+function GameIframeCard({ game }: { game: typeof GAME_PREVIEWS[number] }) {
+  return (
+    <div className="flex-shrink-0 w-56 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
+      <div className={`h-6 bg-gradient-to-r ${game.color} flex items-center px-3 gap-1.5`}>
+        <span className="text-white text-[10px] font-bold tracking-wide">{game.genre}</span>
+        <span className="ml-auto text-white/60 text-[9px]">LIVE PREVIEW</span>
+      </div>
+      <div className="relative bg-gray-50" style={{ height: 320 }}>
+        <iframe
+          src={game.file}
+          className="w-full h-full border-0"
+          title={game.title}
+          sandbox="allow-scripts allow-same-origin"
+        />
+      </div>
+      <div className="px-3 py-2 border-t border-gray-50">
+        <p className="text-xs font-semibold text-gray-800">{game.title}</p>
+      </div>
+    </div>
+  )
+}
+
+// Final lead-rush card (full-width)
+function FinalGameCard({ onReset }: { onReset: () => void }) {
+  const [copied, setCopied] = useState(false)
+  const embed = `<iframe src="${window.location.origin}/lead-rush.html" width="390" height="844" frameborder="0" allow="autoplay"></iframe>`
+  function copy() {
+    navigator.clipboard.writeText(embed).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+  return (
+    <div className="w-full max-w-xl">
+      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm mb-3">
+        <div className="h-8 bg-gradient-to-r from-green-500 to-teal-600 flex items-center px-4 gap-2">
+          {Icon.trophy('w-3.5 h-3.5 text-white')}
+          <span className="text-white text-xs font-bold tracking-wide">YOUR GAME — LEAD RUSH</span>
+          <span className="ml-auto bg-white/20 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full">FINALIZED</span>
+        </div>
+        <div className="relative bg-gray-50" style={{ height: 420 }}>
+          <iframe
+            src="/lead-rush.html"
+            className="w-full h-full border-0"
+            title="Lead Rush"
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+        <div className="p-4 flex gap-2 flex-wrap border-t border-gray-50">
+          <button className="flex items-center gap-1.5 text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-full transition-colors">
+            {Icon.download('w-3.5 h-3.5')}
+            Download build
+          </button>
+          <button onClick={copy} className="flex items-center gap-1.5 text-xs font-semibold border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full transition-colors">
+            {Icon.copy('w-3.5 h-3.5')}
+            {copied ? 'Copied!' : 'Copy embed'}
+          </button>
+        </div>
+      </div>
+      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between gap-3">
+        <p className="text-sm text-blue-700 font-medium">Ready to build another?</p>
+        <button onClick={onReset} className="text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-full transition-colors flex-shrink-0">
+          Start new game
+        </button>
+      </div>
+    </div>
+  )
+}
+
 function ConceptCard({ concept, onFinalize, finalized }: { concept: Concept; onFinalize: (id: string) => void; finalized: boolean }) {
   const colorMap: Record<string, string> = {
     '#3B82F6': 'from-blue-400 to-blue-600',
@@ -532,87 +722,124 @@ function FinalizedCard({ concept }: { concept: Concept }) {
 
 const QUICK_PILLS = ['Bolder', 'Simpler', 'Add leaderboard', 'Stronger CTA']
 
-const FLOW_STEPS = [
-  {
-    trigger: /brand|brief|about|who/i,
-    response: "Got it! I've captured your brand brief. Let me generate three distinct game concepts based on your identity and audience.",
-    type: 'text' as const,
-  },
-  {
-    trigger: /.*/,
-    response: "Here are three mini-game concepts tailored to your brand. Pick one to finalize — or ask me to remix any of them.",
-    type: 'concepts' as const,
-  },
-]
+// Chat message bubble
+function Bubble({ role, children }: { role: 'assistant' | 'user'; children: React.ReactNode }) {
+  return (
+    <div className={`flex gap-3 animate-fade-in-up ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
+      {role === 'assistant' && (
+        <div className="w-7 h-7 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center mt-0.5 flex-shrink-0">
+          <span className="text-xs font-bold text-gray-600">P</span>
+        </div>
+      )}
+      <div className={`max-w-[85%] ${role === 'user' ? 'order-first' : ''}`}>
+        {children}
+      </div>
+      {role === 'user' && (
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center mt-0.5">
+          <span className="text-xs font-bold text-white">J</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function TextBubble({ role, text }: { role: 'assistant' | 'user'; text: string }) {
+  return (
+    <Bubble role={role}>
+      <div className={`text-sm px-4 py-2.5 rounded-2xl ${
+        role === 'assistant'
+          ? 'bg-gray-100 text-gray-800 rounded-tl-sm'
+          : 'bg-blue-500 text-white rounded-tr-sm'
+      }`}>
+        {text}
+      </div>
+    </Bubble>
+  )
+}
 
 function ChatScreen() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const [stage, setStage] = useState<FlowStage>('idle')
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; special?: string }>>([])
   const [input, setInput] = useState('')
-  const [busy, setBusy] = useState(false)
-  const [finalizedId, setFinalizedId] = useState<string | null>(null)
+  const [inputBusy, setInputBusy] = useState(false)
+  const [selectedAge, setSelectedAge] = useState<string | null>(null)
+  const [customAge, setCustomAge] = useState('')
+  const [selectedStyle, setSelectedStyle] = useState<string | null>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
-  const [stepIndex, setStepIndex] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
 
-  const hasGames = messages.some(m => m.type === 'concepts' || m.type === 'finalized')
+  const atConcepts = stage === 'concepts' || stage === 'finalizing' || stage === 'done'
+  const atDone = stage === 'done'
 
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    el.scrollTop = el.scrollHeight
-  }, [messages, busy])
+    requestAnimationFrame(() => { el.scrollTop = el.scrollHeight })
+  }, [messages, stage, inputBusy])
 
   function handleScroll() {
     const el = scrollRef.current
     if (!el) return
-    setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 100)
+    setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 80)
   }
 
-  async function sendMessage(text: string) {
-    if (!text.trim() || busy) return
-    const userMsg: Message = { id: Date.now().toString(), role: 'user', content: text }
-    setMessages(prev => [...prev, userMsg])
+  function addMsg(role: 'assistant' | 'user', text: string, special?: string) {
+    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, special }])
+  }
+
+  async function handleBriefSend(text: string) {
+    if (!text.trim() || inputBusy) return
+    addMsg('user', text)
     setInput('')
-    setBusy(true)
-
-    await new Promise(r => setTimeout(r, 1200 + Math.random() * 600))
-
-    const step = FLOW_STEPS[Math.min(stepIndex, FLOW_STEPS.length - 1)]
-    const assistantMsg: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: step.response,
-      type: step.type,
-    }
-    setMessages(prev => [...prev, assistantMsg])
-    setStepIndex(i => i + 1)
-    setBusy(false)
+    setInputBusy(true)
+    setStage('cooking')
+    await new Promise(r => setTimeout(r, 2600))
+    addMsg('assistant', "Great brief! Now — who's your target audience? Pick an age group so I can tune the game mechanics and UX for them.")
+    setStage('targeting')
+    setInputBusy(false)
   }
 
-  function handleFinalize(conceptId: string) {
-    setFinalizedId(conceptId)
-    const concept = INITIAL_CONCEPTS.find(c => c.id === conceptId)!
-    const finalMsg: Message = {
-      id: Date.now().toString(),
-      role: 'assistant',
-      content: `🎉 **${concept.title}** is finalized! Here's your shareable build.`,
-      type: 'finalized',
-    }
-    setMessages(prev => [...prev, finalMsg])
-    setTimeout(() => setBusy(false), 0)
+  async function handleAgeSelect(age: string) {
+    if (selectedAge) return
+    setSelectedAge(age)
+    addMsg('user', `Target: ${age}`)
+    setStage('hallucinating')
+    await new Promise(r => setTimeout(r, 3200))
+    addMsg('assistant', "Here are three playable game variants tailored to your brief. Try them live — then tell me which style resonates with your brand.")
+    setStage('concepts')
   }
+
+  async function handleStyleSelect(styleId: string) {
+    if (selectedStyle) return
+    const style = STYLE_CARDS.find(s => s.id === styleId)!
+    setSelectedStyle(styleId)
+    addMsg('user', `I like the ${style.label} vibe`)
+    setStage('finalizing')
+    await new Promise(r => setTimeout(r, 1800))
+    addMsg('assistant', "Perfect. I've tuned Lead Rush to match your brand's voice and target audience. Here's your finalized game — ready to ship.")
+    setStage('done')
+  }
+
+  function handleReset() {
+    setStage('idle')
+    setMessages([])
+    setSelectedAge(null)
+    setCustomAge('')
+    setSelectedStyle(null)
+    setInputBusy(false)
+  }
+
+  const composerDisabled = inputBusy || stage !== 'idle'
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
-      {/* Messages */}
       <div
         ref={scrollRef}
         onScroll={handleScroll}
         className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6"
       >
-        {messages.length === 0 ? (
-          /* Empty state */
+        {/* ── Empty state ── */}
+        {stage === 'idle' && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center min-h-full py-12">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/25">
               {Icon.sparkles('w-6 h-6 text-white')}
@@ -623,20 +850,19 @@ function ChatScreen() {
             >
               Welcome to Pixie
             </h2>
-            <p className="text-gray-500 text-sm text-center mb-8 max-w-xs">
-              Describe your brand or campaign and I'll build a playable mini-game — ready to ship.
+            <p className="text-gray-500 text-sm text-center mb-8 max-w-xs leading-relaxed">
+              Describe your product or campaign and I'll build a playable mini-game — fully branded, ready to ship.
             </p>
-            {/* 2x2 pastel tiles */}
             <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
               {[
-                { icon: Icon.palette('w-5 h-5'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100' },
-                { icon: Icon.layers('w-5 h-5'), title: '3 concepts', desc: "I'll generate three game ideas", bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100' },
-                { icon: Icon.sparkles('w-5 h-5'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100' },
-                { icon: Icon.ship('w-5 h-5'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-100' },
+                { icon: Icon.palette('w-5 h-5'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', prompt: "I need to make a game for my product in lead management. Our brand is modern, bold, and targets sales teams who love fast-paced workflows." },
+                { icon: Icon.layers('w-5 h-5'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100', prompt: "Build three game concepts for a fintech app focused on expense tracking." },
+                { icon: Icon.sparkles('w-5 h-5'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100', prompt: "Make the game feel more competitive with leaderboards and time pressure." },
+                { icon: Icon.ship('w-5 h-5'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-100', prompt: "I want to finalize the runner game and get the embed code for our landing page." },
               ].map((t, i) => (
                 <button
                   key={i}
-                  onClick={() => sendMessage(`Tell me about the "${t.title}" step`)}
+                  onClick={() => handleBriefSend(t.prompt)}
                   className={`${t.bg} border ${t.border} rounded-2xl p-4 text-left hover:opacity-80 transition-opacity`}
                 >
                   <span className={t.text}>{t.icon}</span>
@@ -646,84 +872,138 @@ function ChatScreen() {
               ))}
             </div>
           </div>
-        ) : (
-          <div className="max-w-2xl mx-auto space-y-4">
-            {messages.map(msg => (
-              <div key={msg.id} className={`flex gap-3 animate-fade-in-up ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-                {msg.role === 'assistant' && (
-                  <div className="w-7 h-7 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center mt-0.5">
-                    <span className="text-xs font-bold text-gray-600">P</span>
-                  </div>
-                )}
-                <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-first' : ''}`}>
-                  {msg.type === 'concepts' ? (
-                    <div>
-                      <div className={`text-sm px-4 py-2.5 rounded-2xl mb-3 ${msg.role === 'assistant' ? 'bg-gray-100 text-gray-800 rounded-tl-sm' : 'bg-blue-500 text-white rounded-tr-sm'}`}>
-                        {msg.content}
-                      </div>
-                      <div className="flex gap-3 overflow-x-auto scrollbar-hide pb-2">
-                        {INITIAL_CONCEPTS.map(c => (
-                          <ConceptCard
-                            key={c.id}
-                            concept={c}
-                            onFinalize={handleFinalize}
-                            finalized={finalizedId === c.id}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  ) : msg.type === 'finalized' ? (
-                    <div>
-                      <div className="text-sm px-4 py-2.5 rounded-2xl rounded-tl-sm bg-gray-100 text-gray-800 mb-3">
-                        {msg.content.replace(/\*\*/g, '')}
-                      </div>
-                      {finalizedId && (
-                        <FinalizedCard concept={INITIAL_CONCEPTS.find(c => c.id === finalizedId)!} />
-                      )}
-                      {/* Banner */}
-                      <div className="mt-3 bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between gap-3">
-                        <p className="text-sm text-blue-700 font-medium">Ready to create another game?</p>
-                        <button className="text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-full transition-colors flex-shrink-0">
-                          Start new game
+        )}
+
+        {/* ── Message thread ── */}
+        {messages.length > 0 && (
+          <div className="max-w-2xl mx-auto space-y-5">
+            {messages.map(m => (
+              <TextBubble key={m.id} role={m.role} text={m.text} />
+            ))}
+
+            {/* ── Cooking animation ── */}
+            {stage === 'cooking' && (
+              <Bubble role="assistant">
+                <CookingAnimation label="Pixie is cooking your game…" />
+              </Bubble>
+            )}
+
+            {/* ── Age targeting cards ── */}
+            {(stage === 'targeting' || stage === 'hallucinating' || atConcepts) && (
+              <div className="animate-fade-in-up">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 ml-10">Target audience</p>
+                <div className="flex flex-wrap gap-2 ml-10">
+                  {AGE_GROUPS.map(age => (
+                    <button
+                      key={age}
+                      onClick={() => handleAgeSelect(age)}
+                      disabled={!!selectedAge}
+                      className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
+                        selectedAge === age
+                          ? 'bg-blue-500 text-white border-blue-500 shadow-sm shadow-blue-200'
+                          : selectedAge
+                          ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-default'
+                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                      }`}
+                    >
+                      {age}
+                    </button>
+                  ))}
+                  {!selectedAge && (
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        value={customAge}
+                        onChange={e => setCustomAge(e.target.value)}
+                        placeholder="Custom…"
+                        className="px-3 py-2 rounded-full text-sm border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 w-28 placeholder:text-gray-400"
+                        onKeyDown={e => e.key === 'Enter' && customAge.trim() && handleAgeSelect(customAge.trim())}
+                      />
+                      {customAge.trim() && (
+                        <button
+                          onClick={() => handleAgeSelect(customAge.trim())}
+                          className="px-3 py-2 rounded-full text-xs font-semibold bg-blue-500 text-white"
+                        >
+                          Set
                         </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className={`text-sm px-4 py-2.5 rounded-2xl ${
-                      msg.role === 'assistant'
-                        ? 'bg-gray-100 text-gray-800 rounded-tl-sm'
-                        : 'bg-blue-500 text-white rounded-tr-sm'
-                    }`}>
-                      {msg.content}
+                      )}
                     </div>
                   )}
                 </div>
-                {msg.role === 'user' && (
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center mt-0.5">
-                    <span className="text-xs font-bold text-white">J</span>
+              </div>
+            )}
+
+            {/* ── Hallucinating animation ── */}
+            {stage === 'hallucinating' && (
+              <Bubble role="assistant">
+                <HallucinatingAnimation />
+              </Bubble>
+            )}
+
+            {/* ── 3 game iframes + style cards ── */}
+            {atConcepts && (
+              <div className="animate-fade-in-up space-y-4">
+                {/* Iframes */}
+                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                  {GAME_PREVIEWS.map(g => (
+                    <GameIframeCard key={g.file} game={g} />
+                  ))}
+                </div>
+
+                {/* Style selection */}
+                {!selectedStyle && (
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Which style fits your brand?</p>
+                    <div className="grid grid-cols-3 gap-3">
+                      {STYLE_CARDS.map(s => (
+                        <button
+                          key={s.id}
+                          onClick={() => handleStyleSelect(s.id)}
+                          className={`${s.bg} border ${s.border} rounded-2xl p-4 text-left hover:opacity-80 transition-opacity`}
+                        >
+                          <span className="text-2xl">{s.icon}</span>
+                          <p className={`text-sm font-semibold ${s.text} mt-2 mb-1`}>{s.label}</p>
+                          <p className="text-xs text-gray-500 leading-snug">{s.desc}</p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {selectedStyle && (
+                  <div className="flex items-center gap-2">
+                    {(() => {
+                      const s = STYLE_CARDS.find(x => x.id === selectedStyle)!
+                      return (
+                        <span className={`text-xs font-semibold ${s.text} ${s.bg} border ${s.border} px-3 py-1.5 rounded-full`}>
+                          {s.icon} {s.label} selected
+                        </span>
+                      )
+                    })()}
                   </div>
                 )}
               </div>
-            ))}
-            {/* Typing indicator */}
-            {busy && (
-              <div className="flex gap-3 animate-fade-in-up">
-                <div className="w-7 h-7 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center">
-                  <span className="text-xs font-bold text-gray-600">P</span>
-                </div>
-                <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-1.5">
-                  <span className="typing-dot w-1.5 h-1.5 bg-gray-400 rounded-full block" />
-                  <span className="typing-dot w-1.5 h-1.5 bg-gray-400 rounded-full block" />
-                  <span className="typing-dot w-1.5 h-1.5 bg-gray-400 rounded-full block" />
-                  <span className="text-xs text-gray-400 ml-1">Pixie is thinking…</span>
-                </div>
-              </div>
             )}
+
+            {/* ── Finalizing spinner ── */}
+            {stage === 'finalizing' && (
+              <Bubble role="assistant">
+                <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
+                  <svg className="w-4 h-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span className="text-sm text-gray-600">Tuning your final game…</span>
+                </div>
+              </Bubble>
+            )}
+
+            {/* ── Final lead-rush card ── */}
+            {atDone && <FinalGameCard onReset={handleReset} />}
           </div>
         )}
       </div>
 
-      {/* Scroll-to-bottom button */}
+      {/* Scroll-to-bottom */}
       {showScrollBtn && (
         <button
           onClick={() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })}
@@ -735,16 +1015,10 @@ function ChatScreen() {
 
       {/* Composer */}
       <div className="border-t border-gray-100 bg-white px-4 md:px-8 py-4">
-        {/* Quick pills */}
-        {hasGames && (
-          <div className="flex gap-2 flex-wrap mb-3">
+        {atConcepts && !atDone && (
+          <div className="max-w-2xl mx-auto flex gap-2 flex-wrap mb-3">
             {QUICK_PILLS.map(p => (
-              <button
-                key={p}
-                onClick={() => sendMessage(p)}
-                disabled={busy}
-                className="text-xs font-medium border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600 px-3 py-1 rounded-full transition-colors disabled:opacity-40"
-              >
+              <button key={p} className="text-xs font-medium border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600 px-3 py-1 rounded-full transition-colors">
                 {p}
               </button>
             ))}
@@ -752,20 +1026,19 @@ function ChatScreen() {
         )}
         <div className="max-w-2xl mx-auto flex gap-2">
           <input
-            ref={inputRef}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage(input)}
-            placeholder="Message Pixie…"
-            disabled={busy}
-            className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 disabled:opacity-50"
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleBriefSend(input)}
+            placeholder={stage === 'idle' ? 'Describe your product or campaign…' : 'Message Pixie…'}
+            disabled={composerDisabled}
+            className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 disabled:opacity-40"
           />
           <button
-            onClick={() => sendMessage(input)}
-            disabled={busy || !input.trim()}
+            onClick={() => handleBriefSend(input)}
+            disabled={composerDisabled || !input.trim()}
             className="w-10 h-10 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
           >
-            {busy ? (
+            {inputBusy ? (
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" />
