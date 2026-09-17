@@ -1,1 +1,10 @@
-{}
+{
+  "description": "Transforms brand briefs into playable mini-games through a conversational chat interface enabling marketers to create, iterate, and finalize engaging campaigns.",
+  "robots": {
+    "index": false
+  },
+  "accessibility": {
+    "addBypassLinks": false,
+    "ignoreReducedMotion": false
+  }
+}
