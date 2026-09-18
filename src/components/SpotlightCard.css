@@ -1,0 +1,30 @@
+/*
+ * Adapted from React Bits' SpotlightCard: the original hardcodes its own
+ * dark background/border/padding, which we don't want since it's layered
+ * on top of this app's existing light cards. Only the mouse-follow glow
+ * mechanic is kept; layout/appearance stays controlled by the wrapped
+ * component's own classes.
+ */
+.card-spotlight {
+  position: relative;
+  overflow: hidden;
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+  --spotlight-color: rgba(255, 255, 255, 0.05);
+}
+
+.card-spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle at var(--mouse-x) var(--mouse-y), var(--spotlight-color), transparent 80%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  pointer-events: none;
+}
+
+.card-spotlight:hover::before,
+.card-spotlight:focus-within::before {
+  opacity: 1;
+}

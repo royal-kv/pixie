@@ -1,25 +1,242 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 @import 'tailwindcss';
 
+@custom-variant dark (&:is(.dark *));
+
+/**
+ * tweakcn theme tokens
+ * ====================
+ * Color, radius, and shadow tokens from the requested theme. --font-sans/
+ * --font-serif/--font-mono are intentionally omitted here — this app keeps
+ * its own Montserrat/Nunito pairing (set below) from an earlier, separate
+ * request, since the theme's own font stack would silently override it.
+ */
+:root {
+  --background: rgb(251, 251, 251);
+  --foreground: rgb(40, 40, 45);
+  --card: rgb(255, 255, 255);
+  --card-foreground: rgb(40, 40, 45);
+  --popover: rgb(255, 255, 255);
+  --popover-foreground: rgb(40, 40, 45);
+  --primary: rgb(88, 101, 242);
+  --primary-foreground: rgb(255, 255, 255);
+  --secondary: rgb(242, 242, 243);
+  --secondary-foreground: rgb(40, 40, 45);
+  --muted: rgb(246, 246, 246);
+  --muted-foreground: rgb(108, 109, 118);
+  --accent: rgb(238, 238, 240);
+  --accent-foreground: rgb(40, 40, 45);
+  --destructive: rgb(185, 39, 51);
+  --destructive-foreground: rgb(255, 255, 255);
+  --border: rgb(223, 223, 225);
+  --input: rgb(242, 242, 243);
+  --ring: rgb(88, 101, 242);
+  --chart-1: rgb(245, 163, 209);
+  --chart-2: rgb(245, 209, 138);
+  --chart-3: rgb(163, 245, 209);
+  --chart-4: rgb(163, 209, 245);
+  --chart-5: rgb(209, 163, 245);
+  --sidebar: rgb(243, 243, 244);
+  --sidebar-foreground: rgb(102, 103, 112);
+  --sidebar-primary: rgb(221, 221, 224);
+  --sidebar-primary-foreground: rgb(40, 40, 45);
+  --sidebar-accent: rgb(231, 231, 233);
+  --sidebar-accent-foreground: rgb(40, 40, 45);
+  --sidebar-border: rgb(217, 217, 220);
+  --sidebar-ring: rgb(0, 176, 244);
+  --radius: 0.625rem;
+  --shadow-x: 0;
+  --shadow-y: 1px;
+  --shadow-blur: 3px;
+  --shadow-spread: 0px;
+  --shadow-opacity: 0.1;
+  --shadow-color: oklch(0 0 0);
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --tracking-normal: 0em;
+}
+
+.dark {
+  --background: rgb(50, 51, 57);
+  --foreground: rgb(255, 255, 255);
+  --card: rgb(57, 58, 65);
+  --card-foreground: rgb(255, 255, 255);
+  --popover: rgb(57, 58, 65);
+  --popover-foreground: rgb(255, 255, 255);
+  --primary: rgb(88, 101, 242);
+  --primary-foreground: rgb(255, 255, 255);
+  --secondary: rgb(65, 65, 72);
+  --secondary-foreground: rgb(255, 255, 255);
+  --muted: rgb(46, 47, 53);
+  --muted-foreground: rgb(164, 165, 171);
+  --accent: rgb(72, 73, 81);
+  --accent-foreground: rgb(255, 255, 255);
+  --destructive: rgb(255, 160, 155);
+  --destructive-foreground: rgb(255, 255, 255);
+  --border: rgb(62, 63, 69);
+  --input: rgb(46, 47, 53);
+  --ring: rgb(88, 101, 242);
+  --chart-1: rgb(245, 163, 209);
+  --chart-2: rgb(245, 209, 138);
+  --chart-3: rgb(163, 245, 209);
+  --chart-4: rgb(163, 209, 245);
+  --chart-5: rgb(209, 163, 245);
+  --sidebar: rgb(44, 45, 50);
+  --sidebar-foreground: rgb(153, 154, 161);
+  --sidebar-primary: rgb(65, 66, 72);
+  --sidebar-primary-foreground: rgb(255, 255, 255);
+  --sidebar-accent: rgb(53, 53, 58);
+  --sidebar-accent-foreground: rgb(255, 255, 255);
+  --sidebar-border: rgb(57, 58, 63);
+  --sidebar-ring: rgb(0, 176, 244);
+  --radius: 0.625rem;
+  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
+  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
+  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
+  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
+  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
+  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --shadow-2xs: var(--shadow-2xs);
+  --shadow-xs: var(--shadow-xs);
+  --shadow-sm: var(--shadow-sm);
+  --shadow: var(--shadow);
+  --shadow-md: var(--shadow-md);
+  --shadow-lg: var(--shadow-lg);
+  --shadow-xl: var(--shadow-xl);
+  --shadow-2xl: var(--shadow-2xl);
+}
+
+/**
+ * Design tokens
+ * =============
+ * Single source of truth for type, weight, and one-off colors. Everything
+ * else (spacing, neutral grays, radius, shadows) already uses Tailwind's
+ * own default scale consistently across the app, so it isn't redefined
+ * here — see the component-level convention notes below each group.
+ */
 @theme {
-  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
-  --color-brand: #3B82F6;
-  --color-brand-light: #EFF6FF;
-  --color-mint: #16A34A;
-  --color-mint-light: #F0FDF4;
-  --color-purple: #A855F7;
-  --color-purple-light: #FAF5FF;
-  --color-peach: #F97316;
-  --color-peach-light: #FFF7ED;
+  /* Font pairing — Montserrat for headings (h1–h6), Nunito for everything
+     else (body copy, UI chrome, buttons). Loaded via the <link> tags in
+     index.html. */
+  --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  --font-heading: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+
+  /* Type scale — 70% smaller than the previous 32px-base pass (now ~9.6px
+     base), ~1.25 modular ratio. Headings (xl and up) get a tighter
+     line-height (~1.1–1.4); body copy (lg and below) gets a looser one
+     (~1.5–1.6). */
+  --text-xs: 0.95rem;    /* ~15.2px */
+  --text-xs--line-height: 1.5;
+  --text-sm: 1.1rem;     /* ~17.6px */
+  --text-sm--line-height: 1.5;
+  --text-base: 1.26rem;  /* ~20.2px */
+  --text-base--line-height: 1.6;
+  --text-lg: 1.42rem;    /* ~22.7px */
+  --text-lg--line-height: 1.6;
+  --text-xl: 1.57rem;    /* ~25.1px */
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.89rem;   /* ~30.2px */
+  --text-2xl--line-height: 1.3;
+  --text-3xl: 2.36rem;   /* ~37.8px */
+  --text-3xl--line-height: 1.25;
+  --text-4xl: 2.83rem;   /* ~45.3px */
+  --text-4xl--line-height: 1.2;
+  --text-5xl: 3.78rem;   /* ~60.5px */
+  --text-5xl--line-height: 1.1;
+
+  /* Font weights — 400 body, 500/600 subheadings & labels, 700 headings.
+     font-extrabold/font-black are not part of this scale. */
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /*
+   * Color roles (documented convention, not new class names — the app
+   * already uses these exact Tailwind hues consistently):
+   *   primary   → blue    (bg-blue-500 / text-blue-600, CTAs, links, focus rings)
+   *   secondary → purple  (bg-purple-50 / text-purple-600, accents)
+   *   neutral   → gray    (Tailwind's built-in 50–950 scale, all chrome/text)
+   *   success   → green   (bg-green-50 / text-green-600)
+   *   warning   → orange  (bg-orange-50 / text-orange-500/600)
+   *   error     → red     (Tailwind's red-50/600 — reserved for when a
+   *                         destructive/error state is added; unused today)
+   *
+   * Spacing uses Tailwind's default 4px scale (space-1..space-16) directly.
+   * Radius: rounded-lg (ghost icon buttons) / rounded-xl (icon badges, nav
+   * rows, inputs) / rounded-2xl (cards, panels, modals) / rounded-full
+   * (pills, avatars, circular controls).
+   * Shadows: shadow-sm (resting cards) / shadow-md (hover/raised, floating
+   * buttons) / shadow-xl (modals).
+   */
+
+  /* One-off bespoke colors — each used by exactly one decorative component,
+     named here instead of left as inline/arbitrary hex. */
+  --color-ink: #06070e;              /* login screen hero backdrop */
+  --color-terminal-bg: #07071a;      /* "hallucinating" console background */
+  --color-terminal-accent: #00ff9c;  /* "hallucinating" console text/border */
+  --color-terminal-dim: #5566aa;     /* "hallucinating" console dim text */
 }
 
-* {
-  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
-}
-
-body {
-  background: #fff;
-  color: #0f172a;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+    font-family: 'Nunito', ui-sans-serif, system-ui, sans-serif;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
 
 /* Hide scrollbars until hover */
@@ -29,23 +246,6 @@ body {
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
-}
-
-/* Aurora glow animation */
-@keyframes aurora {
-  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); opacity: 0.6; }
-  33% { transform: translate(-50%, -50%) scale(1.1) rotate(120deg); opacity: 0.8; }
-  66% { transform: translate(-50%, -50%) scale(0.95) rotate(240deg); opacity: 0.5; }
-}
-
-@keyframes aurora2 {
-  0%, 100% { transform: translate(-50%, -50%) scale(1.2) rotate(60deg); opacity: 0.4; }
-  50% { transform: translate(-50%, -50%) scale(0.9) rotate(180deg); opacity: 0.7; }
-}
-
-@keyframes spotlight {
-  0%, 100% { opacity: 0.15; transform: translate(-50%, -60%) scale(1); }
-  50% { opacity: 0.25; transform: translate(-50%, -55%) scale(1.05); }
 }
 
 @keyframes typing {
@@ -58,10 +258,25 @@ body {
   to { opacity: 1; transform: translateY(0); }
 }
 
-.animate-aurora { animation: aurora 8s ease-in-out infinite; }
-.animate-aurora2 { animation: aurora2 10s ease-in-out infinite; }
-.animate-spotlight { animation: spotlight 6s ease-in-out infinite; }
 .animate-fade-in-up { animation: fadeInUp 0.3s ease-out forwards; }
+
+/* Rise + blur-to-focus entrance, staggered per item via --rise-delay. */
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+  to { opacity: 1; transform: translateY(0); filter: blur(0px); }
+}
+
+.animate-rise-in {
+  animation: riseIn 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--rise-delay, 0s);
+}
+
+.hover-lift {
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: scale(0.97);
+}
 
 @keyframes cookSpark {
   0%, 100% { opacity: 0.2; transform: translate(-50%, -50%) scale(0.8); }

@@ -1,9 +1,35 @@
 import React, { useState, useRef, useEffect } from 'react'
+import DriftWall from './components/DriftWall'
+import MaskedHeading from './components/MaskedHeading'
+import SpotlightCard from './components/SpotlightCard'
+import { BorderBeam } from './components/BorderBeam'
+import ShinyText from './components/ShinyText'
+import GlareHover from './components/GlareHover'
+import TextType from './components/TextType'
+import SplitText from './components/SplitText'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type Screen = 'login' | 'home' | 'create'
-type NavItem = 'home' | 'create'
+type Screen = 'login' | 'splash' | 'home' | 'create'
+type NavItem = 'home' | 'create' | 'games'
+
+interface LeaderboardEntry {
+  rank: number
+  name: string
+  score: number
+}
+
+interface CreatedGame {
+  id: string
+  file: string
+  title: string
+  genre: string
+  topScore: number
+  peopleEngaged: number
+  avgSessionSec: number
+  leaderboard: LeaderboardEntry[]
+  dailyPlays: number[]
+}
 
 interface Campaign {
   id: string
@@ -14,21 +40,6 @@ interface Campaign {
   updatedAt: string
 }
 
-interface Message {
-  id: string
-  role: 'assistant' | 'user'
-  content: string
-  type?: 'text' | 'concepts' | 'finalized'
-}
-
-interface Concept {
-  id: string
-  title: string
-  genre: string
-  pitch: string
-  color: string
-}
-
 // ─── Data ────────────────────────────────────────────────────────────────────
 
 const CAMPAIGNS: Campaign[] = [
@@ -36,13 +47,15 @@ const CAMPAIGNS: Campaign[] = [
   { id: '2', name: 'Brew & Explore — Starbucks', brand: 'Starbucks', status: 'Finalized', games: 1, updatedAt: 'Sep 11' },
   { id: '3', name: 'Bold Moves — Adidas', brand: 'Adidas', status: 'Draft', games: 2, updatedAt: 'Sep 9' },
   { id: '4', name: 'Fresh Vibes — Glossier', brand: 'Glossier', status: 'Active', games: 1, updatedAt: 'Sep 6' },
+  { id: '5', name: 'Level Up — Spotify', brand: 'Spotify', status: 'Active', games: 2, updatedAt: 'Sep 4' },
+  { id: '6', name: 'Rush Hour — DoorDash', brand: 'DoorDash', status: 'Finalized', games: 1, updatedAt: 'Sep 2' },
+  { id: '7', name: 'Cloud Nine — Airbnb', brand: 'Airbnb', status: 'Draft', games: 1, updatedAt: 'Aug 29' },
+  { id: '8', name: 'Fast Lane — Uber', brand: 'Uber', status: 'Active', games: 2, updatedAt: 'Aug 26' },
 ]
 
-const INITIAL_CONCEPTS: Concept[] = [
-  { id: 'c1', title: 'Sprint Galaxy', genre: 'Endless Runner', pitch: 'Players dash through neon cities collecting brand tokens — fast, frictionless, shareable scores.', color: '#3B82F6' },
-  { id: 'c2', title: 'Brand Blitz', genre: 'Trivia Blitz', pitch: 'A 60-second quiz that tests brand affinity with escalating rewards, great for email campaigns.', color: '#A855F7' },
-  { id: 'c3', title: 'Drop Zone', genre: 'Puzzle Drop', pitch: 'Tetris-inspired drop game where branded pieces unlock discount codes — high replay, low friction.', color: '#16A34A' },
-]
+const LANDING_WALL_ITEMS = [1074, 1080, 1084, 1050, 1069, 1039, 1043, 1044, 1062, 1015, 1025, 1010].map(id => ({
+  image: `https://picsum.photos/id/${id}/600/400`,
+}))
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 
@@ -89,6 +102,16 @@ const Icon = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
     </svg>
   ),
+  play: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="currentColor" viewBox="0 0 24 24">
+      <path d="M8 5.14v13.72a1 1 0 0 0 1.5.87l11.5-6.86a1 1 0 0 0 0-1.72L9.5 4.27a1 1 0 0 0-1.5.87Z" />
+    </svg>
+  ),
+  close: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+    </svg>
+  ),
   trophy: (cls = 'w-4 h-4') => (
     <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" />
@@ -107,6 +130,11 @@ const Icon = {
   arrowDown: (cls = 'w-4 h-4') => (
     <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 13.5 12 21m0 0-7.5-7.5M12 21V3" />
+    </svg>
+  ),
+  arrowLeft: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
     </svg>
   ),
   gamepad: (cls = 'w-5 h-5') => (
@@ -136,16 +164,42 @@ const Icon = {
   ),
 }
 
+// ─── Brand mark ───────────────────────────────────────────────────────────────
+// A four-point sparkle glyph — the Pixie logo. Solid currentColor fill so it
+// drops into the same colored/gradient badge boxes used across the app (swap
+// via text-color utilities), and doubles as a low-opacity watermark on plain
+// backgrounds.
+function PixieMark({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M9 1 L10.3 7.7 L17 9 L10.3 10.3 L9 17 L7.7 10.3 L1 9 L7.7 7.7 Z" />
+      <path d="M18 14 L18.6 17.4 L22 18 L18.6 18.6 L18 22 L17.4 18.6 L14 18 L17.4 17.4 Z" />
+    </svg>
+  )
+}
+
+// Standard 4-color "G" mark used on "Continue with Google" buttons.
+function GoogleIcon({ className = 'w-4 h-4' }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24">
+      <path fill="#4285F4" d="M23.52 12.27c0-.85-.08-1.67-.22-2.45H12v4.64h6.47a5.54 5.54 0 0 1-2.4 3.63v3h3.88c2.27-2.09 3.57-5.17 3.57-8.82Z" />
+      <path fill="#34A853" d="M12 24c3.24 0 5.96-1.07 7.95-2.91l-3.88-3c-1.08.72-2.46 1.15-4.07 1.15-3.13 0-5.78-2.11-6.73-4.95H1.27v3.1A12 12 0 0 0 12 24Z" />
+      <path fill="#FBBC05" d="M5.27 14.29a7.2 7.2 0 0 1 0-4.58v-3.1H1.27a12 12 0 0 0 0 10.78l4-3.1Z" />
+      <path fill="#EA4335" d="M12 4.75c1.76 0 3.34.61 4.58 1.8l3.44-3.44C17.95 1.19 15.24 0 12 0A12 12 0 0 0 1.27 6.61l4 3.1C6.22 6.86 8.87 4.75 12 4.75Z" />
+    </svg>
+  )
+}
+
 // ─── Status pill ──────────────────────────────────────────────────────────────
 
 function StatusPill({ status }: { status: Campaign['status'] }) {
   const map: Record<Campaign['status'], string> = {
-    Draft: 'bg-gray-100 text-gray-600',
-    Active: 'bg-blue-50 text-blue-600',
+    Draft: 'bg-secondary text-muted-foreground',
+    Active: 'bg-primary/10 text-primary',
     Finalized: 'bg-green-50 text-green-700',
   }
   return (
-    <span className={`text-xs font-medium px-2.5 py-1 rounded-full ${map[status]}`}>
+    <span className={`text-xs font-medium px-3 py-1 rounded-full ${map[status]}`}>
       {status}
     </span>
   )
@@ -158,88 +212,111 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('')
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left — dark hero */}
-      <div className="hidden lg:flex lg:w-1/2 relative bg-[#06070e] overflow-hidden flex-col items-center justify-center p-12">
-        {/* Aurora blobs */}
-        <div
-          className="animate-aurora absolute top-1/2 left-1/2 w-[600px] h-[600px] rounded-full"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.35) 0%, rgba(139,92,246,0.15) 50%, transparent 70%)', transform: 'translate(-50%,-50%)' }}
+    <div className="min-h-screen relative overflow-hidden bg-ink flex items-center justify-center p-6">
+      {/* Drifting photo wall backdrop */}
+      <div className="absolute inset-0">
+        <DriftWall
+          items={LANDING_WALL_ITEMS}
+          columns={7}
+          tileWidth={180}
+          tileHeight={120}
+          gap={14}
+          speed={30}
+          direction="up"
+          variance={0.4}
+          parallax={0.4}
+          dim={0.45}
+          fade={0.7}
+          overlayColor="#06070e"
         />
-        <div
-          className="animate-aurora2 absolute top-1/2 left-1/2 w-[400px] h-[400px] rounded-full"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(59,130,246,0.2) 0%, rgba(16,164,74,0.1) 60%, transparent 80%)', transform: 'translate(-50%,-50%)' }}
-        />
-        {/* Spotlight */}
-        <div
-          className="animate-spotlight absolute top-0 left-1/2 w-[300px] h-[500px]"
-          style={{ background: 'radial-gradient(ellipse at 50% 0%, rgba(59,130,246,0.25) 0%, transparent 70%)', transform: 'translateX(-50%)' }}
-        />
-        {/* Content */}
-        <div className="relative z-10 text-center max-w-sm">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-500 text-white text-2xl font-bold mb-6 shadow-lg shadow-blue-500/30">
-            P
-          </div>
-          <p className="text-blue-400 text-xs font-semibold tracking-[0.2em] uppercase mb-3">AI Game Studio</p>
-          <h1 className="text-4xl font-extrabold text-white leading-tight mb-4">
-            Turn briefs into<br />
-            <span className="text-blue-400">playable games.</span>
-          </h1>
-          <p className="text-gray-400 text-sm leading-relaxed">
-            Chat your way from brand brief to shipped mini-game — no dev required.
-          </p>
-        </div>
-        {/* Disclaimer */}
-        <p className="absolute bottom-6 text-gray-600 text-xs text-center px-8">
-          Pixie is in beta. Game output may vary. Not for production use without review.
-        </p>
       </div>
+      {/* Scrim for text legibility */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(6,7,14,0.92) 0%, rgba(6,7,14,0.55) 55%, rgba(6,7,14,0.25) 100%)' }}
+      />
 
-      {/* Right — form */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-sm">
-          {/* Mobile logo */}
-          <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-8 h-8 rounded-xl bg-blue-500 text-white text-sm font-bold flex items-center justify-center">P</div>
-            <span className="font-bold text-gray-900">Pixie</span>
-          </div>
+      {/* Content */}
+      <div className="relative z-10 w-full max-w-md text-center">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-white mb-5 shadow-lg shadow-blue-500/25">
+          <PixieMark className="w-7 h-7" />
+        </div>
+        <p className="text-primary text-xs font-semibold tracking-[0.2em] uppercase mb-2">AI Game Studio</p>
 
-          <h2 className="text-2xl font-bold text-gray-900 mb-1">Sign in</h2>
-          <p className="text-gray-500 text-sm mb-8">Welcome back to your game studio.</p>
+        <div className="h-44 mb-2">
+          <MaskedHeading
+            text="Pixie"
+            tag="h1"
+            src="https://picsum.photos/id/1039/1200/500"
+            textScale={0.37}
+            weight={700}
+            reveal="rise"
+            trigger="mount"
+            className="text-white"
+          />
+        </div>
 
-          <form onSubmit={(e) => { e.preventDefault(); onLogin() }} className="space-y-4">
+        <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+          Chat your way from brand brief to shipped mini-game — no dev required.
+        </p>
+
+        {/* Sign-in card */}
+        <div className="bg-card/10 backdrop-blur-md border border-white/15 rounded-2xl p-8 text-left shadow-xl animate-rise-in">
+          <h2 className="text-lg font-bold text-white mb-1">Sign in</h2>
+          <p className="text-gray-400 text-sm mb-5">Welcome back to your game studio.</p>
+
+          <form onSubmit={(e) => { e.preventDefault(); onLogin() }} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Email</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@brand.com"
-                className="w-full px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
+                className="w-full px-4 py-3 rounded-full border border-white/15 bg-card/5 text-white text-sm outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Password</label>
+              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400"
+                className="w-full px-4 py-3 rounded-full border border-white/15 bg-card/5 text-white text-sm outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground"
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2.5 rounded-full text-sm transition-colors mt-2"
+              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-full text-sm transition-colors mt-1"
             >
               Sign in to Pixie
             </button>
           </form>
-          <p className="mt-6 text-center text-sm text-gray-400">
+
+          <div className="flex items-center gap-3 my-4">
+            <div className="flex-1 h-px bg-card/10" />
+            <span className="text-xs text-muted-foreground">or continue with</span>
+            <div className="flex-1 h-px bg-card/10" />
+          </div>
+
+          <button
+            onClick={onLogin}
+            className="w-full flex items-center justify-center gap-2 bg-card hover:bg-secondary text-foreground font-semibold py-3 rounded-full text-sm transition-colors"
+          >
+            <GoogleIcon className="w-4 h-4" />
+            Continue with Google
+          </button>
+
+          <p className="mt-5 text-center text-sm text-gray-400">
             Don't have an account?{' '}
-            <button className="text-blue-500 font-medium hover:underline">Request access</button>
+            <button className="text-primary font-medium hover:underline">Request access</button>
           </p>
         </div>
+
+        <p className="mt-6 text-muted-foreground text-xs text-center px-8">
+          Pixie is in beta. Game output may vary. Not for production use without review.
+        </p>
       </div>
     </div>
   )
@@ -262,84 +339,156 @@ function Sidebar({
   campaigns: Campaign[]
   onCampaignClick: (id: string) => void
 }) {
+  const [hoveredNav, setHoveredNav] = useState<NavItem | null>(null)
+
   return (
     <aside
       className={`
         fixed lg:static inset-y-0 left-0 z-40 flex flex-col
-        w-[300px] bg-white border-r border-gray-100
+        w-[360px] bg-sidebar text-sidebar-foreground border-r border-sidebar-border
         transition-transform duration-200
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
     >
       {/* Logo */}
-      <div className="flex items-center gap-2.5 px-5 py-5 border-b border-gray-100">
-        <div className="w-8 h-8 rounded-xl bg-blue-500 text-white text-sm font-bold flex items-center justify-center flex-shrink-0">P</div>
-        <span className="font-bold text-gray-900">Pixie</span>
-        <span className="ml-auto text-[10px] font-semibold tracking-widest text-blue-400 uppercase bg-blue-50 px-2 py-0.5 rounded-full">Beta</span>
+      <div className="flex items-center gap-3 px-6 py-6 border-b border-border">
+        <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center flex-shrink-0">
+          <PixieMark className="w-4 h-4" />
+        </div>
+        <span className="text-lg font-bold text-foreground">Pixie</span>
+        <span className="ml-auto text-xs font-semibold tracking-widest text-blue-400 uppercase bg-primary/10 px-3 py-1.5 rounded-full">Beta</span>
       </div>
 
       {/* Search */}
-      <div className="px-4 py-3">
-        <div className="flex items-center gap-2 bg-gray-50 rounded-full px-3 py-2">
+      <div className="px-5 py-4">
+        <div className="flex items-center gap-2 bg-muted rounded-full px-4 py-3">
           {Icon.search('w-3.5 h-3.5 text-gray-400 flex-shrink-0')}
           <input
             placeholder="Search campaigns…"
-            className="bg-transparent text-sm outline-none text-gray-700 placeholder:text-gray-400 w-full"
+            className="bg-transparent text-sm outline-none text-foreground placeholder:text-muted-foreground w-full"
           />
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="px-3 space-y-0.5">
-        {([
-          ['home', 'Home', Icon.home],
-          ['create', 'Create game', Icon.sparkles],
-        ] as [NavItem, string, (c?: string) => React.ReactElement][]).map(([id, label, IconFn]) => (
-          <button
-            key={id}
-            onClick={() => onNav(id)}
-            className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors ${
-              nav === id
-                ? 'bg-blue-50 text-blue-600'
-                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-            }`}
-          >
-            {IconFn('w-4 h-4')}
-            {label}
-          </button>
-        ))}
+      <nav className="px-4 space-y-2">
+        <GlareHover
+          width="100%"
+          height="auto"
+          background="transparent"
+          borderColor="transparent"
+          borderRadius="0.75rem"
+          glareColor="#5865F2"
+          glareOpacity={0.35}
+          glareAngle={-30}
+          glareSize={300}
+          transitionDuration={700}
+          forceActive={hoveredNav === 'home'}
+        >
+        <button
+          onClick={() => onNav('home')}
+          onMouseEnter={() => setHoveredNav('home')}
+          onMouseLeave={() => setHoveredNav(null)}
+          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+            nav === 'home'
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}
+          style={{ '--rise-delay': '0s' } as React.CSSProperties}
+        >
+          {Icon.home('w-5 h-5')}
+          Home
+        </button>
+        </GlareHover>
+        <GlareHover
+          width="100%"
+          height="auto"
+          background="transparent"
+          borderColor="transparent"
+          borderRadius="0.75rem"
+          glareColor="#5865F2"
+          glareOpacity={0.35}
+          glareAngle={-30}
+          glareSize={300}
+          transitionDuration={700}
+          forceActive={hoveredNav === 'create'}
+        >
+        <button
+          onClick={() => onNav('create')}
+          onMouseEnter={() => setHoveredNav('create')}
+          onMouseLeave={() => setHoveredNav(null)}
+          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+            nav === 'create'
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}
+          style={{ '--rise-delay': '0.05s' } as React.CSSProperties}
+        >
+          {Icon.sparkles('w-5 h-5')}
+          Create game
+        </button>
+        </GlareHover>
+        <GlareHover
+          width="100%"
+          height="auto"
+          background="transparent"
+          borderColor="transparent"
+          borderRadius="0.75rem"
+          glareColor="#5865F2"
+          glareOpacity={0.35}
+          glareAngle={-30}
+          glareSize={300}
+          transitionDuration={700}
+          forceActive={hoveredNav === 'games'}
+        >
+        <button
+          onClick={() => onNav('games')}
+          onMouseEnter={() => setHoveredNav('games')}
+          onMouseLeave={() => setHoveredNav(null)}
+          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+            nav === 'games'
+              ? 'bg-primary/10 text-primary'
+              : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          }`}
+          style={{ '--rise-delay': '0.1s' } as React.CSSProperties}
+        >
+          {Icon.gamepad('w-5 h-5')}
+          Created games
+        </button>
+        </GlareHover>
       </nav>
 
       {/* Recent campaigns */}
-      <div className="mt-6 px-4 flex-1 overflow-y-auto scrollbar-hide">
-        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-2 px-1">Recent campaigns</p>
-        <div className="space-y-0.5">
-          {campaigns.map(c => (
+      <div className="mt-6 px-5 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3 px-1">Recent campaigns</p>
+        <div className="space-y-2">
+          {campaigns.map((c, i) => (
             <button
               key={c.id}
               onClick={() => onCampaignClick(c.id)}
-              className="w-full text-left px-3 py-2 rounded-xl hover:bg-gray-50 transition-colors group"
+              style={{ '--rise-delay': `${0.15 + i * 0.05}s` } as React.CSSProperties}
+              className="w-full text-left px-4 py-3 rounded-xl hover:bg-muted transition-colors group animate-rise-in hover-lift"
             >
-              <p className="text-sm font-medium text-gray-800 group-hover:text-gray-900 truncate">{c.name}</p>
-              <p className="text-xs text-gray-400 mt-0.5">{c.games} game{c.games !== 1 ? 's' : ''} · {c.updatedAt}</p>
+              <p className="text-sm font-medium text-foreground group-hover:text-foreground truncate">{c.name}</p>
+              <p className="text-xs text-muted-foreground mt-1">{c.games} game{c.games !== 1 ? 's' : ''} · {c.updatedAt}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-gray-100">
-        <div className="flex items-center gap-2.5">
+      <div className="p-5 border-t border-border">
+        <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
             JD
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-800 truncate">jamie@brandco.io</p>
+            <p className="text-sm font-medium text-foreground truncate">jamie@brandco.io</p>
           </div>
           <button
             onClick={onSignOut}
             title="Sign out"
-            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            className="p-2.5 rounded-lg text-gray-400 hover:text-muted-foreground hover:bg-secondary transition-colors"
           >
             {Icon.logout('w-3.5 h-3.5')}
           </button>
@@ -351,17 +500,45 @@ function Sidebar({
 
 // ─── Top Bar ──────────────────────────────────────────────────────────────────
 
-function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void }) {
+interface TopBarInfo {
+  title: string
+  subtitle: string
+  icon: (cls?: string) => React.ReactElement
+  iconBg: string
+  iconColor: string
+}
+
+function TopBar({ info, onMenuClick }: { info: TopBarInfo; onMenuClick: () => void }) {
   return (
-    <header className="flex items-center gap-3 px-5 py-3.5 border-b border-gray-100 bg-white/80 backdrop-blur-sm sticky top-0 z-30">
+    <header className="flex items-center gap-3 px-6 py-4 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-30">
       <button
         onClick={onMenuClick}
-        className="lg:hidden p-1.5 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
+        className="lg:hidden p-2 rounded-lg text-muted-foreground hover:bg-secondary transition-colors flex-shrink-0"
       >
         {Icon.menu('w-4 h-4')}
       </button>
-      <div className="hidden lg:block w-px h-4 bg-gray-200" />
-      <h2 className="text-sm font-semibold text-gray-800">{title}</h2>
+      <div className="hidden lg:block w-px h-4 bg-gray-200 flex-shrink-0" />
+      <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${info.iconBg}`}>
+        {info.icon(`w-4 h-4 ${info.iconColor}`)}
+      </div>
+      <div className="min-w-0">
+        <SplitText
+          key={info.title}
+          text={info.title}
+          tag="h2"
+          className="text-base font-semibold text-foreground leading-tight truncate"
+          textAlign="left"
+          splitType="chars"
+          from={{ opacity: 0, y: 14 }}
+          to={{ opacity: 1, y: 0 }}
+          duration={0.45}
+          delay={18}
+          ease="power3.out"
+          threshold={0}
+          rootMargin="0px"
+        />
+        <p className="hidden sm:block text-xs text-muted-foreground truncate">{info.subtitle}</p>
+      </div>
     </header>
   )
 }
@@ -370,20 +547,20 @@ function TopBar({ title, onMenuClick }: { title: string; onMenuClick: () => void
 
 function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame: () => void }) {
   const stats = [
-    { icon: Icon.layers('w-5 h-5 text-blue-500'), value: campaigns.length, label: 'Campaigns', bg: 'bg-blue-50' },
-    { icon: Icon.gamepad('w-5 h-5 text-purple-500'), value: campaigns.reduce((a, c) => a + c.games, 0), label: 'Games built', bg: 'bg-purple-50' },
-    { icon: Icon.bolt('w-5 h-5 text-peach-500 text-[#F97316]'), value: '1,284', label: 'Events logged', bg: 'bg-orange-50' },
-    { icon: Icon.trophy('w-5 h-5 text-[#16A34A]'), value: campaigns.filter(c => c.status === 'Finalized').length, label: 'Finalized', bg: 'bg-green-50' },
+    { icon: Icon.layers('w-6 h-6 text-primary'), value: campaigns.length, label: 'Campaigns', bg: 'bg-primary/10' },
+    { icon: Icon.gamepad('w-6 h-6 text-purple-500'), value: campaigns.reduce((a, c) => a + c.games, 0), label: 'Games built', bg: 'bg-purple-50' },
+    { icon: Icon.bolt('w-6 h-6 text-orange-500'), value: '1,284', label: 'Events logged', bg: 'bg-orange-50' },
+    { icon: Icon.trophy('w-6 h-6 text-green-600'), value: campaigns.filter(c => c.status === 'Finalized').length, label: 'Finalized', bg: 'bg-green-50' },
   ]
 
   return (
-    <div className="flex-1 p-6 overflow-y-auto scrollbar-hide">
+    <div className="flex-1 p-8 overflow-y-auto scrollbar-hide">
       {/* Heading */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-xl font-bold text-gray-900">Overview</h1>
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-xl font-bold text-foreground">Overview</h1>
         <button
           onClick={onNewGame}
-          className="flex items-center gap-1.5 bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold px-4 py-2 rounded-full transition-colors"
+          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-6 py-3 rounded-full transition-colors"
         >
           {Icon.plus('w-3.5 h-3.5')}
           New game
@@ -391,52 +568,380 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
       </div>
 
       {/* Stat cards — dot-grid container */}
-      <div className="relative rounded-2xl p-4 mb-6" style={{ background: 'transparent' }}>
+      <div className="relative rounded-2xl p-4 mb-8" style={{ background: 'transparent' }}>
         <div className="absolute inset-0 rounded-2xl dot-grid opacity-30 pointer-events-none" />
-        <div className="relative grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="relative grid grid-cols-2 md:grid-cols-4 gap-4">
           {stats.map((s, i) => (
-            <div key={i} className="bg-white rounded-2xl border border-gray-100 p-4 shadow-sm">
-              <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl ${s.bg} mb-3`}>
+            <SpotlightCard
+              key={i}
+              spotlightColor="rgba(59, 130, 246, 0.15)"
+              className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-rise-in hover-lift flex flex-col items-center text-center gap-1"
+              style={{ '--rise-delay': `${i * 0.06}s` } as React.CSSProperties}
+            >
+              <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl ${s.bg} mb-3`}>
                 {s.icon}
               </div>
-              <p className="text-2xl font-bold text-gray-900">{s.value}</p>
-              <p className="text-xs text-gray-500 mt-0.5">{s.label}</p>
-            </div>
+              <p className="text-3xl font-bold text-foreground tracking-tight">{s.value}</p>
+              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{s.label}</p>
+              <BorderBeam duration={8} size={100} />
+            </SpotlightCard>
           ))}
         </div>
       </div>
 
       {/* Campaign list */}
       {campaigns.length === 0 ? (
-        <div className="bg-white border border-dashed border-gray-200 rounded-2xl p-10 text-center">
-          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-blue-50 mb-3">
-            {Icon.sparkles('w-5 h-5 text-blue-500')}
+        <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 mb-4">
+            {Icon.sparkles('w-5 h-5 text-primary')}
           </div>
-          <p className="text-sm font-medium text-gray-700 mb-1">No campaigns yet</p>
-          <p className="text-xs text-gray-400">Start your first game with the Create game flow.</p>
+          <p className="text-sm font-medium text-foreground mb-2">No campaigns yet</p>
+          <p className="text-xs text-muted-foreground">Start your first game with the Create game flow.</p>
         </div>
       ) : (
-        <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-          <div className="px-5 py-3 border-b border-gray-50 flex items-center">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Campaigns</p>
+        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+          <div className="px-6 py-4 border-b border-border flex items-center">
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Campaigns</p>
           </div>
           {campaigns.map((c, i) => (
-            <div
+            <SpotlightCard
               key={c.id}
-              className={`flex items-center gap-3 px-5 py-3.5 hover:bg-gray-50/80 cursor-pointer transition-colors ${i < campaigns.length - 1 ? 'border-b border-gray-50' : ''}`}
+              spotlightColor="rgba(59, 130, 246, 0.1)"
+              className={`flex items-center gap-4 px-6 py-5 hover:bg-muted/80 cursor-pointer transition-colors animate-rise-in hover-lift ${i < campaigns.length - 1 ? 'border-b border-border' : ''}`}
+              style={{ '--rise-delay': `${0.24 + i * 0.06}s` } as React.CSSProperties}
             >
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex-shrink-0 flex items-center justify-center">
-                <span className="text-xs font-bold text-blue-600">{c.brand.charAt(0)}</span>
+                <span className="text-xs font-bold text-primary">{c.brand.charAt(0)}</span>
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800 truncate">{c.name}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{c.games} game{c.games !== 1 ? 's' : ''} · Updated {c.updatedAt}</p>
+                <p className="text-sm font-semibold text-foreground truncate">{c.name}</p>
+                <p className="text-xs text-muted-foreground mt-1">{c.games} game{c.games !== 1 ? 's' : ''} · Updated {c.updatedAt}</p>
               </div>
               <StatusPill status={c.status} />
-            </div>
+              <BorderBeam duration={8} size={80} />
+            </SpotlightCard>
           ))}
         </div>
       )}
+    </div>
+  )
+}
+
+// ─── Created Games ────────────────────────────────────────────────────────────
+
+function GamesScreen() {
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [playingId, setPlayingId] = useState<string | null>(null)
+  const game = CREATED_GAMES.find(g => g.id === selectedId) ?? null
+  const playingGame = CREATED_GAMES.find(g => g.id === playingId) ?? null
+
+  if (game) {
+    return <GameAnalytics game={game} onBack={() => setSelectedId(null)} />
+  }
+
+  return (
+    <div className="flex-1 p-8 overflow-y-auto scrollbar-hide">
+      <div className="flex flex-wrap justify-between gap-y-6">
+        {CREATED_GAMES.map((g, i) => (
+          <div
+            key={g.id}
+            onClick={() => setSelectedId(g.id)}
+            className="text-left w-[350px] flex-shrink-0 bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer animate-rise-in hover-lift"
+            style={{ '--rise-delay': `${i * 0.06}s` } as React.CSSProperties}
+          >
+            <div className="h-6 bg-blue-400 flex items-center px-3 gap-2">
+              <span className="text-white text-xs font-bold tracking-wide">{g.genre}</span>
+              <span className="ml-auto text-white/60 text-xs">LIVE PREVIEW</span>
+            </div>
+            <div className="relative bg-muted" style={{ height: 500 }}>
+              <iframe
+                src={g.file}
+                className="w-full h-full border-0 pointer-events-none"
+                title={g.title}
+                sandbox="allow-scripts allow-same-origin"
+              />
+              <button
+                onClick={e => { e.stopPropagation(); setPlayingId(g.id) }}
+                className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-card/90 hover:bg-card text-primary flex items-center justify-center shadow-md transition-colors"
+                title={`Play ${g.title}`}
+              >
+                {Icon.play('w-5 h-5 ml-1')}
+              </button>
+            </div>
+            <div className="p-6">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold text-foreground">{g.title}</p>
+                <button
+                  onClick={e => { e.stopPropagation(); setPlayingId(g.id) }}
+                  className="flex items-center gap-1 text-xs font-semibold text-primary hover:text-primary flex-shrink-0"
+                >
+                  {Icon.play('w-3 h-3')}
+                  Play
+                </button>
+              </div>
+              <div className="flex items-center gap-3 mt-4 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1">
+                  {Icon.trophy('w-3.5 h-3.5 text-orange-500')}
+                  {g.topScore.toLocaleString()}
+                </span>
+                <span className="flex items-center gap-1">
+                  {Icon.bolt('w-3.5 h-3.5 text-primary')}
+                  {g.peopleEngaged.toLocaleString()} engaged
+                </span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {playingGame && <GamePlayModal game={playingGame} onClose={() => setPlayingId(null)} />}
+    </div>
+  )
+}
+
+function GamePlayModal({
+  game,
+  onClose,
+}: {
+  game: { file: string; title: string; genre: string }
+  onClose: () => void
+}) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6" onClick={onClose}>
+      <div
+        className="bg-card rounded-2xl overflow-hidden shadow-xl w-full max-w-sm"
+        onClick={e => e.stopPropagation()}
+      >
+        <div className="h-9 bg-blue-400 flex items-center px-4 gap-2">
+          <span className="text-white text-xs font-bold tracking-wide">{game.title}</span>
+          <span className="text-white/60 text-xs">{game.genre}</span>
+          <button
+            onClick={onClose}
+            className="ml-auto text-white/80 hover:text-white p-1 -m-1"
+            title="Close"
+          >
+            {Icon.close('w-4 h-4')}
+          </button>
+        </div>
+        <div className="bg-muted" style={{ height: 640 }}>
+          <iframe
+            src={game.file}
+            className="w-full h-full border-0"
+            title={game.title}
+            sandbox="allow-scripts allow-same-origin"
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Engagement chart ──────────────────────────────────────────────────────
+// Dependency-free SVG line+area chart — single series, so no legend box (the
+// heading above it names the series). 2px line, rounded caps, ~10%-opacity
+// area wash, hairline recessive gridlines, crosshair + tooltip on hover.
+
+const CHART_COLOR = '#5865F2' // matches --primary; validated via dataviz skill's contrast check
+
+function niceMax(value: number) {
+  if (value <= 0) return 10
+  const magnitude = Math.pow(10, Math.floor(Math.log10(value)))
+  const steps = [1, 2, 2.5, 5, 10]
+  for (const step of steps) {
+    const candidate = step * magnitude
+    if (candidate >= value) return candidate
+  }
+  return 10 * magnitude
+}
+
+function EngagementChart({ data, gameId }: { data: number[]; gameId: string }) {
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null)
+  const svgRef = useRef<SVGSVGElement | null>(null)
+
+  const width = 600
+  const height = 200
+  const padding = { top: 16, right: 16, bottom: 28, left: 40 }
+  const plotW = width - padding.left - padding.right
+  const plotH = height - padding.top - padding.bottom
+
+  const maxVal = niceMax(Math.max(...data))
+  const yTicks = [0, maxVal / 2, maxVal]
+
+  const points = data.map((v, i) => {
+    const x = padding.left + (i / (data.length - 1)) * plotW
+    const y = padding.top + plotH - (v / maxVal) * plotH
+    return { x, y, v }
+  })
+
+  const linePath = points.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x.toFixed(2)} ${p.y.toFixed(2)}`).join(' ')
+  const areaPath = `${linePath} L ${points[points.length - 1].x.toFixed(2)} ${padding.top + plotH} L ${points[0].x.toFixed(2)} ${padding.top + plotH} Z`
+
+  const gradientId = `engagement-fill-${gameId}`
+  const last = points[points.length - 1]
+  const hovered = hoverIndex !== null ? points[hoverIndex] : null
+
+  function handleMove(e: React.PointerEvent<SVGSVGElement>) {
+    const svg = svgRef.current
+    if (!svg) return
+    const rect = svg.getBoundingClientRect()
+    const relX = ((e.clientX - rect.left) / rect.width) * width
+    let nearest = 0
+    let nearestDist = Infinity
+    points.forEach((p, i) => {
+      const d = Math.abs(p.x - relX)
+      if (d < nearestDist) {
+        nearestDist = d
+        nearest = i
+      }
+    })
+    setHoverIndex(nearest)
+  }
+
+  return (
+    <div className="relative">
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${width} ${height}`}
+        className="w-full h-auto touch-none"
+        onPointerMove={handleMove}
+        onPointerLeave={() => setHoverIndex(null)}
+      >
+        <defs>
+          <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={CHART_COLOR} stopOpacity={0.12} />
+            <stop offset="100%" stopColor={CHART_COLOR} stopOpacity={0} />
+          </linearGradient>
+        </defs>
+
+        {/* gridlines — hairline, recessive */}
+        {yTicks.map((t, i) => {
+          const y = padding.top + plotH - (t / maxVal) * plotH
+          return (
+            <g key={i}>
+              <line x1={padding.left} y1={y} x2={width - padding.right} y2={y} stroke="currentColor" strokeWidth={1} className="text-border" />
+              <text x={padding.left - 8} y={y} textAnchor="end" dominantBaseline="middle" className="fill-muted-foreground" fontSize={10}>
+                {Math.round(t).toLocaleString()}
+              </text>
+            </g>
+          )
+        })}
+
+        {/* x-axis: first / mid / last only */}
+        {[0, Math.floor((data.length - 1) / 2), data.length - 1].map(i => (
+          <text key={i} x={points[i].x} y={height - 8} textAnchor="middle" className="fill-muted-foreground" fontSize={10}>
+            {i === data.length - 1 ? 'Today' : `${data.length - 1 - i}d ago`}
+          </text>
+        ))}
+
+        <path d={areaPath} fill={`url(#${gradientId})`} />
+        <path d={linePath} fill="none" stroke={CHART_COLOR} strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+
+        {/* end marker: >=8px with a surface ring */}
+        <circle cx={last.x} cy={last.y} r={5} fill="var(--color-card)" />
+        <circle cx={last.x} cy={last.y} r={4} fill={CHART_COLOR} />
+        <text x={last.x} y={last.y - 12} textAnchor="end" className="fill-foreground font-semibold" fontSize={11}>
+          {last.v.toLocaleString()}
+        </text>
+
+        {/* crosshair */}
+        {hovered && (
+          <>
+            <line x1={hovered.x} y1={padding.top} x2={hovered.x} y2={padding.top + plotH} stroke="currentColor" strokeWidth={1} className="text-border" />
+            <circle cx={hovered.x} cy={hovered.y} r={5} fill="var(--color-card)" />
+            <circle cx={hovered.x} cy={hovered.y} r={4} fill={CHART_COLOR} />
+          </>
+        )}
+      </svg>
+
+      {hovered && hoverIndex !== null && (
+        <div
+          className="absolute pointer-events-none bg-foreground text-background text-xs font-medium px-2.5 py-1.5 rounded-lg shadow-lg -translate-x-1/2 -translate-y-full"
+          style={{ left: `${(hovered.x / width) * 100}%`, top: `${(hovered.y / height) * 100}%`, marginTop: -8 }}
+        >
+          <span className="font-semibold">{hovered.v.toLocaleString()}</span> plays ·{' '}
+          {hoverIndex === data.length - 1 ? 'Today' : `${data.length - 1 - hoverIndex}d ago`}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function GameAnalytics({ game, onBack }: { game: CreatedGame; onBack: () => void }) {
+  const stats = [
+    { icon: Icon.trophy('w-5 h-5 text-orange-500'), value: game.topScore.toLocaleString(), label: 'Top score', bg: 'bg-orange-50' },
+    { icon: Icon.bolt('w-5 h-5 text-primary'), value: game.peopleEngaged.toLocaleString(), label: 'People engaged', bg: 'bg-primary/10' },
+    { icon: Icon.gamepad('w-5 h-5 text-purple-500'), value: `${Math.floor(game.avgSessionSec / 60)}m ${game.avgSessionSec % 60}s`, label: 'Avg. session', bg: 'bg-purple-50' },
+  ]
+
+  return (
+    <div className="flex-1 p-8 overflow-y-auto scrollbar-hide">
+      <button
+        onClick={onBack}
+        className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-6"
+      >
+        {Icon.arrowLeft('w-3.5 h-3.5')}
+        Created games
+      </button>
+
+      <div className="flex items-center gap-4 mb-8">
+        <div className="w-10 h-10 rounded-xl bg-blue-400 flex items-center justify-center flex-shrink-0">
+          {Icon.gamepad('w-5 h-5 text-white')}
+        </div>
+        <div>
+          <h1 className="text-xl font-bold text-foreground">{game.title}</h1>
+          <p className="text-xs text-muted-foreground">{game.genre}</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        {stats.map((s, i) => (
+          <div
+            key={i}
+            className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-rise-in hover-lift"
+            style={{ '--rise-delay': `${i * 0.06}s` } as React.CSSProperties}
+          >
+            <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl ${s.bg} mb-4`}>
+              {s.icon}
+            </div>
+            <p className="text-2xl font-bold text-foreground">{s.value}</p>
+            <p className="text-xs text-muted-foreground mt-2">{s.label}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm mb-8 animate-rise-in" style={{ '--rise-delay': '0.15s' } as React.CSSProperties}>
+        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">Plays — last 14 days</p>
+        <EngagementChart data={game.dailyPlays} gameId={game.id} />
+      </div>
+
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+        <div className="px-6 py-4 border-b border-border flex items-center">
+          <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Leaderboard</p>
+        </div>
+        {game.leaderboard.map((entry, i) => (
+          <div
+            key={entry.rank}
+            className={`flex items-center gap-4 px-6 py-4 animate-rise-in hover-lift ${i < game.leaderboard.length - 1 ? 'border-b border-border' : ''}`}
+            style={{ '--rise-delay': `${0.2 + i * 0.06}s` } as React.CSSProperties}
+          >
+            <span
+              className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
+                entry.rank === 1
+                  ? 'bg-orange-100 text-orange-600'
+                  : entry.rank === 2
+                  ? 'bg-secondary text-muted-foreground'
+                  : entry.rank === 3
+                  ? 'bg-orange-50 text-orange-500'
+                  : 'bg-muted text-muted-foreground'
+              }`}
+            >
+              {entry.rank}
+            </span>
+            <span className="flex-1 text-sm font-medium text-foreground">{entry.name}</span>
+            <span className="text-sm font-semibold text-foreground">{entry.score.toLocaleString()}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }
@@ -453,42 +958,103 @@ type FlowStage =
   | 'finalizing'  // user picked style, show lead-rush
   | 'done'        // fully shipped
 
+const STAGE_ORDER: FlowStage[] = ['idle', 'cooking', 'targeting', 'hallucinating', 'concepts', 'finalizing', 'done']
+
 const AGE_GROUPS = ['10 – 20', '20 – 30', '30 – 40', '40 – 50', '50+']
 
 const STYLE_CARDS = [
-  {
-    id: 'aesthetic',
-    label: 'Aesthetic',
-    desc: 'Smooth visuals, color-forward, feel-good play',
-    icon: '🎨',
-    bg: 'bg-purple-50',
-    border: 'border-purple-100',
-    text: 'text-purple-700',
-  },
-  {
-    id: 'logic',
-    label: 'Logic',
-    desc: 'Puzzle-driven, thoughtful, rewarding depth',
-    icon: '🧠',
-    bg: 'bg-blue-50',
-    border: 'border-blue-100',
-    text: 'text-blue-700',
-  },
-  {
-    id: 'pace',
-    label: 'Pace',
-    desc: 'Fast-reflex, score-chasing, instant replay',
-    icon: '⚡',
-    bg: 'bg-orange-50',
-    border: 'border-orange-100',
-    text: 'text-orange-700',
-  },
+  { id: 'aesthetic', label: 'Aesthetic' },
+  { id: 'logic', label: 'Concept' },
+  { id: 'pace', label: 'Pace' },
 ]
 
 const GAME_PREVIEWS = [
-  { file: '/lead-catcher.html', title: 'Lead Catcher', genre: 'Catcher', color: 'from-green-400 to-green-600' },
-  { file: '/lead-dodger.html', title: 'Lead Dodger', genre: 'Dodger', color: 'from-teal-400 to-teal-600' },
-  { file: '/lead-rush-cyber.html', title: 'Lead Rush Cyber', genre: 'Runner', color: 'from-violet-500 to-indigo-700' },
+  { file: '/lead-catcher.html', title: 'Lead Catcher', genre: 'Catcher' },
+  { file: '/lead-dodger.html', title: 'Lead Dodger', genre: 'Dodger' },
+  { file: '/lead-rush-cyber.html', title: 'Lead Rush Cyber', genre: 'Runner' },
+]
+
+const CREATED_GAMES: CreatedGame[] = [
+  {
+    id: 'lead-rush',
+    file: '/lead-rush.html',
+    title: 'Lead Rush',
+    genre: 'Runner',
+    topScore: 8420,
+    peopleEngaged: 2184,
+    avgSessionSec: 132,
+    leaderboard: [
+      { rank: 1, name: 'Jordan K.', score: 8420 },
+      { rank: 2, name: 'Alex R.', score: 7960 },
+      { rank: 3, name: 'Sam P.', score: 7510 },
+      { rank: 4, name: 'Taylor M.', score: 7002 },
+      { rank: 5, name: 'Casey W.', score: 6588 },
+      { rank: 6, name: 'Morgan P.', score: 6140 },
+      { rank: 7, name: 'Jamie L.', score: 5820 },
+      { rank: 8, name: 'Rowan T.', score: 5510 },
+    ],
+    dailyPlays: [98, 112, 105, 130, 142, 158, 149, 171, 165, 188, 176, 204, 195, 221],
+  },
+  {
+    id: 'lead-catcher',
+    file: '/lead-catcher.html',
+    title: 'Lead Catcher',
+    genre: 'Catcher',
+    topScore: 4820,
+    peopleEngaged: 1312,
+    avgSessionSec: 96,
+    leaderboard: [
+      { rank: 1, name: 'Morgan T.', score: 4820 },
+      { rank: 2, name: 'Riley S.', score: 4510 },
+      { rank: 3, name: 'Jamie D.', score: 4290 },
+      { rank: 4, name: 'Drew L.', score: 3980 },
+      { rank: 5, name: 'Quinn B.', score: 3745 },
+      { rank: 6, name: 'Avery C.', score: 3512 },
+      { rank: 7, name: 'Peyton R.', score: 3299 },
+      { rank: 8, name: 'Harper W.', score: 3105 },
+    ],
+    dailyPlays: [62, 70, 65, 78, 84, 91, 87, 96, 90, 102, 98, 110, 104, 118],
+  },
+  {
+    id: 'lead-dodger',
+    file: '/lead-dodger.html',
+    title: 'Lead Dodger',
+    genre: 'Dodger',
+    topScore: 3960,
+    peopleEngaged: 987,
+    avgSessionSec: 84,
+    leaderboard: [
+      { rank: 1, name: 'Avery H.', score: 3960 },
+      { rank: 2, name: 'Reese N.', score: 3705 },
+      { rank: 3, name: 'Charlie F.', score: 3420 },
+      { rank: 4, name: 'Skyler J.', score: 3180 },
+      { rank: 5, name: 'Rowan G.', score: 2950 },
+      { rank: 6, name: 'Emery K.', score: 2760 },
+      { rank: 7, name: 'Finley B.', score: 2588 },
+      { rank: 8, name: 'Dakota S.', score: 2410 },
+    ],
+    dailyPlays: [48, 52, 45, 58, 61, 66, 60, 70, 65, 74, 69, 79, 73, 85],
+  },
+  {
+    id: 'lead-rush-cyber',
+    file: '/lead-rush-cyber.html',
+    title: 'Lead Rush Cyber',
+    genre: 'Runner',
+    topScore: 6215,
+    peopleEngaged: 1540,
+    avgSessionSec: 108,
+    leaderboard: [
+      { rank: 1, name: 'Sage P.', score: 6215 },
+      { rank: 2, name: 'Emerson K.', score: 5890 },
+      { rank: 3, name: 'Blair W.', score: 5460 },
+      { rank: 4, name: 'Kendall R.', score: 5102 },
+      { rank: 5, name: 'Marlowe C.', score: 4780 },
+      { rank: 6, name: 'Sawyer D.', score: 4455 },
+      { rank: 7, name: 'Ellis M.', score: 4180 },
+      { rank: 8, name: 'Remy A.', score: 3920 },
+    ],
+    dailyPlays: [71, 79, 74, 88, 95, 103, 97, 112, 106, 121, 114, 132, 125, 141],
+  },
 ]
 
 // Cooking animation component
@@ -548,16 +1114,16 @@ function HallucinatingAnimation() {
     return () => clearInterval(t)
   }, [])
   return (
-    <div className="bg-[#07071a] border border-[#00ff9c33] rounded-2xl rounded-tl-sm p-4 max-w-sm font-mono text-xs">
+    <div className="bg-terminal-bg border border-terminal-accent/20 rounded-2xl rounded-tl-sm p-4 max-w-sm font-mono text-xs">
       <div className="flex items-center gap-2 mb-3">
-        <span className="w-2 h-2 rounded-full bg-[#00ff9c] animate-pulse" />
-        <span className="text-[#00ff9c] text-[10px] tracking-widest uppercase">Pixie is hallucinating…</span>
+        <span className="w-2 h-2 rounded-full bg-terminal-accent animate-pulse" />
+        <span className="text-terminal-accent text-xs tracking-widest uppercase">Pixie is hallucinating…</span>
       </div>
       {lines.slice(0, visible).map((l, i) => (
-        <div key={i} className="flex items-center gap-2 py-0.5 animate-fade-in-up">
-          <span className="text-[#5566aa]">{'>'}</span>
-          <span className={i === visible - 1 ? 'text-[#00ff9c]' : 'text-[#5566aa]'}>{l}</span>
-          {i === visible - 1 && <span className="text-[#00ff9c] animate-pulse">▊</span>}
+        <div key={i} className="flex items-center gap-2 py-1 animate-fade-in-up">
+          <span className="text-terminal-dim">{'>'}</span>
+          <span className={i === visible - 1 ? 'text-terminal-accent' : 'text-terminal-dim'}>{l}</span>
+          {i === visible - 1 && <span className="text-terminal-accent animate-pulse">▊</span>}
         </div>
       ))}
     </div>
@@ -565,23 +1131,53 @@ function HallucinatingAnimation() {
 }
 
 // Game iframe card
-function GameIframeCard({ game }: { game: typeof GAME_PREVIEWS[number] }) {
+function GameIframeCard({
+  game,
+  selectedStyle,
+  onSelectStyle,
+  onPlay,
+}: {
+  game: typeof GAME_PREVIEWS[number]
+  selectedStyle: string | null
+  onSelectStyle: (id: string) => void
+  onPlay: () => void
+}) {
   return (
-    <div className="flex-shrink-0 w-56 bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm">
-      <div className={`h-6 bg-gradient-to-r ${game.color} flex items-center px-3 gap-1.5`}>
-        <span className="text-white text-[10px] font-bold tracking-wide">{game.genre}</span>
-        <span className="ml-auto text-white/60 text-[9px]">LIVE PREVIEW</span>
+    <div className="flex-shrink-0 w-[307px] bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="h-6 bg-blue-400 flex items-center px-3 gap-2">
+        <span className="text-white text-xs font-bold tracking-wide">{game.genre}</span>
+        <span className="ml-auto text-white/60 text-xs">LIVE PREVIEW</span>
       </div>
-      <div className="relative bg-gray-50" style={{ height: 320 }}>
+      <div className="relative bg-muted" style={{ height: 432 }}>
         <iframe
           src={game.file}
-          className="w-full h-full border-0"
+          className="w-full h-full border-0 pointer-events-none"
           title={game.title}
           sandbox="allow-scripts allow-same-origin"
         />
+        <button
+          onClick={onPlay}
+          className="absolute inset-0 m-auto w-11 h-11 rounded-full bg-card/90 hover:bg-card text-primary flex items-center justify-center shadow-md transition-colors"
+          title={`Play ${game.title}`}
+        >
+          {Icon.play('w-5 h-5 ml-1')}
+        </button>
       </div>
-      <div className="px-3 py-2 border-t border-gray-50">
-        <p className="text-xs font-semibold text-gray-800">{game.title}</p>
+      <div className="px-4 py-3 border-t border-border">
+        <p className="text-xs font-semibold text-foreground mb-3">{game.title}</p>
+        <div className="space-y-2">
+          {STYLE_CARDS.map(s => (
+            <label key={s.id} className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={selectedStyle === s.id}
+                onChange={() => onSelectStyle(s.id)}
+                className="shrink-0"
+              />
+              <span className="text-xs text-muted-foreground">{s.label}</span>
+            </label>
+          ))}
+        </div>
       </div>
     </div>
   )
@@ -597,14 +1193,14 @@ function FinalGameCard({ onReset }: { onReset: () => void }) {
     setTimeout(() => setCopied(false), 2000)
   }
   return (
-    <div className="w-full max-w-xl">
-      <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm mb-3">
-        <div className="h-8 bg-gradient-to-r from-green-500 to-teal-600 flex items-center px-4 gap-2">
+    <div className="w-full max-w-[351px] mx-auto">
+      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-3">
+        <div className="h-8 bg-blue-400 flex items-center px-4 gap-2">
           {Icon.trophy('w-3.5 h-3.5 text-white')}
           <span className="text-white text-xs font-bold tracking-wide">YOUR GAME — LEAD RUSH</span>
-          <span className="ml-auto bg-white/20 text-white text-[9px] font-semibold px-2 py-0.5 rounded-full">FINALIZED</span>
+          <span className="ml-auto bg-card/20 text-white text-xs font-semibold px-2 py-1 rounded-full">FINALIZED</span>
         </div>
-        <div className="relative bg-gray-50" style={{ height: 420 }}>
+        <div className="relative bg-muted" style={{ aspectRatio: '390 / 675' }}>
           <iframe
             src="/lead-rush.html"
             className="w-full h-full border-0"
@@ -612,108 +1208,21 @@ function FinalGameCard({ onReset }: { onReset: () => void }) {
             sandbox="allow-scripts allow-same-origin"
           />
         </div>
-        <div className="p-4 flex gap-2 flex-wrap border-t border-gray-50">
-          <button className="flex items-center gap-1.5 text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-full transition-colors">
+        <div className="p-4 flex gap-2 flex-wrap border-t border-border">
+          <button className="flex items-center gap-2 text-xs font-semibold bg-primary hover:bg-primary/90 text-white px-3 py-2 rounded-full transition-colors">
             {Icon.download('w-3.5 h-3.5')}
             Download build
           </button>
-          <button onClick={copy} className="flex items-center gap-1.5 text-xs font-semibold border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full transition-colors">
+          <button onClick={copy} className="flex items-center gap-2 text-xs font-semibold border border-border hover:bg-muted text-foreground px-3 py-2 rounded-full transition-colors">
             {Icon.copy('w-3.5 h-3.5')}
             {copied ? 'Copied!' : 'Copy embed'}
           </button>
         </div>
       </div>
-      <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-center justify-between gap-3">
+      <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex items-center justify-between gap-3">
         <p className="text-sm text-blue-700 font-medium">Ready to build another?</p>
-        <button onClick={onReset} className="text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded-full transition-colors flex-shrink-0">
+        <button onClick={onReset} className="text-xs font-semibold bg-primary hover:bg-primary/90 text-white px-3 py-2 rounded-full transition-colors flex-shrink-0">
           Start new game
-        </button>
-      </div>
-    </div>
-  )
-}
-
-function ConceptCard({ concept, onFinalize, finalized }: { concept: Concept; onFinalize: (id: string) => void; finalized: boolean }) {
-  const colorMap: Record<string, string> = {
-    '#3B82F6': 'from-blue-400 to-blue-600',
-    '#A855F7': 'from-purple-400 to-purple-600',
-    '#16A34A': 'from-green-400 to-green-600',
-  }
-  const gradient = colorMap[concept.color] ?? 'from-gray-400 to-gray-600'
-
-  return (
-    <div className={`bg-white border rounded-2xl overflow-hidden shadow-sm flex-shrink-0 w-52 ${finalized ? 'border-blue-200 ring-2 ring-blue-500/20' : 'border-gray-100'}`}>
-      {/* 9:16 preview */}
-      <div className={`h-36 bg-gradient-to-b ${gradient} relative flex items-center justify-center`}>
-        {finalized && (
-          <div className="absolute top-2 right-2 bg-white/90 backdrop-blur rounded-full p-1">
-            {Icon.trophy('w-3.5 h-3.5 text-yellow-500')}
-          </div>
-        )}
-        <div className="text-white text-3xl font-black opacity-20 select-none">{concept.genre.charAt(0)}</div>
-      </div>
-      <div className="p-3">
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-1">{concept.genre}</p>
-        <p className="text-sm font-bold text-gray-900 mb-1.5">{concept.title}</p>
-        <p className="text-xs text-gray-500 leading-relaxed mb-3">{concept.pitch}</p>
-        {!finalized ? (
-          <button
-            onClick={() => onFinalize(concept.id)}
-            className="w-full text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white rounded-full py-1.5 transition-colors"
-          >
-            Finalize →
-          </button>
-        ) : (
-          <div className="flex items-center gap-1 text-xs font-semibold text-green-600">
-            {Icon.trophy('w-3.5 h-3.5')}
-            Finalized
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-function FinalizedCard({ concept }: { concept: Concept }) {
-  const [copied, setCopied] = useState(false)
-  const embedCode = `<iframe src="https://pixie.gg/game/${concept.id}" width="390" height="844" frameborder="0"></iframe>`
-
-  function handleCopy() {
-    navigator.clipboard.writeText(embedCode).catch(() => {})
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
-  }
-
-  const colorMap: Record<string, string> = {
-    '#3B82F6': 'from-blue-400 to-blue-600',
-    '#A855F7': 'from-purple-400 to-purple-600',
-    '#16A34A': 'from-green-400 to-green-600',
-  }
-  const gradient = colorMap[concept.color] ?? 'from-gray-400 to-gray-600'
-
-  return (
-    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm w-full">
-      <div className={`h-32 bg-gradient-to-r ${gradient} flex items-center px-6 gap-4`}>
-        <div className="w-16 h-28 bg-white/20 rounded-xl backdrop-blur flex items-center justify-center">
-          <span className="text-white text-2xl font-black opacity-60">{concept.genre.charAt(0)}</span>
-        </div>
-        <div>
-          <p className="text-white/70 text-xs font-semibold uppercase tracking-wider mb-1">{concept.genre}</p>
-          <p className="text-white text-xl font-bold mb-1">{concept.title}</p>
-          <p className="text-white/70 text-xs">{concept.pitch.slice(0, 60)}…</p>
-        </div>
-      </div>
-      <div className="p-4 flex gap-2 flex-wrap">
-        <button className="flex items-center gap-1.5 text-xs font-semibold bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-full transition-colors">
-          {Icon.download('w-3.5 h-3.5')}
-          Download
-        </button>
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-1.5 text-xs font-semibold border border-gray-200 hover:bg-gray-50 text-gray-700 px-3 py-2 rounded-full transition-colors"
-        >
-          {Icon.copy('w-3.5 h-3.5')}
-          {copied ? 'Copied!' : 'Copy embed'}
         </button>
       </div>
     </div>
@@ -722,20 +1231,32 @@ function FinalizedCard({ concept }: { concept: Concept }) {
 
 const QUICK_PILLS = ['Bolder', 'Simpler', 'Add leaderboard', 'Stronger CTA']
 
+// Completed-step marker, left behind once an in-progress animation finishes
+function StepDone({ label }: { label: string }) {
+  return (
+    <div className="bg-muted border border-border rounded-2xl rounded-tl-sm px-4 py-2 flex items-center gap-2">
+      <svg className="w-3.5 h-3.5 text-green-500 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+        <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+      <span className="text-xs text-muted-foreground">{label}</span>
+    </div>
+  )
+}
+
 // Chat message bubble
 function Bubble({ role, children }: { role: 'assistant' | 'user'; children: React.ReactNode }) {
   return (
-    <div className={`flex gap-3 animate-fade-in-up ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
+    <div className={`flex gap-3 animate-rise-in ${role === 'user' ? 'justify-end' : 'justify-start'}`}>
       {role === 'assistant' && (
-        <div className="w-7 h-7 rounded-full bg-gray-100 flex-shrink-0 flex items-center justify-center mt-0.5 flex-shrink-0">
-          <span className="text-xs font-bold text-gray-600">P</span>
+        <div className="w-7 h-7 rounded-full bg-secondary text-muted-foreground flex-shrink-0 flex items-center justify-center mt-1 flex-shrink-0">
+          <PixieMark className="w-3.5 h-3.5" />
         </div>
       )}
       <div className={`max-w-[85%] ${role === 'user' ? 'order-first' : ''}`}>
         {children}
       </div>
       {role === 'user' && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center mt-0.5">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center mt-1">
           <span className="text-xs font-bold text-white">J</span>
         </div>
       )}
@@ -743,13 +1264,39 @@ function Bubble({ role, children }: { role: 'assistant' | 'user'; children: Reac
   )
 }
 
-function TextBubble({ role, text }: { role: 'assistant' | 'user'; text: string }) {
+function ReasoningBlock({ text }: { text: string }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="mb-2">
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-muted-foreground transition-colors"
+      >
+        <svg
+          className={`w-3 h-3 transition-transform ${open ? 'rotate-90' : ''}`}
+          viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+        >
+          <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Reasoning
+      </button>
+      {open && (
+        <p className="text-xs text-muted-foreground italic leading-snug mt-2 pl-3 border-l-2 border-border">
+          {text}
+        </p>
+      )}
+    </div>
+  )
+}
+
+function TextBubble({ role, text, reasoning }: { role: 'assistant' | 'user'; text: string; reasoning?: string }) {
   return (
     <Bubble role={role}>
-      <div className={`text-sm px-4 py-2.5 rounded-2xl ${
+      {role === 'assistant' && reasoning && <ReasoningBlock text={reasoning} />}
+      <div className={`text-sm px-5 py-4 rounded-2xl ${
         role === 'assistant'
-          ? 'bg-gray-100 text-gray-800 rounded-tl-sm'
-          : 'bg-blue-500 text-white rounded-tr-sm'
+          ? 'bg-secondary text-foreground rounded-tl-sm'
+          : 'bg-primary text-white rounded-tr-sm'
       }`}>
         {text}
       </div>
@@ -759,17 +1306,20 @@ function TextBubble({ role, text }: { role: 'assistant' | 'user'; text: string }
 
 function ChatScreen() {
   const [stage, setStage] = useState<FlowStage>('idle')
-  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; special?: string }>>([])
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; reasoning?: string }>>([])
   const [input, setInput] = useState('')
   const [inputBusy, setInputBusy] = useState(false)
   const [selectedAge, setSelectedAge] = useState<string | null>(null)
   const [customAge, setCustomAge] = useState('')
-  const [selectedStyle, setSelectedStyle] = useState<string | null>(null)
+  const [selectedStyles, setSelectedStyles] = useState<Record<string, string>>({})
+  const [playingGameFile, setPlayingGameFile] = useState<string | null>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const atConcepts = stage === 'concepts' || stage === 'finalizing' || stage === 'done'
   const atDone = stage === 'done'
+  const stageIndex = STAGE_ORDER.indexOf(stage)
+  const stagePassed = (s: FlowStage) => stageIndex > STAGE_ORDER.indexOf(s)
 
   useEffect(() => {
     const el = scrollRef.current
@@ -783,8 +1333,8 @@ function ChatScreen() {
     setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 80)
   }
 
-  function addMsg(role: 'assistant' | 'user', text: string, special?: string) {
-    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, special }])
+  function addMsg(role: 'assistant' | 'user', text: string, reasoning?: string) {
+    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, reasoning }])
   }
 
   async function handleBriefSend(text: string) {
@@ -794,7 +1344,11 @@ function ChatScreen() {
     setInputBusy(true)
     setStage('cooking')
     await new Promise(r => setTimeout(r, 2600))
-    addMsg('assistant', "Great brief! Now — who's your target audience? Pick an age group so I can tune the game mechanics and UX for them.")
+    addMsg(
+      'assistant',
+      "Great brief! Now — who's your target audience? Pick an age group so I can tune the game mechanics and UX for them.",
+      "The brief gives me tone and product category, but not who's playing. Mechanics, pacing, and difficulty all shift a lot by age group, so I need that before generating variants."
+    )
     setStage('targeting')
     setInputBusy(false)
   }
@@ -805,18 +1359,39 @@ function ChatScreen() {
     addMsg('user', `Target: ${age}`)
     setStage('hallucinating')
     await new Promise(r => setTimeout(r, 3200))
-    addMsg('assistant', "Here are three playable game variants tailored to your brief. Try them live — then tell me which style resonates with your brand.")
+    addMsg(
+      'assistant',
+      "Here are three playable game variants tailored to your brief. Try them live — then tell me which style resonates with your brand.",
+      `Given the ${age} target, I generated three distinct mechanics — a catcher, a dodger, and a reflex runner — to cover a range of engagement styles rather than betting on one. Presenting them side by side makes it easy to compare before committing to a visual style.`
+    )
     setStage('concepts')
   }
 
-  async function handleStyleSelect(styleId: string) {
-    if (selectedStyle) return
-    const style = STYLE_CARDS.find(s => s.id === styleId)!
-    setSelectedStyle(styleId)
-    addMsg('user', `I like the ${style.label} vibe`)
+  function handleStyleSelect(gameFile: string, styleId: string) {
+    if (stage !== 'concepts') return
+    setSelectedStyles(prev => {
+      if (prev[gameFile] === styleId) {
+        const { [gameFile]: _, ...rest } = prev
+        return rest
+      }
+      return { ...prev, [gameFile]: styleId }
+    })
+  }
+
+  async function handleStyleContinue() {
+    const picks = GAME_PREVIEWS.filter(g => selectedStyles[g.file])
+    if (picks.length === 0) return
+    const summary = picks
+      .map(g => `${g.title}: ${STYLE_CARDS.find(s => s.id === selectedStyles[g.file])!.label}`)
+      .join(', ')
+    addMsg('user', `Style picks — ${summary}`)
     setStage('finalizing')
-    await new Promise(r => setTimeout(r, 1800))
-    addMsg('assistant', "Perfect. I've tuned Lead Rush to match your brand's voice and target audience. Here's your finalized game — ready to ship.")
+    await new Promise(r => setTimeout(r, 2600))
+    addMsg(
+      'assistant',
+      "Perfect. I've tuned Lead Rush to match your brand's voice and target audience. Here's your finalized game — ready to ship.",
+      `With ${summary} as the style picks, I merged the strongest mechanic from the variants into Lead Rush and applied the chosen visual treatments, then re-tuned difficulty and pacing for the target audience before locking the final build.`
+    )
     setStage('done')
   }
 
@@ -825,7 +1400,7 @@ function ChatScreen() {
     setMessages([])
     setSelectedAge(null)
     setCustomAge('')
-    setSelectedStyle(null)
+    setSelectedStyles({})
     setInputBusy(false)
   }
 
@@ -836,38 +1411,48 @@ function ChatScreen() {
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto scrollbar-hide px-4 md:px-8 py-6"
+        className="flex-1 overflow-y-auto scrollbar-hide px-6 md:px-10 py-8"
       >
         {/* ── Empty state ── */}
         {stage === 'idle' && messages.length === 0 && (
-          <div className="flex flex-col items-center justify-center min-h-full py-12">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-5 shadow-lg shadow-blue-500/25">
-              {Icon.sparkles('w-6 h-6 text-white')}
+          <div className="flex flex-col items-center justify-center min-h-full py-16">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-8 shadow-lg shadow-blue-500/25">
+              <PixieMark className="w-10 h-10 text-white" />
             </div>
-            <h2
-              className="text-2xl font-bold mb-2 text-center"
-              style={{ background: 'linear-gradient(135deg, #3B82F6 0%, #A855F7 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}
-            >
-              Welcome to Pixie
-            </h2>
-            <p className="text-gray-500 text-sm text-center mb-8 max-w-xs leading-relaxed">
-              Describe your product or campaign and I'll build a playable mini-game — fully branded, ready to ship.
-            </p>
-            <div className="grid grid-cols-2 gap-3 w-full max-w-sm">
+            <TextType
+              as="h2"
+              text="Welcome to Pixie"
+              typingSpeed={60}
+              initialDelay={200}
+              loop={false}
+              showCursor={false}
+              className="text-4xl font-bold mb-4 text-center bg-gradient-to-br from-blue-500 to-purple-500 bg-clip-text text-transparent"
+            />
+            <TextType
+              as="p"
+              text="Describe your product or campaign and I'll build a playable mini-game — fully branded, ready to ship."
+              typingSpeed={20}
+              initialDelay={1100}
+              loop={false}
+              cursorCharacter="▋"
+              cursorClassName="text-primary"
+              className="text-muted-foreground text-lg text-center mb-12 max-w-lg leading-relaxed"
+            />
+            <div className="grid grid-cols-2 gap-5 w-full max-w-2xl">
               {[
-                { icon: Icon.palette('w-5 h-5'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-100', prompt: "I need to make a game for my product in lead management. Our brand is modern, bold, and targets sales teams who love fast-paced workflows." },
-                { icon: Icon.layers('w-5 h-5'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100', prompt: "Build three game concepts for a fintech app focused on expense tracking." },
-                { icon: Icon.sparkles('w-5 h-5'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100', prompt: "Make the game feel more competitive with leaderboards and time pressure." },
-                { icon: Icon.ship('w-5 h-5'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-100', prompt: "I want to finalize the runner game and get the embed code for our landing page." },
+                { icon: Icon.palette('w-8 h-8'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20', prompt: "I need to make a game for my product in lead management. Our brand is modern, bold, and targets sales teams who love fast-paced workflows." },
+                { icon: Icon.layers('w-8 h-8'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100', prompt: "Build three game concepts for a fintech app focused on expense tracking." },
+                { icon: Icon.sparkles('w-8 h-8'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100', prompt: "Make the game feel more competitive with leaderboards and time pressure." },
+                { icon: Icon.ship('w-8 h-8'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-100', prompt: "I want to finalize the runner game and get the embed code for our landing page." },
               ].map((t, i) => (
                 <button
                   key={i}
                   onClick={() => handleBriefSend(t.prompt)}
-                  className={`${t.bg} border ${t.border} rounded-2xl p-4 text-left hover:opacity-80 transition-opacity`}
+                  className={`${t.bg} border ${t.border} rounded-2xl p-6 text-left hover:opacity-80 transition-opacity`}
                 >
                   <span className={t.text}>{t.icon}</span>
-                  <p className={`text-sm font-semibold ${t.text} mt-2 mb-0.5`}>{t.title}</p>
-                  <p className="text-xs text-gray-500">{t.desc}</p>
+                  <p className={`text-lg font-semibold ${t.text} mt-4 mb-2`}>{t.title}</p>
+                  <p className="text-sm text-muted-foreground">{t.desc}</p>
                 </button>
               ))}
             </div>
@@ -876,22 +1461,26 @@ function ChatScreen() {
 
         {/* ── Message thread ── */}
         {messages.length > 0 && (
-          <div className="max-w-2xl mx-auto space-y-5">
+          <div className="max-w-[1075px] mx-auto space-y-5">
             {messages.map(m => (
-              <TextBubble key={m.id} role={m.role} text={m.text} />
+              <TextBubble key={m.id} role={m.role} text={m.text} reasoning={m.reasoning} />
             ))}
 
             {/* ── Cooking animation ── */}
-            {stage === 'cooking' && (
+            {(stage === 'cooking' || stagePassed('cooking')) && (
               <Bubble role="assistant">
-                <CookingAnimation label="Pixie is cooking your game…" />
+                {stage === 'cooking' ? (
+                  <CookingAnimation label="Pixie is cooking your game…" />
+                ) : (
+                  <StepDone label="Cooked up your game brief" />
+                )}
               </Bubble>
             )}
 
             {/* ── Age targeting cards ── */}
             {(stage === 'targeting' || stage === 'hallucinating' || atConcepts) && (
-              <div className="animate-fade-in-up">
-                <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3 ml-10">Target audience</p>
+              <div className="animate-rise-in">
+                <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3 ml-10">Target audience</p>
                 <div className="flex flex-wrap gap-2 ml-10">
                   {AGE_GROUPS.map(age => (
                     <button
@@ -900,28 +1489,28 @@ function ChatScreen() {
                       disabled={!!selectedAge}
                       className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
                         selectedAge === age
-                          ? 'bg-blue-500 text-white border-blue-500 shadow-sm shadow-blue-200'
+                          ? 'bg-primary text-white border-primary shadow-sm shadow-blue-200'
                           : selectedAge
-                          ? 'bg-gray-50 text-gray-400 border-gray-100 cursor-default'
-                          : 'bg-white text-gray-700 border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                          ? 'bg-muted text-gray-400 border-border cursor-default'
+                          : 'bg-card text-foreground border-border hover:border-primary/40 hover:text-primary'
                       }`}
                     >
                       {age}
                     </button>
                   ))}
                   {!selectedAge && (
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex items-center gap-2">
                       <input
                         value={customAge}
                         onChange={e => setCustomAge(e.target.value)}
                         placeholder="Custom…"
-                        className="px-3 py-2 rounded-full text-sm border border-gray-200 outline-none focus:ring-2 focus:ring-blue-500 w-28 placeholder:text-gray-400"
+                        className="px-3 py-2 rounded-full text-sm border border-border outline-none focus:ring-2 focus:ring-ring w-28 placeholder:text-muted-foreground"
                         onKeyDown={e => e.key === 'Enter' && customAge.trim() && handleAgeSelect(customAge.trim())}
                       />
                       {customAge.trim() && (
                         <button
                           onClick={() => handleAgeSelect(customAge.trim())}
-                          className="px-3 py-2 rounded-full text-xs font-semibold bg-blue-500 text-white"
+                          className="px-3 py-2 rounded-full text-xs font-semibold bg-primary text-white"
                         >
                           Set
                         </button>
@@ -933,67 +1522,58 @@ function ChatScreen() {
             )}
 
             {/* ── Hallucinating animation ── */}
-            {stage === 'hallucinating' && (
+            {(stage === 'hallucinating' || stagePassed('hallucinating')) && (
               <Bubble role="assistant">
-                <HallucinatingAnimation />
+                {stage === 'hallucinating' ? (
+                  <HallucinatingAnimation />
+                ) : (
+                  <StepDone label="Generated 3 game variants" />
+                )}
               </Bubble>
             )}
 
-            {/* ── 3 game iframes + style cards ── */}
+            {/* ── 3 game iframes, each with its own style options ── */}
             {atConcepts && (
-              <div className="animate-fade-in-up space-y-4">
+              <div className="animate-rise-in space-y-4">
                 {/* Iframes */}
-                <div className="flex gap-4 overflow-x-auto scrollbar-hide pb-2">
+                <div className="flex justify-[safe_center] gap-4 overflow-x-auto scrollbar-hide pb-2">
                   {GAME_PREVIEWS.map(g => (
-                    <GameIframeCard key={g.file} game={g} />
+                    <GameIframeCard
+                      key={g.file}
+                      game={g}
+                      selectedStyle={selectedStyles[g.file] ?? null}
+                      onSelectStyle={styleId => handleStyleSelect(g.file, styleId)}
+                      onPlay={() => setPlayingGameFile(g.file)}
+                    />
                   ))}
                 </div>
 
-                {/* Style selection */}
-                {!selectedStyle && (
-                  <div>
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Which style fits your brand?</p>
-                    <div className="grid grid-cols-3 gap-3">
-                      {STYLE_CARDS.map(s => (
-                        <button
-                          key={s.id}
-                          onClick={() => handleStyleSelect(s.id)}
-                          className={`${s.bg} border ${s.border} rounded-2xl p-4 text-left hover:opacity-80 transition-opacity`}
-                        >
-                          <span className="text-2xl">{s.icon}</span>
-                          <p className={`text-sm font-semibold ${s.text} mt-2 mb-1`}>{s.label}</p>
-                          <p className="text-xs text-gray-500 leading-snug">{s.desc}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {selectedStyle && (
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const s = STYLE_CARDS.find(x => x.id === selectedStyle)!
-                      return (
-                        <span className={`text-xs font-semibold ${s.text} ${s.bg} border ${s.border} px-3 py-1.5 rounded-full`}>
-                          {s.icon} {s.label} selected
-                        </span>
-                      )
-                    })()}
+                {stage === 'concepts' && (
+                  <div className="flex justify-end">
+                    <button
+                      onClick={handleStyleContinue}
+                      disabled={Object.keys(selectedStyles).length === 0}
+                      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                        Object.keys(selectedStyles).length > 0
+                          ? 'bg-gray-900 text-white hover:bg-gray-800'
+                          : 'bg-secondary text-gray-400 cursor-not-allowed'
+                      }`}
+                    >
+                      Continue
+                    </button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ── Finalizing spinner ── */}
-            {stage === 'finalizing' && (
+            {/* ── Finalizing: generating/cooking animation ── */}
+            {(stage === 'finalizing' || stagePassed('finalizing')) && (
               <Bubble role="assistant">
-                <div className="bg-gray-100 rounded-2xl rounded-tl-sm px-4 py-3 flex items-center gap-2">
-                  <svg className="w-4 h-4 animate-spin text-blue-500" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 0 1 8-8V0C5.373 0 0 5.373 0 12h4z" />
-                  </svg>
-                  <span className="text-sm text-gray-600">Tuning your final game…</span>
-                </div>
+                {stage === 'finalizing' ? (
+                  <CookingAnimation label="Pixie is generating your final game…" />
+                ) : (
+                  <StepDone label="Final game generated" />
+                )}
               </Bubble>
             )}
 
@@ -1007,36 +1587,36 @@ function ChatScreen() {
       {showScrollBtn && (
         <button
           onClick={() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })}
-          className="absolute bottom-24 right-6 w-8 h-8 bg-white border border-gray-200 rounded-full shadow flex items-center justify-center hover:bg-gray-50 transition-colors"
+          className="absolute bottom-24 right-6 w-8 h-8 bg-card border border-border rounded-full shadow-md flex items-center justify-center hover:bg-muted transition-colors"
         >
-          {Icon.arrowDown('w-3.5 h-3.5 text-gray-500')}
+          {Icon.arrowDown('w-3.5 h-3.5 text-muted-foreground')}
         </button>
       )}
 
       {/* Composer */}
-      <div className="border-t border-gray-100 bg-white px-4 md:px-8 py-4">
+      <div className="border-t border-border bg-card px-6 md:px-10 pt-6 pb-12">
         {atConcepts && !atDone && (
-          <div className="max-w-2xl mx-auto flex gap-2 flex-wrap mb-3">
+          <div className="max-w-[975px] mx-auto flex gap-2 flex-wrap mb-4">
             {QUICK_PILLS.map(p => (
-              <button key={p} className="text-xs font-medium border border-gray-200 text-gray-600 hover:border-blue-300 hover:text-blue-600 px-3 py-1 rounded-full transition-colors">
+              <button key={p} className="text-xs font-medium border border-border text-muted-foreground hover:border-primary/40 hover:text-primary px-4 py-2 rounded-full transition-colors">
                 {p}
               </button>
             ))}
           </div>
         )}
-        <div className="max-w-2xl mx-auto flex gap-2">
+        <div className="max-w-[975px] mx-auto flex gap-3">
           <input
             value={input}
             onChange={e => setInput(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleBriefSend(input)}
             placeholder={stage === 'idle' ? 'Describe your product or campaign…' : 'Message Pixie…'}
             disabled={composerDisabled}
-            className="flex-1 px-4 py-2.5 rounded-full border border-gray-200 text-sm outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder:text-gray-400 disabled:opacity-40"
+            className="flex-1 px-5 py-[21px] rounded-full border border-gray-300 bg-muted text-sm text-foreground outline-none focus:ring-2 focus:ring-ring focus:border-transparent focus:bg-card transition-all placeholder:text-muted-foreground disabled:opacity-40"
           />
           <button
             onClick={() => handleBriefSend(input)}
             disabled={composerDisabled || !input.trim()}
-            className="w-10 h-10 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
+            className="w-[58px] h-[58px] bg-primary hover:bg-primary/90 disabled:bg-primary/40 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
           >
             {inputBusy ? (
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -1047,6 +1627,13 @@ function ChatScreen() {
           </button>
         </div>
       </div>
+
+      {playingGameFile && (
+        <GamePlayModal
+          game={GAME_PREVIEWS.find(g => g.file === playingGameFile)!}
+          onClose={() => setPlayingGameFile(null)}
+        />
+      )}
     </div>
   )
 }
@@ -1058,13 +1645,32 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [campaigns] = useState<Campaign[]>(CAMPAIGNS)
 
-  const titles: Record<NavItem, string> = {
-    home: 'Overview',
-    create: 'Create game',
+  const topBarInfo: Record<NavItem, TopBarInfo> = {
+    home: {
+      title: 'Overview',
+      subtitle: 'Your campaigns and games at a glance',
+      icon: Icon.home,
+      iconBg: 'bg-primary/10',
+      iconColor: 'text-primary',
+    },
+    create: {
+      title: 'Create game',
+      subtitle: 'Chat your way from brief to shipped mini-game',
+      icon: Icon.sparkles,
+      iconBg: 'bg-purple-50',
+      iconColor: 'text-purple-500',
+    },
+    games: {
+      title: 'Created games',
+      subtitle: 'Browse, play, and analyze what you’ve shipped',
+      icon: Icon.gamepad,
+      iconBg: 'bg-orange-50',
+      iconColor: 'text-orange-500',
+    },
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-muted">
       <Sidebar
         open={sidebarOpen}
         nav={nav}
@@ -1078,12 +1684,36 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
         <div className="fixed inset-0 bg-black/20 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <TopBar title={titles[nav]} onMenuClick={() => setSidebarOpen(o => !o)} />
+        <TopBar info={topBarInfo[nav]} onMenuClick={() => setSidebarOpen(o => !o)} />
         {nav === 'home' && (
           <HomeScreen campaigns={campaigns} onNewGame={() => setNav('create')} />
         )}
         {nav === 'create' && <ChatScreen />}
+        {nav === 'games' && <GamesScreen />}
       </div>
+    </div>
+  )
+}
+
+// ─── Splash ───────────────────────────────────────────────────────────────────
+
+function SplashScreen({ onDone }: { onDone: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onDone, 2200)
+    return () => clearTimeout(t)
+  }, [onDone])
+
+  return (
+    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
+      <PixieMark className="w-12 h-12 text-white animate-rise-in" />
+      <ShinyText
+        text="Pixie"
+        speed={1.4}
+        color="#4b4b4b"
+        shineColor="#ffffff"
+        spread={120}
+        className="text-7xl font-bold"
+      />
     </div>
   )
 }
@@ -1095,7 +1725,8 @@ export default function App() {
 
   return (
     <div>
-      {screen === 'login' && <LoginScreen onLogin={() => setScreen('home')} />}
+      {screen === 'login' && <LoginScreen onLogin={() => setScreen('splash')} />}
+      {screen === 'splash' && <SplashScreen onDone={() => setScreen('home')} />}
       {(screen === 'home' || screen === 'create') && (
         <AppShell onSignOut={() => setScreen('login')} />
       )}

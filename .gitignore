@@ -19,3 +19,13 @@ logs/
 # beside it.
 /.plugins/
 /.opencode-skills/
+
+# Figma Make export bundle — platform metadata, not app source.
+/ai_chat.json
+/blob_store/
+/canvas.fig
+/images/
+/make_repos.json
+/make_repos/
+/meta.json
+/thumbnail.png
