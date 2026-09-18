@@ -1084,7 +1084,9 @@ const CREATED_GAMES: CreatedGame[] = [
 function CookingAnimation({ label }: { label: string }) {
   const sparks = ['✦', '✧', '⋆', '✦', '✧']
   return (
-    <div className="bg-gradient-to-br from-purple-500/10 to-fuchsia-500/10 border border-purple-500/20 rounded-2xl rounded-tl-sm p-5 max-w-xs">
+    <div
+      className="bg-[image:linear-gradient(to_bottom_right,var(--cooking-from),var(--cooking-to))] border border-[color:var(--cooking-border)] rounded-2xl rounded-tl-sm p-5 max-w-xs"
+    >
       <div className="flex items-center gap-2 mb-3">
         <div className="relative w-8 h-8">
           {sparks.map((s, i) => (
@@ -1103,13 +1105,13 @@ function CookingAnimation({ label }: { label: string }) {
           ))}
           <span className="absolute inset-0 flex items-center justify-center text-base">🍳</span>
         </div>
-        <span className="text-sm font-semibold text-purple-200">{label}</span>
+        <span className="text-sm font-semibold text-[color:var(--cooking-text)]">{label}</span>
       </div>
       <div className="flex gap-1 items-center">
         {[0, 1, 2, 3, 4].map(i => (
           <div
             key={i}
-            className="h-1 rounded-full bg-purple-400/60"
+            className="h-1 rounded-full bg-[color:var(--cooking-bar)]"
             style={{
               width: `${12 + i * 6}px`,
               animation: `cookBar 1.2s ${i * 0.18}s ease-in-out infinite alternate`,
@@ -1339,6 +1341,7 @@ function ChatScreen() {
   const [playingGameFile, setPlayingGameFile] = useState<string | null>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const atConcepts = stage === 'concepts' || stage === 'finalizing' || stage === 'done'
   const atDone = stage === 'done'
@@ -1356,6 +1359,13 @@ function ChatScreen() {
     if (!el) return
     setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 80)
   }
+
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }, [input])
 
   function addMsg(role: 'assistant' | 'user', text: string, reasoning?: string) {
     setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, reasoning }])
@@ -1462,14 +1472,14 @@ function ChatScreen() {
             />
             <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
               {[
-                { icon: Icon.palette('w-5 h-5'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20', prompt: "I need to make a game for my product in lead management. Our brand is modern, bold, and targets sales teams who love fast-paced workflows." },
-                { icon: Icon.layers('w-5 h-5'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-500/15', text: 'text-green-400', border: 'border-green-500/20', prompt: "Build three game concepts for a fintech app focused on expense tracking." },
-                { icon: Icon.sparkles('w-5 h-5'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/20', prompt: "Make the game feel more competitive with leaderboards and time pressure." },
-                { icon: Icon.ship('w-5 h-5'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-500/15', text: 'text-orange-300', border: 'border-orange-500/20', prompt: "I want to finalize the runner game and get the embed code for our landing page." },
+                { icon: Icon.palette('w-5 h-5'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+                { icon: Icon.layers('w-5 h-5'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-500/15', text: 'text-green-400', border: 'border-green-500/20' },
+                { icon: Icon.sparkles('w-5 h-5'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/20' },
+                { icon: Icon.ship('w-5 h-5'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-500/15', text: 'text-orange-300', border: 'border-orange-500/20' },
               ].map((t, i) => (
                 <button
                   key={i}
-                  onClick={() => handleBriefSend(t.prompt)}
+                  onClick={() => textareaRef.current?.focus()}
                   className={`${t.bg} border ${t.border} rounded-xl p-3.5 text-left hover:opacity-80 transition-opacity`}
                 >
                   <span className={t.text}>{t.icon}</span>
@@ -1662,13 +1672,15 @@ function ChatScreen() {
             ))}
           </div>
         )}
-        <div className="max-w-[640px] mx-auto flex gap-2.5 pointer-events-auto">
-          <input
+        <div className="max-w-[640px] mx-auto flex gap-2.5 items-end pointer-events-auto">
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleBriefSend(input)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleBriefSend(input))}
             placeholder={stage === 'idle' ? 'Describe your product or campaign…' : 'Message Pixie…'}
-            className="flex-1 px-4 py-3 rounded-full border border-border bg-card shadow-sm text-sm text-foreground outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground disabled:opacity-40"
+            rows={1}
+            className="flex-1 px-4 py-3 rounded-3xl border border-border bg-card shadow-sm text-sm text-foreground outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground disabled:opacity-40 resize-none overflow-y-auto max-h-40 leading-6"
           />
           <button
             onClick={() => handleBriefSend(input)}

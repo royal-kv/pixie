@@ -65,6 +65,15 @@
     radial-gradient(48% 40% at 12% 8%, rgba(168, 85, 247, 0.24), transparent 65%),
     radial-gradient(42% 38% at 88% 6%, rgba(236, 72, 153, 0.16), transparent 65%),
     radial-gradient(55% 45% at 50% 105%, rgba(99, 102, 241, 0.16), transparent 65%);
+
+  /* "Pixie is cooking…" card — kept as its own token set (rather than plain
+     Tailwind purple/fuchsia utilities) so the light theme below can darken it
+     without washing out against the light card background. */
+  --cooking-from: rgba(168, 85, 247, 0.1);
+  --cooking-to: rgba(217, 70, 239, 0.1);
+  --cooking-border: rgba(168, 85, 247, 0.2);
+  --cooking-text: #e9d5ff;
+  --cooking-bar: rgba(192, 132, 252, 0.6);
 }
 
 /* Light theme — same token set, swapped for light surfaces. Primary stays
@@ -107,6 +116,12 @@
   --shadow-xl: 0 20px 40px -12px rgba(0, 0, 0, 0.14), 0 8px 12px -6px rgba(0, 0, 0, 0.06);
   --shadow-2xl: 0 24px 56px -16px rgba(0, 0, 0, 0.18);
   --body-glow: none;
+
+  --cooking-from: rgba(168, 85, 247, 0.16);
+  --cooking-to: rgba(217, 70, 239, 0.14);
+  --cooking-border: rgba(168, 85, 247, 0.35);
+  --cooking-text: #7e22ce;
+  --cooking-bar: rgba(147, 51, 234, 0.75);
 }
 
 @theme inline {
