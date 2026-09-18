@@ -1,108 +1,112 @@
 @import 'tailwindcss';
 
-@custom-variant dark (&:is(.dark *));
-
 /**
- * tweakcn theme tokens
- * ====================
- * Color, radius, and shadow tokens from the requested theme. --font-sans/
- * --font-serif/--font-mono are intentionally omitted here — this app keeps
- * its own Montserrat/Nunito pairing (set below) from an earlier, separate
- * request, since the theme's own font stack would silently override it.
+ * Glassmorphic neon theme tokens
+ * ===============================
+ * Dark glass/neon palette (the default) — deep near-black surfaces,
+ * translucent glass panels (paired with backdrop-blur at each usage site),
+ * and a violet/fuchsia neon accent. `.light` below overrides these same
+ * tokens for the light theme; toggled by adding/removing that class on
+ * `<html>` (see the theme toggle in the sidebar). --font-sans/--font-serif/
+ * --font-mono are intentionally omitted here — this app keeps its own
+ * Montserrat/Nunito pairing (set below) from an earlier, separate request,
+ * since the theme's own font stack would silently override it.
  */
 :root {
-  --background: rgb(251, 251, 251);
-  --foreground: rgb(40, 40, 45);
-  --card: rgb(255, 255, 255);
-  --card-foreground: rgb(40, 40, 45);
-  --popover: rgb(255, 255, 255);
-  --popover-foreground: rgb(40, 40, 45);
-  --primary: rgb(88, 101, 242);
+  --background: rgb(8, 7, 16);
+  --foreground: rgb(240, 238, 250);
+  --card: rgb(23, 20, 36);
+  --card-foreground: rgb(240, 238, 250);
+  --popover: rgb(23, 20, 36);
+  --popover-foreground: rgb(240, 238, 250);
+  --primary: rgb(168, 85, 247);
   --primary-foreground: rgb(255, 255, 255);
-  --secondary: rgb(242, 242, 243);
-  --secondary-foreground: rgb(40, 40, 45);
-  --muted: rgb(246, 246, 246);
-  --muted-foreground: rgb(108, 109, 118);
-  --accent: rgb(238, 238, 240);
-  --accent-foreground: rgb(40, 40, 45);
-  --destructive: rgb(185, 39, 51);
+  --secondary: rgb(33, 29, 51);
+  --secondary-foreground: rgb(240, 238, 250);
+  --muted: rgb(16, 14, 27);
+  --muted-foreground: rgb(158, 154, 178);
+  --accent: rgb(42, 36, 64);
+  --accent-foreground: rgb(240, 238, 250);
+  --destructive: rgb(255, 92, 122);
   --destructive-foreground: rgb(255, 255, 255);
-  --border: rgb(223, 223, 225);
-  --input: rgb(242, 242, 243);
-  --ring: rgb(88, 101, 242);
-  --chart-1: rgb(245, 163, 209);
-  --chart-2: rgb(245, 209, 138);
-  --chart-3: rgb(163, 245, 209);
-  --chart-4: rgb(163, 209, 245);
-  --chart-5: rgb(209, 163, 245);
-  --sidebar: rgb(243, 243, 244);
-  --sidebar-foreground: rgb(102, 103, 112);
-  --sidebar-primary: rgb(221, 221, 224);
-  --sidebar-primary-foreground: rgb(40, 40, 45);
-  --sidebar-accent: rgb(231, 231, 233);
-  --sidebar-accent-foreground: rgb(40, 40, 45);
-  --sidebar-border: rgb(217, 217, 220);
-  --sidebar-ring: rgb(0, 176, 244);
-  --radius: 0.625rem;
+  --border: rgba(255, 255, 255, 0.09);
+  --input: rgb(23, 20, 36);
+  --ring: rgb(168, 85, 247);
+  --chart-1: rgb(236, 72, 153);
+  --chart-2: rgb(250, 204, 21);
+  --chart-3: rgb(52, 211, 153);
+  --chart-4: rgb(96, 165, 250);
+  --chart-5: rgb(168, 85, 247);
+  --sidebar: rgb(13, 11, 22);
+  --sidebar-foreground: rgb(158, 154, 178);
+  --sidebar-primary: rgb(168, 85, 247);
+  --sidebar-primary-foreground: rgb(255, 255, 255);
+  --sidebar-accent: rgb(33, 29, 51);
+  --sidebar-accent-foreground: rgb(240, 238, 250);
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: rgb(168, 85, 247);
+  --radius: 0.75rem;
   --shadow-x: 0;
-  --shadow-y: 1px;
-  --shadow-blur: 3px;
+  --shadow-y: 8px;
+  --shadow-blur: 24px;
   --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: oklch(0 0 0);
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --shadow-opacity: 0.35;
+  --shadow-color: rgb(120, 40, 200);
+  --shadow-2xs: 0 1px 2px 0px rgba(0, 0, 0, 0.3);
+  --shadow-xs: 0 1px 3px 0px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 10px -2px rgba(130, 50, 230, 0.25), 0 1px 2px -1px rgba(0, 0, 0, 0.3);
+  --shadow: 0 4px 18px -4px rgba(130, 50, 230, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 28px -6px rgba(150, 60, 240, 0.35), 0 2px 6px -2px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 16px 44px -10px rgba(150, 60, 240, 0.4), 0 4px 10px -4px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 24px 64px -12px rgba(150, 60, 240, 0.45), 0 8px 16px -6px rgba(0, 0, 0, 0.4);
+  --shadow-2xl: 0 32px 84px -16px rgba(150, 60, 240, 0.5);
   --tracking-normal: 0em;
+  --body-glow:
+    radial-gradient(48% 40% at 12% 8%, rgba(168, 85, 247, 0.24), transparent 65%),
+    radial-gradient(42% 38% at 88% 6%, rgba(236, 72, 153, 0.16), transparent 65%),
+    radial-gradient(55% 45% at 50% 105%, rgba(99, 102, 241, 0.16), transparent 65%);
 }
 
-.dark {
-  --background: rgb(50, 51, 57);
-  --foreground: rgb(255, 255, 255);
-  --card: rgb(57, 58, 65);
-  --card-foreground: rgb(255, 255, 255);
-  --popover: rgb(57, 58, 65);
-  --popover-foreground: rgb(255, 255, 255);
-  --primary: rgb(88, 101, 242);
+/* Light theme — same token set, swapped for light surfaces. Primary stays
+   violet (darkened a touch for AA contrast on white) so the brand reads the
+   same in either theme. */
+.light {
+  --background: rgb(250, 249, 252);
+  --foreground: rgb(32, 29, 44);
+  --card: rgb(255, 255, 255);
+  --card-foreground: rgb(32, 29, 44);
+  --popover: rgb(255, 255, 255);
+  --popover-foreground: rgb(32, 29, 44);
+  --primary: rgb(147, 51, 234);
   --primary-foreground: rgb(255, 255, 255);
-  --secondary: rgb(65, 65, 72);
-  --secondary-foreground: rgb(255, 255, 255);
-  --muted: rgb(46, 47, 53);
-  --muted-foreground: rgb(164, 165, 171);
-  --accent: rgb(72, 73, 81);
-  --accent-foreground: rgb(255, 255, 255);
-  --destructive: rgb(255, 160, 155);
+  --secondary: rgb(242, 239, 249);
+  --secondary-foreground: rgb(32, 29, 44);
+  --muted: rgb(246, 245, 250);
+  --muted-foreground: rgb(108, 105, 124);
+  --accent: rgb(237, 232, 249);
+  --accent-foreground: rgb(32, 29, 44);
+  --destructive: rgb(220, 38, 38);
   --destructive-foreground: rgb(255, 255, 255);
-  --border: rgb(62, 63, 69);
-  --input: rgb(46, 47, 53);
-  --ring: rgb(88, 101, 242);
-  --chart-1: rgb(245, 163, 209);
-  --chart-2: rgb(245, 209, 138);
-  --chart-3: rgb(163, 245, 209);
-  --chart-4: rgb(163, 209, 245);
-  --chart-5: rgb(209, 163, 245);
-  --sidebar: rgb(44, 45, 50);
-  --sidebar-foreground: rgb(153, 154, 161);
-  --sidebar-primary: rgb(65, 66, 72);
+  --border: rgb(228, 224, 236);
+  --input: rgb(242, 239, 249);
+  --ring: rgb(147, 51, 234);
+  --sidebar: rgb(250, 249, 252);
+  --sidebar-foreground: rgb(90, 86, 105);
+  --sidebar-primary: rgb(147, 51, 234);
   --sidebar-primary-foreground: rgb(255, 255, 255);
-  --sidebar-accent: rgb(53, 53, 58);
-  --sidebar-accent-foreground: rgb(255, 255, 255);
-  --sidebar-border: rgb(57, 58, 63);
-  --sidebar-ring: rgb(0, 176, 244);
-  --radius: 0.625rem;
-  --shadow-2xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-xs: 0 1px 3px 0px hsl(0 0% 0% / 0.05);
-  --shadow-sm: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 1px 2px -1px hsl(0 0% 0% / 0.10);
-  --shadow-md: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 2px 4px -1px hsl(0 0% 0% / 0.10);
-  --shadow-lg: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 4px 6px -1px hsl(0 0% 0% / 0.10);
-  --shadow-xl: 0 1px 3px 0px hsl(0 0% 0% / 0.10), 0 8px 10px -1px hsl(0 0% 0% / 0.10);
-  --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
+  --sidebar-accent: rgb(237, 232, 249);
+  --sidebar-accent-foreground: rgb(32, 29, 44);
+  --sidebar-border: rgb(228, 224, 236);
+  --sidebar-ring: rgb(147, 51, 234);
+  --shadow-2xs: 0 1px 2px 0px rgba(0, 0, 0, 0.04);
+  --shadow-xs: 0 1px 3px 0px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px 0px rgba(0, 0, 0, 0.07), 0 1px 2px -1px rgba(0, 0, 0, 0.06);
+  --shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.08), 0 1px 3px -1px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 6px 14px -4px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 12px 24px -8px rgba(0, 0, 0, 0.12), 0 4px 8px -4px rgba(0, 0, 0, 0.06);
+  --shadow-xl: 0 20px 40px -12px rgba(0, 0, 0, 0.14), 0 8px 12px -6px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 24px 56px -16px rgba(0, 0, 0, 0.18);
+  --body-glow: none;
 }
 
 @theme inline {
@@ -201,28 +205,30 @@
   /*
    * Color roles (documented convention, not new class names — the app
    * already uses these exact Tailwind hues consistently):
-   *   primary   → blue    (bg-blue-500 / text-blue-600, CTAs, links, focus rings)
-   *   secondary → purple  (bg-purple-50 / text-purple-600, accents)
+   *   primary   → violet/neon (bg-primary, text-primary — CTAs, links, focus
+   *               rings; paired with fuchsia in gradients for the neon look)
+   *   accent    → fuchsia/pink (from-fuchsia-500/600, to-purple-600 —
+   *               gradient buttons, banners, avatar badges)
    *   neutral   → gray    (Tailwind's built-in 50–950 scale, all chrome/text)
-   *   success   → green   (bg-green-50 / text-green-600)
-   *   warning   → orange  (bg-orange-50 / text-orange-500/600)
-   *   error     → red     (Tailwind's red-50/600 — reserved for when a
+   *   success   → green   (bg-green-500/15 + text-green-400 translucent chips)
+   *   warning   → orange  (bg-orange-500/15 + text-orange-400 translucent chips)
+   *   error     → red/rose (Tailwind's rose scale — reserved for when a
    *                         destructive/error state is added; unused today)
+   *
+   * Surfaces are glass, not flat: solid `--card`/`--secondary`/`--muted`
+   * tokens are the base tint, and any "panel" (dashboard cards, sidebar,
+   * chat bubbles, modals) additionally gets backdrop-blur + a translucent
+   * bg/border via the `.glass-panel` utility below so the ambient page glow
+   * shows through.
    *
    * Spacing uses Tailwind's default 4px scale (space-1..space-16) directly.
    * Radius: rounded-lg (ghost icon buttons) / rounded-xl (icon badges, nav
    * rows, inputs) / rounded-2xl (cards, panels, modals) / rounded-full
    * (pills, avatars, circular controls).
    * Shadows: shadow-sm (resting cards) / shadow-md (hover/raised, floating
-   * buttons) / shadow-xl (modals).
+   * buttons) / shadow-xl (modals) — all tinted violet for the neon-glow look.
    */
 
-  /* One-off bespoke colors — each used by exactly one decorative component,
-     named here instead of left as inline/arbitrary hex. */
-  --color-ink: #06070e;              /* login screen hero backdrop */
-  --color-terminal-bg: #07071a;      /* "hallucinating" console background */
-  --color-terminal-accent: #00ff9c;  /* "hallucinating" console text/border */
-  --color-terminal-dim: #5566aa;     /* "hallucinating" console dim text */
 }
 
 @layer base {
@@ -234,8 +240,33 @@
     font-family: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply text-foreground;
+    background-color: var(--background);
+    background-image: var(--body-glow);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    transition: background-color 0.3s ease;
   }
+}
+
+/* Glassmorphic panel — translucent surface + blur + soft border, so the
+   ambient page glow shows through. Applied on top of a semantic bg (bg-card,
+   bg-secondary, bg-sidebar…) via its own background layer. */
+.glass-panel {
+  position: relative;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  background-image: linear-gradient(155deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+  border-color: rgba(255, 255, 255, 0.09);
+}
+
+/* Neon gradient CTA — the "Join Now" style button from the reference. */
+.btn-neon {
+  background-image: linear-gradient(135deg, #a855f7, #ec4899);
+  box-shadow: 0 4px 20px -4px rgba(200, 60, 220, 0.55);
+}
+.btn-neon:hover {
+  box-shadow: 0 6px 26px -4px rgba(200, 60, 220, 0.7);
 }
 
 /* Hide scrollbars until hover */
@@ -287,13 +318,38 @@
   to { opacity: 1; transform: scaleY(1.4); }
 }
 
+/* Sweeping scanline over a game preview while it's "generating" — swept at
+   an angle, not straight down. */
+@keyframes scanline {
+  0% { background-position: -70% -70%; opacity: 0; }
+  15% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { background-position: 170% 170%; opacity: 0; }
+}
+.ai-scanline {
+  background-repeat: no-repeat;
+  background-size: 320% 320%;
+  animation: scanline 1.8s ease-in-out infinite;
+}
+
+
 .typing-dot { animation: typing 1.2s ease-in-out infinite; }
 .typing-dot:nth-child(2) { animation-delay: 0.2s; }
 .typing-dot:nth-child(3) { animation-delay: 0.4s; }
 
 /* Dot grid bg */
 .dot-grid {
-  background-image: radial-gradient(circle, #93c5fd 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(168, 85, 247, 0.5) 1px, transparent 1px);
   background-size: 24px 24px;
+}
+
+/*
+ * Medium roundness, app-wide — every button and input/field gets a uniform
+ * medium corner radius regardless of the rounded-* utility applied in
+ * markup. Left unlayered (outside @layer) so it wins over Tailwind's
+ * utilities layer without needing !important on every rule.
+ */
+button, input {
+  border-radius: var(--radius-md);
 }
 
