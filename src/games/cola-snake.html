@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Cola Snake</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#0D0000;font-family:'Courier New',monospace;color:#fff;}
+body{display:flex;flex-direction:column;align-items:center;}
+
+#hud{
+  width:100%;display:flex;justify-content:space-between;align-items:center;
+  padding:6px 14px;background:#CC0000;border-bottom:3px solid #fff;
+  font-size:14px;font-weight:700;letter-spacing:1px;flex-shrink:0;z-index:5;
+}
+#hud-score{color:#fff;}
+#hud-brand{
+  font-family:'Bangers',Impact,sans-serif;font-size:20px;
+  color:#fff;letter-spacing:3px;text-shadow:1px 1px 0 #880000;
+}
+#hud-hi{color:#ffcccc;}
+
+#game-wrap{position:relative;flex:1;width:100%;overflow:hidden;}
+canvas{display:block;width:100%;height:100%;}
+
+/* Screens */
+.screen{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(10,0,0,.88);z-index:20;padding:0 20px;
+}
+.screen.hidden{display:none;}
+
+.logo-text{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(44px,12vw,72px);color:#FF1A1A;line-height:1;
+  text-shadow:0 0 24px rgba(255,50,50,.7),3px 3px 0 #660000;
+  margin-bottom:2px;letter-spacing:2px;
+}
+.tagline{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(14px,4vw,20px);color:#fff;letter-spacing:3px;margin-bottom:20px;
+  opacity:.85;
+}
+.desc{
+  font-size:clamp(11px,3vw,14px);color:#cc8888;
+  margin-bottom:26px;text-align:center;line-height:1.7;
+}
+.scr-btn{
+  background:#CC0000;color:#fff;border:3px solid #fff;
+  padding:12px 32px;font-size:15px;font-weight:900;
+  border-radius:4px;cursor:pointer;letter-spacing:2px;
+  font-family:'Courier New',monospace;text-decoration:none;
+  display:inline-block;text-align:center;margin:5px;
+}
+.scr-btn:active{transform:scale(.95);}
+.scr-btn.white{background:#fff;color:#CC0000;border-color:#CC0000;}
+.end-score{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(48px,13vw,80px);color:#fff;
+  text-shadow:2px 2px 0 #CC0000;line-height:1;margin-bottom:2px;
+}
+.end-label{font-size:11px;color:#cc6666;letter-spacing:2px;margin-bottom:10px;}
+.end-tagline{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(18px,5vw,28px);color:#FF4444;
+  letter-spacing:2px;margin-bottom:20px;
+}
+.divider{width:50px;height:3px;background:#CC0000;margin:12px auto;}
+
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div id="hud-score">SCORE <span id="score">0</span></div>
+  <div id="hud-brand">COLA SNAKE</div>
+  <div id="hud-hi">BEST <span id="hi">0</span></div>
+</div>
+
+<div id="game-wrap">
+  <canvas id="c"></canvas>
+
+  <!-- Start screen -->
+  <div class="screen" id="s-start">
+    <div class="logo-text">Coca-Cola</div>
+    <div class="tagline">Open Happiness</div>
+    <div class="desc">
+      Slither and collect ice-cold refreshment.<br>
+      Don't bite yourself — stay thirsty!
+    </div>
+    <button class="scr-btn white" id="btn-start">PLAY</button>
+  </div>
+
+  <!-- End screen -->
+  <div class="screen hidden" id="s-end">
+    <div class="logo-text">Coca-Cola</div>
+    <div class="end-tagline" id="end-tagline">Taste the Feeling.</div>
+    <div class="divider"></div>
+    <div class="end-score" id="end-score">0</div>
+    <div class="end-label">CANS COLLECTED</div>
+    <a class="scr-btn white" href="https://www.coca-cola.com" target="_blank" rel="noopener">
+      ORDER A COKE
+    </a>
+    <button class="scr-btn" id="btn-restart">PLAY AGAIN</button>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   COLA SNAKE  —  3-D Coca-Cola can snake game
+   ═══════════════════════════════════════════════════════ */
+
+const DEMO_MODE = true;
+
+const GRID     = 20;          // GRID × GRID playing field
+const CELL     = 1.0;         // world units per cell
+const TICK_MS  = 155;         // ms per snake step
+const TAGLINES = [
+  'Taste the Feeling.',
+  'Open Happiness.',
+  'Life Tastes Good.',
+  'Have a Coke and a Smile.',
+  'Always Coca-Cola.',
+  'Things Go Better with Coke.',
+];
+
+// ── Three.js setup ────────────────────────────────────────
+const wrap    = document.getElementById('game-wrap');
+const canvas  = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.setClearColor(0x220000);
+
+const scene  = new THREE.Scene();
+scene.fog    = new THREE.FogExp2(0x220000, 0.015);
+
+const camera = new THREE.PerspectiveCamera(52, 1, 0.1, 120);
+
+function onResize() {
+  const W = wrap.clientWidth, H = wrap.clientHeight;
+  renderer.setSize(W, H, false);
+  camera.aspect = W / H;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize);
+onResize();
+
+// ── Camera position (angled top-down) ─────────────────────
+const camDist = GRID * 0.88;
+camera.position.set(0, camDist * 0.95, camDist * 0.68);
+camera.lookAt(0, 0, 0);
+
+// ── Lighting ──────────────────────────────────────────────
+const ambient = new THREE.AmbientLight(0x440000, 1.2);
+scene.add(ambient);
+
+const sun = new THREE.DirectionalLight(0xFFEEEE, 2.2);
+sun.position.set(8, 18, 10);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+sun.shadow.camera.near = 1;
+sun.shadow.camera.far  = 60;
+sun.shadow.camera.left = sun.shadow.camera.bottom = -18;
+sun.shadow.camera.right= sun.shadow.camera.top    =  18;
+scene.add(sun);
+
+const fillLight = new THREE.PointLight(0xFF2200, 1.8, 28);
+fillLight.position.set(-8, 3, -8);
+scene.add(fillLight);
+
+const rimLight = new THREE.PointLight(0xFFFFFF, 0.5, 20);
+rimLight.position.set(0, 2, -GRID * 0.5);
+scene.add(rimLight);
+
+// ── Floor ─────────────────────────────────────────────────
+(function buildFloor() {
+  const S = 512;
+  const cv = document.createElement('canvas');
+  cv.width = cv.height = S;
+  const g = cv.getContext('2d');
+
+  // Plain white floor
+  g.fillStyle = '#FFFFFF';
+  g.fillRect(0, 0, S, S);
+
+  // Red border stripe (inset 1px so it stays inside the floor plane)
+  const bw = Math.round(S * 0.025); // border width ~2.5% of canvas
+  g.fillStyle = '#CC0000';
+  g.fillRect(0,       0,       S,  bw);  // top
+  g.fillRect(0,       S - bw,  S,  bw);  // bottom
+  g.fillRect(0,       0,       bw, S);   // left
+  g.fillRect(S - bw,  0,       bw, S);   // right
+
+  const tex = new THREE.CanvasTexture(cv);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+
+  const geo = new THREE.PlaneGeometry(GRID * CELL, GRID * CELL);
+  const mat = new THREE.MeshLambertMaterial({ map: tex });
+  const floor = new THREE.Mesh(geo, mat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.position.y = -0.01;
+  floor.receiveShadow = true;
+  scene.add(floor);
+
+  // Border walls (thin red strips)
+  const wallMat = new THREE.MeshPhongMaterial({ color: 0xCC0000, emissive: 0x440000 });
+  const hw = GRID * CELL / 2 + 0.1;
+  [[hw,0,0],[- hw,0,0],[0,0,hw],[0,0,-hw]].forEach(([x,y,z]) => {
+    const isX = x !== 0;
+    const wGeo = new THREE.BoxGeometry(isX ? 0.18 : GRID+0.36, 0.3, isX ? GRID+0.36 : 0.18);
+    const w = new THREE.Mesh(wGeo, wallMat);
+    w.position.set(x, 0.15, z);
+    scene.add(w);
+  });
+})();
+
+// ── Can label texture (cached) ────────────────────────────
+let _canTex = null;
+function getCanTex() {
+  if (_canTex) return _canTex;
+  const W = 512, H = 256;
+  const cv = document.createElement('canvas');
+  cv.width = W; cv.height = H;
+  const g = cv.getContext('2d');
+
+  // Red body
+  g.fillStyle = '#E8191F';
+  g.fillRect(0, 0, W, H);
+
+  // Dynamic ribbon (white swoosh)
+  g.fillStyle = 'rgba(255,255,255,0.14)';
+  g.beginPath();
+  g.moveTo(0, H*0.3);
+  g.bezierCurveTo(W*0.3, H*0.12, W*0.7, H*0.42, W, H*0.25);
+  g.lineTo(W, H*0.72);
+  g.bezierCurveTo(W*0.7, H*0.88, W*0.3, H*0.58, 0, H*0.76);
+  g.closePath();
+  g.fill();
+
+  // Script Coca-Cola
+  g.fillStyle = '#FFFFFF';
+  g.font = 'italic bold 56px Georgia, serif';
+  g.textAlign = 'center';
+  g.textBaseline = 'middle';
+  g.fillText('Coca-Cola', W/2, H*0.42);
+
+  // Sub-text
+  g.font = '18px Arial, sans-serif';
+  g.fillStyle = 'rgba(255,255,255,0.75)';
+  g.fillText('Taste the Feeling', W/2, H*0.72);
+
+  _canTex = new THREE.CanvasTexture(cv);
+  return _canTex;
+}
+
+// ── Can mesh factory ──────────────────────────────────────
+function makeCan() {
+  const group = new THREE.Group();
+  const r = 0.34, bodyH = 0.62, totalH = 0.88;
+
+  // Body with Coca-Cola label
+  const bodyGeo = new THREE.CylinderGeometry(r, r, bodyH, 22);
+  const bodyMat = new THREE.MeshPhongMaterial({
+    map: getCanTex(), shininess: 90, specular: 0x552222
+  });
+  const body = new THREE.Mesh(bodyGeo, bodyMat);
+  body.castShadow = true;
+  group.add(body);
+
+  // Silver metal material for top/bottom
+  const metalMat = new THREE.MeshPhongMaterial({
+    color: 0xBBBBBB, shininess: 160, specular: 0xFFFFFF
+  });
+
+  // Neck taper (top)
+  const neckGeo = new THREE.CylinderGeometry(r*0.72, r, bodyH*0.22, 18);
+  const neck = new THREE.Mesh(neckGeo, metalMat);
+  neck.position.y = bodyH * 0.59;
+  neck.castShadow = true;
+  group.add(neck);
+
+  // Lid disc
+  const lidGeo = new THREE.CylinderGeometry(r*0.70, r*0.70, 0.038, 18);
+  const lid = new THREE.Mesh(lidGeo, metalMat);
+  lid.position.y = bodyH * 0.725;
+  group.add(lid);
+
+  // Pull tab
+  const tabGeo = new THREE.BoxGeometry(0.14, 0.015, 0.07);
+  const tab = new THREE.Mesh(tabGeo, metalMat);
+  tab.position.set(r*0.55, bodyH*0.745, 0);
+  tab.rotation.z = 0.18;
+  group.add(tab);
+
+  // Bottom taper
+  const botGeo = new THREE.CylinderGeometry(r*0.82, r*0.75, bodyH*0.1, 18);
+  const bot = new THREE.Mesh(botGeo, metalMat);
+  bot.position.y = -bodyH * 0.55;
+  group.add(bot);
+
+  // Y = radius so can rests on floor when laid horizontal
+  group.position.y = r + 0.02;
+  return group;
+}
+
+// Rotate a can mesh so its long axis aligns with movement direction
+function orientCan(mesh, dx, dz) {
+  mesh.rotation.set(0, 0, 0);
+  if (dx !== 0) {
+    // Moving along X → tip can cylinder along world X
+    mesh.rotation.z = Math.PI / 2;
+    if (dx > 0) mesh.rotation.y = Math.PI; // face tab forward
+  } else {
+    // Moving along Z → tip can cylinder along world Z
+    mesh.rotation.x = Math.PI / 2;
+    if (dz < 0) mesh.rotation.y = Math.PI;
+  }
+}
+
+// ── Ice cube factory ──────────────────────────────────────
+function makeIceCube(gx, gz) {
+  const s  = 0.58;
+  const group = new THREE.Group();
+
+  const geo = new THREE.BoxGeometry(s, s, s);
+  const mat = new THREE.MeshPhongMaterial({
+    color: 0xBBDDFF, transparent: true, opacity: 0.78,
+    shininess: 220, specular: 0xFFFFFF,
+    emissive: 0x001133, emissiveIntensity: 0.4,
+  });
+  const cube = new THREE.Mesh(geo, mat);
+  cube.castShadow = true;
+  group.add(cube);
+
+  // Crystal edges
+  const edges  = new THREE.EdgesGeometry(geo);
+  const edgeMat = new THREE.LineBasicMaterial({
+    color: 0xFFFFFF, transparent: true, opacity: 0.85
+  });
+  group.add(new THREE.LineSegments(edges, edgeMat));
+
+  // Inner crack lines
+  const crackGeo = new THREE.EdgesGeometry(new THREE.BoxGeometry(s*0.6, s*0.6, s*0.6));
+  const crackMat = new THREE.LineBasicMaterial({
+    color: 0xAADDFF, transparent: true, opacity: 0.35
+  });
+  const crack = new THREE.LineSegments(crackGeo, crackMat);
+  crack.rotation.set(0.4, 0.6, 0.2);
+  group.add(crack);
+
+  // Glow point light
+  const glow = new THREE.PointLight(0x88BBFF, 1.2, 2.5);
+  glow.position.y = 0;
+  group.add(glow);
+
+  const p = gridToWorld(gx, gz);
+  group.position.set(p.x, s/2 + 0.02, p.z);
+  scene.add(group);
+  return group;
+}
+
+// ── Coordinate helpers ────────────────────────────────────
+function gridToWorld(gx, gz) {
+  return {
+    x: (gx - GRID/2 + 0.5) * CELL,
+    z: (gz - GRID/2 + 0.5) * CELL,
+  };
+}
+
+// ── Game state ────────────────────────────────────────────
+let snake     = [];   // [{gx,gz}, ...] head first
+let canMeshes = [];   // Three.js groups, same order as snake
+let food      = null; // {gx, gz, mesh}
+let dir       = { dx:1, dz:0 };
+let nextDir   = { dx:1, dz:0 };
+let score     = 0;
+let hiScore   = parseInt(localStorage.getItem('colaSnakeHi')||'0');
+let gameState = 'idle'; // idle | playing | over
+let lastTick  = 0;
+let frameNum  = 0;
+let autoRestartTimer = 0;
+
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('hi').textContent    = hiScore;
+}
+
+// ── Init / reset ──────────────────────────────────────────
+function initGame() {
+  // Remove old meshes
+  canMeshes.forEach(m => scene.remove(m));
+  canMeshes = [];
+  if (food) { scene.remove(food.mesh); food = null; }
+
+  score = 0; frameNum = 0; autoRestartTimer = 0;
+  gameState = 'playing';
+  lastTick  = performance.now();
+
+  // Initial snake (3 segments, center, moving right)
+  const sx = Math.floor(GRID/2), sz = Math.floor(GRID/2);
+  snake = [
+    {gx: sx,   gz: sz},
+    {gx: sx-1, gz: sz},
+    {gx: sx-2, gz: sz},
+  ];
+  dir     = { dx:1, dz:0 };
+  nextDir = { dx:1, dz:0 };
+
+  snake.forEach(seg => {
+    const mesh = makeCan();
+    const p = gridToWorld(seg.gx, seg.gz);
+    mesh.position.x = p.x;
+    mesh.position.z = p.z;
+    orientCan(mesh, dir.dx, dir.dz);
+    scene.add(mesh);
+    canMeshes.push(mesh);
+  });
+
+  spawnFood();
+  updateHUD();
+}
+
+// ── Food spawning ─────────────────────────────────────────
+function spawnFood() {
+  const occupied = new Set(snake.map(s => `${s.gx},${s.gz}`));
+  const free = [];
+  for (let z = 0; z < GRID; z++)
+    for (let x = 0; x < GRID; x++)
+      if (!occupied.has(`${x},${z}`)) free.push({x, z});
+  if (!free.length) return;
+  const pick = free[Math.floor(Math.random() * free.length)];
+  food = { gx: pick.x, gz: pick.z, mesh: makeIceCube(pick.x, pick.z) };
+}
+
+// ── Game tick ─────────────────────────────────────────────
+function tick() {
+  if (gameState !== 'playing') return;
+
+  dir = nextDir;
+  const head  = snake[0];
+  const newGX = head.gx + dir.dx;
+  const newGZ = head.gz + dir.dz;
+
+  // Wall collision
+  if (newGX < 0 || newGX >= GRID || newGZ < 0 || newGZ >= GRID) {
+    endGame(); return;
+  }
+
+  // Self collision
+  if (snake.some(s => s.gx === newGX && s.gz === newGZ)) {
+    endGame(); return;
+  }
+
+  const ate = food && food.gx === newGX && food.gz === newGZ;
+
+  // Create new head can
+  const newMesh = makeCan();
+  const p = gridToWorld(newGX, newGZ);
+  newMesh.position.x = p.x;
+  newMesh.position.z = p.z;
+  orientCan(newMesh, dir.dx, dir.dz);
+  scene.add(newMesh);
+
+  snake.unshift({ gx: newGX, gz: newGZ });
+  canMeshes.unshift(newMesh);
+
+  if (ate) {
+    scene.remove(food.mesh);
+    food = null;
+    score++;
+    if (score > hiScore) { hiScore = score; localStorage.setItem('colaSnakeHi', hiScore); }
+    updateHUD();
+    spawnFood();
+  } else {
+    // Remove tail
+    scene.remove(canMeshes.pop());
+    snake.pop();
+  }
+}
+
+function endGame() {
+  gameState = 'over';
+  const tagline = TAGLINES[Math.floor(Math.random() * TAGLINES.length)];
+  document.getElementById('end-tagline').textContent = tagline;
+  document.getElementById('end-score').textContent   = score;
+  document.getElementById('s-end').classList.remove('hidden');
+  if (DEMO_MODE) autoRestartTimer = 300; // ~5s
+}
+
+// ── Demo AI — BFS to food ─────────────────────────────────
+const ALL_DIRS = [{dx:1,dz:0},{dx:-1,dz:0},{dx:0,dz:1},{dx:0,dz:-1}];
+
+function demoAI() {
+  if (frameNum % 4 !== 0) return; // recalculate every 4 frames
+  if (!food) return;
+
+  const head     = snake[0];
+  const occupied = new Set(snake.map(s => `${s.gx},${s.gz}`));
+  const goal     = `${food.gx},${food.gz}`;
+
+  // BFS from head to food, tracking which first-step was taken
+  const visited = new Set([`${head.gx},${head.gz}`]);
+  const queue   = []; // [gx, gz, firstDir]
+
+  for (const d of ALL_DIRS) {
+    if (d.dx === -dir.dx && d.dz === -dir.dz) continue; // no 180°
+    const nx = head.gx + d.dx, nz = head.gz + d.dz;
+    if (nx < 0 || nx >= GRID || nz < 0 || nz >= GRID) continue;
+    const k = `${nx},${nz}`;
+    if (occupied.has(k) || visited.has(k)) continue;
+    visited.add(k);
+    queue.push([nx, nz, d]);
+  }
+
+  while (queue.length) {
+    const [gx, gz, firstDir] = queue.shift();
+    if (`${gx},${gz}` === goal) { nextDir = firstDir; return; }
+    for (const d of ALL_DIRS) {
+      const nx = gx + d.dx, nz = gz + d.dz;
+      if (nx < 0 || nx >= GRID || nz < 0 || nz >= GRID) continue;
+      const k = `${nx},${nz}`;
+      if (occupied.has(k) || visited.has(k)) continue;
+      visited.add(k);
+      queue.push([nx, nz, firstDir]);
+    }
+  }
+
+  // No path found — take any safe step
+  const safe = ALL_DIRS.filter(d => {
+    if (d.dx === -dir.dx && d.dz === -dir.dz) return false;
+    const nx = head.gx + d.dx, nz = head.gz + d.dz;
+    if (nx < 0 || nx >= GRID || nz < 0 || nz >= GRID) return false;
+    return !occupied.has(`${nx},${nz}`);
+  });
+  if (safe.length) nextDir = safe[Math.floor(Math.random() * safe.length)];
+}
+
+// ── Input ─────────────────────────────────────────────────
+function setDir(d) {
+  const map = {
+    U: {dx:0,  dz:-1},
+    D: {dx:0,  dz:1 },
+    L: {dx:-1, dz:0 },
+    R: {dx:1,  dz:0 },
+  };
+  const nd = map[d];
+  if (!nd) return;
+  if (nd.dx === -dir.dx && nd.dz === -dir.dz) return; // no reversing
+  nextDir = nd;
+}
+
+const keyMap = {
+  ArrowUp:'U', ArrowDown:'D', ArrowLeft:'L', ArrowRight:'R',
+  w:'U', s:'D', a:'L', d:'R',
+  W:'U', S:'D', A:'L', D:'R',
+};
+window.addEventListener('keydown', e => {
+  const d = keyMap[e.key];
+  if (d) { setDir(d); e.preventDefault(); }
+});
+
+
+let swX = 0, swY = 0;
+window.addEventListener('touchstart', e => {
+  swX = e.touches[0].clientX; swY = e.touches[0].clientY;
+}, { passive: true });
+window.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - swX;
+  const dy = e.changedTouches[0].clientY - swY;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
+  if (Math.abs(dx) > Math.abs(dy)) setDir(dx > 0 ? 'R' : 'L');
+  else                              setDir(dy > 0 ? 'D' : 'U');
+});
+
+// ── Render loop ───────────────────────────────────────────
+function animate(now) {
+  requestAnimationFrame(animate);
+  frameNum++;
+
+  // Demo auto-start
+  if (DEMO_MODE && gameState === 'idle' && frameNum === 60) {
+    document.getElementById('s-start').classList.add('hidden');
+    initGame();
+  }
+
+  // Demo AI
+  if (DEMO_MODE && gameState === 'playing') demoAI();
+
+  // Tick on interval
+  if (gameState === 'playing' && now - lastTick >= TICK_MS) {
+    tick();
+    lastTick = now;
+  }
+
+  // Demo auto-restart
+  if (DEMO_MODE && autoRestartTimer > 0) {
+    autoRestartTimer--;
+    if (autoRestartTimer === 0) {
+      document.getElementById('s-end').classList.add('hidden');
+      initGame();
+    }
+  }
+
+  // Animate ice cube (bob + spin)
+  if (food && food.mesh) {
+    food.mesh.position.y = 0.32 + Math.sin(frameNum * 0.07) * 0.06;
+    food.mesh.rotation.y += 0.025;
+  }
+
+  // Pulse fill light
+  fillLight.intensity = 1.6 + Math.sin(frameNum * 0.05) * 0.3;
+
+  renderer.render(scene, camera);
+}
+
+// ── UI buttons ────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', () => {
+  document.getElementById('s-start').classList.add('hidden');
+  initGame();
+});
+document.getElementById('btn-restart').addEventListener('click', () => {
+  document.getElementById('s-end').classList.add('hidden');
+  initGame();
+});
+
+// ── Boot ──────────────────────────────────────────────────
+updateHUD();
+requestAnimationFrame(animate);
+</script>
+</body>
+</html>

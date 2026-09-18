@@ -1,0 +1,1826 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>IKEA: The Wonderful Assembly</title>
+    <!-- Three.js CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            margin: 0;
+            padding: 0;
+            touch-action: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #f4f4f0;
+            font-family: "Noto Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #111;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HEADER UI */
+        header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+            border-bottom: 2px solid #e5e5e5;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+
+        .brand-logo {
+            background-color: #0058a3;
+            color: #ffda1a;
+            font-weight: 900;
+            font-size: 20px;
+            padding: 4px 12px;
+            border-radius: 4px;
+            letter-spacing: 1px;
+            display: inline-block;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .stats-container {
+            display: flex;
+            gap: 15px;
+        }
+
+        #quit-btn {
+            display: none;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            border: 1px solid #ccc;
+            background: #fff;
+            color: #444;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        #quit-btn:active {
+            transform: scale(0.92);
+        }
+
+        #game-container.mode-playing #quit-btn {
+            display: flex;
+        }
+
+        #game-container:not(.mode-playing) .stats-container {
+            visibility: hidden;
+        }
+
+        .stat-box {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #666;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 800;
+            color: #111;
+        }
+
+        /* THREE.JS CANVAS */
+        #webgl-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* OVERLAYS & MODALS */
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        .overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            max-width: 90%;
+            width: 360px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            border: 4px solid #0058a3;
+        }
+
+        .card h1 {
+            color: #0058a3;
+            font-size: 24px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .card p {
+            color: #444;
+            font-size: 14px;
+            margin-bottom: 20px;
+            line-height: 1.4;
+        }
+
+        .btn {
+            background-color: #0058a3;
+            color: white;
+            border: none;
+            padding: 14px 24px;
+            font-size: 16px;
+            font-weight: 700;
+            border-radius: 30px;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.1s, background-color 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(0,88,163,0.3);
+            text-decoration: none;
+            margin-bottom: 10px;
+        }
+
+        .btn:active {
+            transform: scale(0.96);
+        }
+
+        .btn-yellow {
+            background-color: #ffda1a;
+            color: #111;
+            box-shadow: 0 4px 12px rgba(255,218,26,0.4);
+        }
+
+        .btn-secondary {
+            background-color: #f4f4f0;
+            color: #111;
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+
+        /* WIN ACTION BAR - no modal/backdrop at all, so the finished, spinning
+           product stays fully visible; just two floating buttons */
+        #win-overlay {
+            position: absolute;
+            bottom: 30px;
+            left: 0;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            z-index: 100;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        #win-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #win-overlay .btn {
+            width: auto;
+            padding: 14px 28px;
+        }
+
+        /* PRODUCT SELECT MENU - transparent overlay so the rotating 3D
+           product behind stays visible; only the top/bottom bars carry a
+           background, the center is click-through except for the nav arrows. */
+        #start-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            pointer-events: none;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        #start-overlay.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .menu-top {
+            text-align: center;
+            padding: 70px 20px 0;
+            pointer-events: none;
+        }
+
+        .menu-top h1 {
+            color: #0058a3;
+            font-size: 22px;
+            text-transform: uppercase;
+        }
+
+        .menu-top p {
+            color: #444;
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(255,255,255,0.9);
+            color: #0058a3;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        #start-overlay:not(.hidden) .nav-btn,
+        #start-overlay:not(.hidden) .menu-bottom {
+            pointer-events: auto;
+        }
+
+        .nav-btn:active {
+            transform: translateY(-50%) scale(0.9);
+        }
+
+        #prev-product-btn { left: 16px; }
+        #next-product-btn { right: 16px; }
+
+        .menu-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            padding: 20px 20px 40px;
+            background: linear-gradient(to top, rgba(255,255,255,0.95), rgba(255,255,255,0));
+        }
+
+        .product-info {
+            text-align: center;
+        }
+
+        .product-info .name {
+            display: block;
+            font-size: 18px;
+            font-weight: 800;
+            color: #111;
+        }
+
+        .product-info .price {
+            display: block;
+            font-size: 13px;
+            color: #0058a3;
+            font-weight: 700;
+        }
+
+        .menu-bottom .btn {
+            width: 240px;
+        }
+
+        .product-dots {
+            display: flex;
+            gap: 6px;
+            margin-top: 2px;
+        }
+
+        .product-dots span {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #ccc;
+        }
+
+        .product-dots span.active {
+            background: #0058a3;
+        }
+
+    </style>
+</head>
+<body>
+
+<div id="game-container" class="mode-menu">
+    <header>
+        <div class="brand-logo">IKEA</div>
+        <div class="header-right">
+            <div class="stats-container">
+                <div class="stat-box">
+                    <span class="stat-label">Progress</span>
+                    <span class="stat-value" id="progress-text">0 / 4</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-label">Time Left</span>
+                    <span class="stat-value" id="timer-text">45s</span>
+                </div>
+            </div>
+            <button id="quit-btn" title="Quit to menu">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+        </div>
+    </header>
+
+    <canvas id="webgl-canvas"></canvas>
+
+    <!-- PRODUCT SELECT / START OVERLAY -->
+    <div id="start-overlay">
+        <div class="menu-top">
+            <h1>The Wonderful Assembly</h1>
+            <p>Pick a product, then assemble it before the timer runs out!</p>
+        </div>
+
+        <button id="prev-product-btn" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <button id="next-product-btn" class="nav-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+
+        <div class="menu-bottom">
+            <div class="product-info">
+                <span class="name" id="product-name-start">KALLAX Shelf</span>
+                <span class="price">$<span id="product-price-start">79</span></span>
+            </div>
+            <div class="product-dots" id="product-dots"></div>
+            <button id="start-btn" class="btn btn-yellow">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                Start Assembly
+            </button>
+        </div>
+    </div>
+
+    <!-- GAME OVER OVERLAY -->
+    <div id="gameover-overlay" class="overlay hidden">
+        <div class="card">
+            <h1>Time's Up!</h1>
+            <p>You ran out of time before finishing the <strong id="product-name-over">KALLAX Shelf</strong>. Give it another go?</p>
+            <button id="try-again-btn" class="btn btn-yellow">Try Again</button>
+            <button id="menu-btn-over" class="btn btn-secondary">Main Menu</button>
+        </div>
+    </div>
+
+    <!-- WIN ACTIONS - buttons only, no modal, so the finished product stays visible -->
+    <div id="win-overlay" class="hidden">
+        <a href="https://www.ikea.com" target="_blank" class="btn btn-yellow">
+            Buy Real <span id="product-name-buy">KALLAX Shelf</span> - $<span id="product-price">79</span>
+        </a>
+
+        <button id="restart-btn" class="btn btn-secondary">
+            Play Again
+        </button>
+        <button id="menu-btn-win" class="btn btn-secondary">
+            Main Menu
+        </button>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// AUTO MODE - flip to true to have the game play itself: it
+// skips the product-select menu, starts the build immediately,
+// and auto-snaps every piece into place as a hands-off preview.
+// Player input is ignored while this is on.
+// ============================================================
+const AUTO_MODE = true;
+
+/**
+ * AUDIO ENGINE (Web Audio API - Procedural SFX)
+ */
+class SoundEngine {
+    constructor() {
+        this.ctx = null;
+    }
+
+    init() {
+        if (!this.ctx) {
+            this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume();
+        }
+    }
+
+    // Hollow wooden thud sound for snapping
+    playSnap() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+
+        // Fundamental body
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(180, now);
+        osc.frequency.exponentialRampToValueAtTime(40, now + 0.08);
+
+        gain.gain.setValueAtTime(1.0, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.08);
+
+        // Click transient
+        const osc2 = this.ctx.createOscillator();
+        const gain2 = this.ctx.createGain();
+        osc2.type = 'sine';
+        osc2.frequency.setValueAtTime(800, now);
+        osc2.frequency.exponentialRampToValueAtTime(100, now + 0.02);
+
+        gain2.gain.setValueAtTime(0.5, now);
+        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.02);
+
+        osc2.connect(gain2);
+        gain2.connect(this.ctx.destination);
+
+        osc2.start(now);
+        osc2.stop(now + 0.02);
+    }
+
+    // Low-pitched error slide sound
+    playError() {
+        if (!this.ctx) return;
+        const now = this.ctx.currentTime;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(150, now);
+        osc.frequency.linearRampToValueAtTime(60, now + 0.25);
+
+        gain.gain.setValueAtTime(0.4, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+        // Filter to round out the buzz
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(400, now);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.start(now);
+        osc.stop(now + 0.25);
+    }
+
+    // Retro chiptune fan-fare
+    playWin() {
+        if (!this.ctx) return;
+        const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99]; // C E G C E G
+        const now = this.ctx.currentTime;
+
+        notes.forEach((freq, index) => {
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            const noteTime = now + (index * 0.08);
+
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(freq, noteTime);
+
+            gain.gain.setValueAtTime(0.15, noteTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, noteTime + 0.2);
+
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+
+            osc.start(noteTime);
+            osc.stop(noteTime + 0.2);
+        });
+    }
+}
+
+const sfx = new SoundEngine();
+
+/**
+ * GAME ENGINE & THREE.JS LOGIC
+ */
+class Game {
+    constructor() {
+        this.canvas = document.getElementById('webgl-canvas');
+        this.progressText = document.getElementById('progress-text');
+        this.timerText = document.getElementById('timer-text');
+        
+        this.assembledCount = 0;
+        this.totalPieces = 0;
+        this.timeLeft = 45;
+        this.timerInterval = null;
+        this.isPlaying = false;
+        this.startTime = 0;
+        this.camDistance = 7;
+        this.currentProduct = null;
+
+        // Product-select menu state - the game opens on a rotating preview
+        // of templates[selectedProductIndex] rather than jumping straight
+        // into a playable layout; mode gates what animate()/bindEvents()
+        // treat as "currently on screen".
+        this.templates = [
+            { name: 'KALLAX Shelf', price: 79, build: () => this.buildKallax() },
+            { name: 'LACK Table', price: 39, build: () => this.buildTable() },
+            { name: 'LISABO Round Table', price: 69, build: () => this.buildRoundTable() },
+            { name: 'STEFAN Chair', price: 59, build: () => this.buildChair() },
+            { name: 'PAX Wardrobe', price: 199, build: () => this.buildWardrobe() }
+        ];
+        this.selectedProductIndex = 0;
+        this.mode = 'menu'; // 'menu' | 'playing' | 'win' | 'gameover'
+        this.previewGroup = null;
+
+        // Auto-play (attract mode) state - see the AUTO_MODE flag above.
+        this.autoMode = AUTO_MODE;
+        this.nextAutoMoveTime = 0;
+
+        // The screen is split into two NDC (-1..1) zones: the blueprint/build
+        // area on top, the piece tray on the bottom. zoneBoundaryNDCy is where
+        // they meet - everything above it is "top", everything below is "tray".
+        this.zoneBoundaryNDCy = -0.3;
+
+        // Raycasting & Dragging
+        this.raycaster = new THREE.Raycaster();
+        this.mouse = new THREE.Vector2();
+        this.dragPlane = new THREE.Plane();
+        this.planeNormal = new THREE.Vector3();
+        this.selectedPiece = null;
+        this.dragOffset = new THREE.Vector3();
+        this.intersectionPoint = new THREE.Vector3();
+
+        this.pieces = [];
+        this.particles = [];
+
+        this.initThree();
+        this.createMaterials();
+        this.setMode('menu');
+        this.buildMenuPreview(this.selectedProductIndex);
+        this.bindEvents();
+        this.animate();
+        this.handleResize();
+
+        if (this.autoMode) {
+            document.querySelector('.brand-logo').insertAdjacentHTML('afterend',
+                '<span style="background:#ffda1a;color:#111;font-weight:800;font-size:11px;padding:3px 8px;border-radius:4px;margin-left:8px;letter-spacing:1px;">AUTO</span>');
+            document.getElementById('start-overlay').classList.add('hidden');
+            this.startGame();
+        }
+    }
+
+    initThree() {
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0xf4f4f0);
+
+        // Isometric Orthographic Camera setup
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = this.camDistance;
+        this.camera = new THREE.OrthographicCamera(-d * aspect, d * aspect, d, -d, 1, 1000);
+        
+        // Classic corner-isometric angle positioning
+        this.camera.position.set(10, 12, 10);
+        this.camera.lookAt(0, 1, 0);
+        // Camera position/rotation never change again after this (only zoom
+        // and aspect do, via handleResize). Force matrixWorld/matrixWorldInverse
+        // up to date now, since generateLayout() uses Vector3.project(camera)
+        // before the first render() would otherwise have done this for us.
+        this.camera.updateMatrixWorld();
+
+        // The camera's own screen-space "right" and "up" directions (fixed for
+        // the game's lifetime, since the camera never rotates/moves again).
+        // Under this tilted isometric angle, plain world-X does NOT map to
+        // pure horizontal screen movement - moving along the camera's actual
+        // right vector does, by definition, with zero vertical side-effect.
+        // generateLayout() uses these to lay the tray out as a true
+        // horizontal line of real-size pieces despite the isometric tilt.
+        this.camRight = new THREE.Vector3(1, 0, 0).transformDirection(this.camera.matrixWorld);
+        this.camUp = new THREE.Vector3(0, 1, 0).transformDirection(this.camera.matrixWorld);
+
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: false });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+        // Lighting
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+        this.scene.add(ambientLight);
+
+        const dirLight = new THREE.DirectionalLight(0xffffff, 0.7);
+        dirLight.position.set(15, 25, 10);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 1024;
+        dirLight.shadow.mapSize.height = 1024;
+        dirLight.shadow.camera.near = 1;
+        dirLight.shadow.camera.far = 50;
+        const dCam = 8;
+        dirLight.shadow.camera.left = -dCam;
+        dirLight.shadow.camera.right = dCam;
+        dirLight.shadow.camera.top = dCam;
+        dirLight.shadow.camera.bottom = -dCam;
+        this.scene.add(dirLight);
+
+        // Master wood texture that every floor slab clones (see
+        // createFloorMesh) - slabs are sized and positioned per
+        // product/preview, since each has to hug whatever's currently on
+        // screen, not sit at some fixed spot.
+        this.floorTexture = this.createFloorTexture();
+        this.roomMeshes = [];
+    }
+
+    // Procedurally paints a wood-plank floor texture (planked rows + grain
+    // streaks + speckle), reusing the same "bake shading into the canvas"
+    // approach as createProceduralTexture so the floor reads as a real
+    // material instead of a flat color.
+    createFloorTexture() {
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        const clamp = v => Math.max(0, Math.min(255, v));
+
+        const base = [0xC9, 0xB8, 0x99];
+        ctx.fillStyle = `rgb(${base[0]}, ${base[1]}, ${base[2]})`;
+        ctx.fillRect(0, 0, size, size);
+
+        const plankRows = 8;
+        const plankHeight = size / plankRows;
+        for (let row = 0; row < plankRows; row++) {
+            const y = row * plankHeight;
+            const shade = (Math.random() - 0.5) * 30;
+            ctx.fillStyle = `rgb(${clamp(base[0]+shade)}, ${clamp(base[1]+shade)}, ${clamp(base[2]+shade)})`;
+            ctx.fillRect(0, y, size, plankHeight);
+
+            // Grain streaks running along the plank
+            for (let i = 0; i < 5; i++) {
+                const gy = y + Math.random() * plankHeight;
+                ctx.strokeStyle = `rgba(90, 70, 45, ${0.08 + Math.random() * 0.12})`;
+                ctx.lineWidth = 1 + Math.random();
+                ctx.beginPath();
+                ctx.moveTo(0, gy);
+                for (let x = 0; x < size; x += 15 + Math.random() * 20) {
+                    ctx.lineTo(x, gy + (Math.random() - 0.5) * 3);
+                }
+                ctx.stroke();
+            }
+
+            // Plank seam line
+            ctx.strokeStyle = 'rgba(0,0,0,0.25)';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(size, y);
+            ctx.stroke();
+
+            // Staggered vertical end-seams (brick-laid boards)
+            const plankWidth = size / 3;
+            const offset = (row % 2 === 0) ? 0 : plankWidth / 2;
+            for (let x = -plankWidth + offset; x < size; x += plankWidth) {
+                ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(x, y);
+                ctx.lineTo(x, y + plankHeight);
+                ctx.stroke();
+            }
+        }
+
+        const img = ctx.getImageData(0, 0, size, size);
+        for (let p = 0; p < img.data.length; p += 4) {
+            const n = (Math.random() - 0.5) * 10;
+            img.data[p] = clamp(img.data[p] + n);
+            img.data[p+1] = clamp(img.data[p+1] + n);
+            img.data[p+2] = clamp(img.data[p+2] + n);
+        }
+        ctx.putImageData(img, 0, 0);
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        return texture;
+    }
+
+    createMaterials() {
+        this.materials = {
+            blueprint: new THREE.MeshBasicMaterial({
+                color: 0x0058a3,
+                wireframe: true,
+                transparent: true,
+                opacity: 0.35
+            }),
+            ghostSlot: new THREE.MeshLambertMaterial({
+                color: 0x0058a3,
+                transparent: true,
+                opacity: 0.15
+            }),
+            particle: new THREE.MeshBasicMaterial({ color: 0xffda1a })
+        };
+
+        // Distinct color per part-type (assigned per shape key in generateLayout)
+        // so every piece of the same shape - the 4 table legs, the 2 wardrobe
+        // doors, etc. - reads as visually the same interchangeable part.
+        this.colorPalette = [0xE5C396, 0xF5F1EB, 0x0058A3, 0x2B2B2B, 0x8AA399, 0xC1440E, 0xD0A973, 0x4C6B8A];
+        this.pieceMaterials = new Map();
+    }
+
+    // Procedurally paints a wood-grain-style texture (base tint + wavy grain
+    // streaks + fine speckle noise) onto a canvas, since plain flat colors
+    // read as flat plastic. Baked directly into the canvas so the material's
+    // own color can stay white and show the texture's true shading.
+    createProceduralTexture(hexColor) {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        const c = new THREE.Color(hexColor);
+        const base = [c.r * 255, c.g * 255, c.b * 255];
+        const clamp = v => Math.max(0, Math.min(255, v));
+
+        ctx.fillStyle = `rgb(${base[0]}, ${base[1]}, ${base[2]})`;
+        ctx.fillRect(0, 0, size, size);
+
+        // Wavy grain streaks
+        for (let i = 0; i < 40; i++) {
+            const y = Math.random() * size;
+            const shade = (Math.random() - 0.5) * 50;
+            ctx.strokeStyle = `rgba(${clamp(base[0]+shade)}, ${clamp(base[1]+shade)}, ${clamp(base[2]+shade)}, ${0.15 + Math.random() * 0.25})`;
+            ctx.lineWidth = 1 + Math.random() * 2;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            for (let x = 0; x < size; x += 10 + Math.random() * 15) {
+                ctx.lineTo(x, y + (Math.random() - 0.5) * 6);
+            }
+            ctx.stroke();
+        }
+
+        // Fine speckle noise for a less flat, more material-like surface
+        const img = ctx.getImageData(0, 0, size, size);
+        for (let p = 0; p < img.data.length; p += 4) {
+            const n = (Math.random() - 0.5) * 14;
+            img.data[p] = clamp(img.data[p] + n);
+            img.data[p+1] = clamp(img.data[p+1] + n);
+            img.data[p+2] = clamp(img.data[p+2] + n);
+        }
+        ctx.putImageData(img, 0, 0);
+
+        return new THREE.CanvasTexture(canvas);
+    }
+
+    getMaterialForShapeKey(shapeKey, size) {
+        if (!this.pieceMaterials.has(shapeKey)) {
+            const idx = this.pieceMaterials.size;
+            const color = this.colorPalette[idx % this.colorPalette.length];
+            const texture = this.createProceduralTexture(color);
+            texture.wrapS = THREE.RepeatWrapping;
+            texture.wrapT = THREE.RepeatWrapping;
+            const tileSize = 0.4;
+            texture.repeat.set(Math.max(1, size[0] / tileSize), Math.max(1, size[1] / tileSize));
+
+            const material = new THREE.MeshLambertMaterial({ map: texture });
+            // Adjoining panels are built edge-to-edge (e.g. a frame panel
+            // butting against a side panel), so their faces sometimes end up
+            // exactly coplanar - a classic z-fighting recipe that flickers
+            // as the assembled product rotates, since the GPU's pick of
+            // which coplanar face wins isn't stable frame to frame. Giving
+            // every shape its own small, deterministic depth bias makes one
+            // side reliably win instead.
+            material.polygonOffset = true;
+            material.polygonOffsetFactor = idx + 1;
+            material.polygonOffsetUnits = idx + 1;
+
+            this.pieceMaterials.set(shapeKey, material);
+        }
+        return this.pieceMaterials.get(shapeKey);
+    }
+
+    // Builds the right geometry for a part's shape - most furniture pieces are
+    // flat panels (box), but legs read better as cylinders and small hardware
+    // (door knobs) as spheres. size is always [width, height, depth]; for
+    // cylinder/sphere, width doubles as the diameter.
+    createGeometryForShape(size, shape) {
+        const [w, h, d] = size;
+        switch (shape) {
+            case 'cylinder':
+                return new THREE.CylinderGeometry(w / 2, w / 2, h, 20);
+            case 'sphere':
+                return new THREE.SphereGeometry(w / 2, 20, 16);
+            default:
+                return new THREE.BoxGeometry(w, h, d);
+        }
+    }
+
+    // Helper to create an interactive piece mesh, wrapped in a group so the
+    // drag/raycast code can treat every part the same regardless of shape.
+    createPieceMesh(size, shape, material) {
+        const group = new THREE.Group();
+        const geo = this.createGeometryForShape(size, shape);
+        const mesh = new THREE.Mesh(geo, material);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        group.add(mesh);
+        return group;
+    }
+
+    // Builds a shape key so pieces of identical dimensions AND shape are
+    // interchangeable (a box and a cylinder with the same bounding size are not).
+    shapeKeyFor(size, shape = 'box') {
+        return `${shape}:` + size.map(v => v.toFixed(2)).join('x');
+    }
+
+    // Every product builder returns slots using a FLOOR-based local coordinate
+    // system (local y = 0 is the piece resting on the ground), so generateLayout
+    // can place any product on the ground the same way regardless of its shape.
+
+    // KALLAX-style storage grid: randomized rows/cols each game.
+    // Frame panels and internal dividers that share a shape are fungible -
+    // any piece can snap into any empty slot with a matching shape.
+    buildKallax() {
+        const wallThick = 0.3;
+        const cellSize = 1.1;
+        const depth = 1.2;
+
+        const cols = 2 + Math.floor(Math.random() * 2); // 2-3
+        const rows = 2 + Math.floor(Math.random() * 2); // 2-3
+
+        const innerWidth = cols * cellSize;
+        const innerHeight = rows * cellSize;
+        const totalWidth = innerWidth + wallThick * 2;
+        const totalHeight = innerHeight + wallThick * 2;
+
+        const slots = [];
+
+        // Outer frame: left/right share a shape, top/bottom share a shape.
+        // Top/bottom panels are inset to fit BETWEEN the two side panels
+        // (innerWidth, not totalWidth) so their edges butt against the
+        // sides instead of exactly overlapping them - avoids the coincident
+        // faces that cause z-fighting flicker when the assembled piece rotates.
+        const vFrameSize = [wallThick, totalHeight, depth];
+        const hFrameSize = [innerWidth, wallThick, depth];
+
+        // Build order: base frame (bottom + sides) -> dividers slot into the
+        // open base -> top panel caps it off last.
+        slots.push({ name: 'Side Panel', pos: new THREE.Vector3(-totalWidth/2 + wallThick/2, totalHeight/2, 0), size: vFrameSize, level: 0 });
+        slots.push({ name: 'Side Panel', pos: new THREE.Vector3(totalWidth/2 - wallThick/2, totalHeight/2, 0), size: vFrameSize, level: 0 });
+        slots.push({ name: 'Frame Panel', pos: new THREE.Vector3(0, wallThick/2, 0), size: hFrameSize, level: 0 });
+        slots.push({ name: 'Frame Panel', pos: new THREE.Vector3(0, totalHeight - wallThick/2, 0), size: hFrameSize, level: 2 });
+
+        // Internal vertical dividers (between columns) - all identical shape
+        const vDividerSize = [wallThick, innerHeight, depth];
+        for (let i = 1; i < cols; i++) {
+            const x = -innerWidth/2 + i * cellSize;
+            slots.push({ name: 'Divider', pos: new THREE.Vector3(x, totalHeight/2, 0), size: vDividerSize, level: 1 });
+        }
+
+        // Internal horizontal dividers (between rows) - all identical shape
+        const hDividerSize = [innerWidth, wallThick, depth];
+        for (let j = 1; j < rows; j++) {
+            const y = totalHeight/2 + innerHeight/2 - j * cellSize;
+            slots.push({ name: 'Divider', pos: new THREE.Vector3(0, y, 0), size: hDividerSize, level: 1 });
+        }
+
+        return { slots, totalWidth, totalHeight, totalDepth: depth };
+    }
+
+    // LACK-style table: tabletop + 4 identical legs (any leg fits any corner).
+    buildTable() {
+        const tableWidth = 3.0, tableDepth = 1.6;
+        const topThick = 0.15, legThick = 0.22, legHeight = 1.6;
+        const legX = tableWidth/2 - legThick * 1.1;
+        const legZ = tableDepth/2 - legThick * 1.1;
+
+        // Build order: legs first, tabletop last.
+        const slots = [];
+        slots.push({ name: 'Tabletop', pos: new THREE.Vector3(0, legHeight + topThick/2, 0), size: [tableWidth, topThick, tableDepth], level: 1 });
+        [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx, sz]) => {
+            slots.push({ name: 'Table Leg', pos: new THREE.Vector3(sx * legX, legHeight/2, sz * legZ), size: [legThick, legHeight, legThick], shape: 'cylinder', level: 0 });
+        });
+
+        return { slots, totalWidth: tableWidth, totalHeight: legHeight + topThick, totalDepth: tableDepth };
+    }
+
+    // Round side table: circular top + 3 identical cylindrical legs.
+    buildRoundTable() {
+        const topRadius = 0.9, topThick = 0.12;
+        const legHeight = 1.05, legRadius = 0.09;
+        const legOffset = topRadius * 0.65;
+
+        // Build order: legs first, tabletop last.
+        const slots = [];
+        slots.push({ name: 'Round Tabletop', pos: new THREE.Vector3(0, legHeight + topThick/2, 0), size: [topRadius * 2, topThick, topRadius * 2], shape: 'cylinder', level: 1 });
+        for (let i = 0; i < 3; i++) {
+            const angle = (i / 3) * Math.PI * 2;
+            const x = Math.cos(angle) * legOffset;
+            const z = Math.sin(angle) * legOffset;
+            slots.push({ name: 'Round Table Leg', pos: new THREE.Vector3(x, legHeight/2, z), size: [legRadius * 2, legHeight, legRadius * 2], shape: 'cylinder', level: 0 });
+        }
+
+        return { slots, totalWidth: topRadius * 2, totalHeight: legHeight + topThick, totalDepth: topRadius * 2 };
+    }
+
+    // STEFAN-style chair: seat + backrest + 4 identical legs.
+    buildChair() {
+        const seatWidth = 0.9, seatDepth = 0.9, seatThick = 0.12;
+        const legHeight = 0.85, legThick = 0.16;
+        const backHeight = 0.9, backThick = 0.12;
+        const legX = seatWidth/2 - legThick * 1.1;
+        const legZ = seatDepth/2 - legThick * 1.1;
+
+        // Build order: legs -> seat rests on the legs -> backrest goes on last.
+        const slots = [];
+        slots.push({ name: 'Seat', pos: new THREE.Vector3(0, legHeight + seatThick/2, 0), size: [seatWidth, seatThick, seatDepth], level: 1 });
+        slots.push({ name: 'Backrest', pos: new THREE.Vector3(0, legHeight + seatThick + backHeight/2, -(seatDepth/2 - backThick/2)), size: [seatWidth, backHeight, backThick], level: 2 });
+        [[-1,-1],[-1,1],[1,-1],[1,1]].forEach(([sx, sz]) => {
+            slots.push({ name: 'Chair Leg', pos: new THREE.Vector3(sx * legX, legHeight/2, sz * legZ), size: [legThick, legHeight, legThick], shape: 'cylinder', level: 0 });
+        });
+
+        return { slots, totalWidth: seatWidth, totalHeight: legHeight + seatThick + backHeight, totalDepth: seatDepth };
+    }
+
+    // PAX-style wardrobe: sides/top/bottom frame + a shelf + 2 identical doors.
+    buildWardrobe() {
+        const width = 2.2, height = 3.4, depth = 0.9;
+        const wallThick = 0.28, doorThick = 0.08;
+        const backThick = 0.05;
+        const doorWidth = (width - wallThick * 2 - 0.04) / 2;
+
+        // Build order: base frame (bottom + sides + back panel) -> shelf ->
+        // top panel caps it off -> doors hang on the closed carcass last.
+        // Frame/back panels are inset to fit BETWEEN the two side panels
+        // (not spanning the full outer width) so their edges butt against
+        // the sides instead of exactly overlapping them - true furniture
+        // joinery, and it avoids the coincident/overlapping faces that
+        // cause z-fighting flicker when the assembled piece rotates.
+        const innerWidth = width - wallThick * 2;
+        const slots = [];
+        slots.push({ name: 'Side Panel', pos: new THREE.Vector3(-width/2 + wallThick/2, height/2, 0), size: [wallThick, height, depth], level: 0 });
+        slots.push({ name: 'Side Panel', pos: new THREE.Vector3(width/2 - wallThick/2, height/2, 0), size: [wallThick, height, depth], level: 0 });
+        slots.push({ name: 'Frame Panel', pos: new THREE.Vector3(0, wallThick/2, 0), size: [innerWidth, wallThick, depth], level: 0 });
+        slots.push({ name: 'Frame Panel', pos: new THREE.Vector3(0, height - wallThick/2, 0), size: [innerWidth, wallThick, depth], level: 2 });
+        slots.push({ name: 'Back Panel', pos: new THREE.Vector3(0, height/2, -depth/2 + backThick/2), size: [innerWidth, height, backThick], level: 0 });
+        slots.push({ name: 'Shelf', pos: new THREE.Vector3(0, height/2, 0), size: [width - wallThick * 2, wallThick, depth - 0.1], level: 1 });
+        slots.push({ name: 'Door', pos: new THREE.Vector3(-doorWidth/2 - 0.02, height/2, depth/2 + doorThick/2), size: [doorWidth, height - wallThick * 2, doorThick], level: 3 });
+        slots.push({ name: 'Door', pos: new THREE.Vector3(doorWidth/2 + 0.02, height/2, depth/2 + doorThick/2), size: [doorWidth, height - wallThick * 2, doorThick], level: 3 });
+
+        return { slots, totalWidth: width, totalHeight: height, totalDepth: depth };
+    }
+
+    // Tags every slot with a shape key, so pieces sharing a shape (e.g. the 4
+    // table legs, or the 2 wardrobe doors) are fungible - any of them can snap
+    // into any matching empty slot. Builds whichever template is selected in
+    // the product-select menu (this.selectedProductIndex), or a random one if
+    // none was given.
+    generateBlueprintData(templateIndex) {
+        const templates = this.templates;
+        const index = templateIndex !== undefined ? templateIndex : Math.floor(Math.random() * templates.length);
+        const template = templates[index];
+        const { slots, totalWidth, totalHeight, totalDepth } = template.build();
+
+        slots.forEach(s => {
+            s.shape = s.shape || 'box';
+            s.shapeKey = this.shapeKeyFor(s.size, s.shape);
+            s.level = s.level ?? 0;
+        });
+
+        return { slots, totalWidth, totalHeight, totalDepth, productName: template.name, price: template.price };
+    }
+
+    disposeLayout() {
+        if (this.blueprintGroup) {
+            this.scene.remove(this.blueprintGroup);
+            this.blueprintGroup.traverse(child => { if (child.isMesh) child.geometry.dispose(); });
+            this.blueprintGroup = null;
+        }
+        this.pieces.forEach(p => {
+            this.scene.remove(p);
+            p.traverse(child => { if (child.isMesh) child.geometry.dispose(); });
+        });
+        this.pieces = [];
+        this.particles.forEach(p => this.scene.remove(p));
+        this.particles = [];
+
+        this.disposeRoomMeshes();
+    }
+
+    // Each room-floor mesh owns its own cloned texture + material (see
+    // createFloorMesh), so disposal has to walk both, not just the geometry.
+    disposeRoomMeshes() {
+        this.roomMeshes.forEach(mesh => {
+            this.scene.remove(mesh);
+            mesh.geometry.dispose();
+            mesh.material.map.dispose();
+            mesh.material.dispose();
+        });
+        this.roomMeshes = [];
+    }
+
+    // Builds one thin floor slab textured with its own clone of the master
+    // wood texture (never the shared instance - different slabs need
+    // different tile repeats, and each is disposed independently). topY is
+    // the world height of the slab's TOP surface.
+    createFloorMesh(width, depth, topY) {
+        const texture = this.floorTexture.clone();
+        texture.needsUpdate = true;
+        const tileSize = 3;
+        texture.repeat.set(Math.max(1, width / tileSize), Math.max(1, depth / tileSize));
+
+        const thick = 0.15;
+        const mesh = new THREE.Mesh(
+            new THREE.BoxGeometry(width, thick, depth),
+            new THREE.MeshLambertMaterial({ map: texture })
+        );
+        mesh.position.y = topY - thick / 2;
+        mesh.receiveShadow = true;
+        return mesh;
+    }
+
+    generateLayout(templateIndex) {
+        this.disposeLayout();
+        this.disposePreview();
+
+        const { slots, totalWidth, totalHeight, totalDepth, productName, price } = this.generateBlueprintData(templateIndex);
+        this.targetSlots = slots;
+        this.totalPieces = slots.length;
+        this.assembledCount = 0;
+        this.currentProduct = { name: productName, price };
+        this.progressText.textContent = `0 / ${this.totalPieces}`;
+        this.updateProductUI();
+
+        // Fresh set of part-colors/textures each game; dispose the old ones
+        // (they're canvas textures + materials, not shared elsewhere) first.
+        this.pieceMaterials.forEach(mat => {
+            if (mat.map) mat.map.dispose();
+            mat.dispose();
+        });
+        this.pieceMaterials = new Map();
+
+        // Zoom the camera to fit whichever product got picked. Two things
+        // compete for the SAME zoom level: the blueprint's own bounding size
+        // needs to fit within the top zone, and every tray piece is shown at
+        // REAL size, so the single tallest individual piece (e.g. a wardrobe
+        // door) needs to fit within the (smaller) bottom/tray zone too - take
+        // whichever requirement needs to be more zoomed out.
+        const topFrac = (1 - this.zoneBoundaryNDCy) / 2;
+        const bottomFrac = (this.zoneBoundaryNDCy + 1) / 2;
+        const maxExtent = Math.max(totalWidth, totalHeight, totalDepth);
+        const maxPieceDim = Math.max(...this.targetSlots.flatMap(s => s.size));
+        const dForBlueprint = maxExtent / (1.4 * topFrac);
+        const dForTray = maxPieceDim / (1.4 * bottomFrac);
+        this.camDistance = Math.max(3.5, Math.min(16, Math.max(dForBlueprint, dForTray)));
+        this.handleResize();
+
+        // Container Group for Blueprint - every product builder uses floor-based
+        // local coordinates (local y=0 is the ground). Its world Y offset is
+        // solved so that the product's OWN worst-case corner (checking both
+        // width AND depth, not just its center) lands just above the zone
+        // boundary - under this tilted isometric camera, x and z both affect
+        // vertical screen position, so a corner can sit lower on screen than
+        // the object's center even when the center looks fine.
+        const floorY = this.computeFloorY(totalWidth, totalDepth, this.zoneBoundaryNDCy + 0.05);
+
+        // trayOrigin: shift from the world origin along camUp until it lands
+        // in the middle of the tray zone (camUp shifts NDC y only, leaving
+        // whatever NDC x the origin already has - which is centered). Needed
+        // already here (ahead of piece-spawning below) because the room floor
+        // has to be built low enough to clear it - see note below.
+        const trayTargetNDCy = (this.zoneBoundaryNDCy - 1) / 2;
+        const o0 = new THREE.Vector3(0, 0, 0).project(this.camera).y;
+        const o1 = this.camUp.clone().project(this.camera).y;
+        const upShift = (trayTargetNDCy - o0) / (o1 - o0);
+        const trayOrigin = this.camUp.clone().multiplyScalar(upShift);
+
+        // Build a textured floor under the product so it looks like it's
+        // being assembled on real ground, not floating in empty space.
+        //
+        // The floor is a big flat slab spanning both sides of the world
+        // origin (it has to, to read as a floor rather than a single tile),
+        // which puts part of it on the SAME side as the tray (positive x/z,
+        // toward the camera) - camRight has ~zero world-Y component, so every
+        // tray piece sits at essentially trayOrigin's world Y. If the floor's
+        // Y were up near the product's own floor level, the camera's downward
+        // sightline to the (much lower) tray would have to pass straight
+        // through that slab, hiding every piece behind it. Placing the floor
+        // at/below the tray's Y instead guarantees the opposite: for any
+        // point on the ray from the camera to a tray piece, world Y only
+        // decreases on the way down, so a floor no higher than the tray is
+        // necessarily reached AFTER the piece (i.e. behind it), never before.
+        //
+        // trayOrigin.y is the Y of piece CENTERS, not their bottoms, so the
+        // margin below it has to clear half of the tallest piece too (using
+        // the unscaled maxPieceDim as an upper bound is safe since pieces are
+        // only ever shrunk to fit the tray, never enlarged) - otherwise the
+        // floor would poke up through the bottom half of any tray piece
+        // taller than a flat margin.
+        const trayBottomMargin = maxPieceDim / 2 + 0.1;
+        const roomFloorY = Math.min(floorY, trayOrigin.y) - trayBottomMargin;
+        const roomFloorHalf = this.camDistance * 2;
+
+        const floorMesh = this.createFloorMesh(roomFloorHalf * 2, roomFloorHalf * 2, roomFloorY);
+        this.scene.add(floorMesh);
+        this.roomMeshes.push(floorMesh);
+
+        this.blueprintGroup = new THREE.Group();
+        this.blueprintGroup.position.set(0, floorY, 0);
+        this.scene.add(this.blueprintGroup);
+
+        // Render Translucent Blueprints & Ghosts, and precompute world target positions.
+        // Kept on the slot itself so onPointerUp can hide just THAT slot's
+        // placement guide the moment its piece snaps in (rather than only
+        // clearing them all at once in triggerWin()) - once a slot is
+        // filled, its wireframe/ghost is redundant clutter under the real
+        // piece now sitting there.
+        this.blueprintDecorations = [];
+        this.targetSlots.forEach(slot => {
+            const wire = new THREE.Mesh(this.createGeometryForShape(slot.size, slot.shape), this.materials.blueprint);
+            wire.position.copy(slot.pos);
+            this.blueprintGroup.add(wire);
+            this.blueprintDecorations.push(wire);
+
+            const fill = new THREE.Mesh(this.createGeometryForShape(slot.size, slot.shape), this.materials.ghostSlot);
+            fill.position.copy(slot.pos);
+            this.blueprintGroup.add(fill);
+            this.blueprintDecorations.push(fill);
+
+            slot.wireMesh = wire;
+            slot.fillMesh = fill;
+            slot.worldPos = slot.pos.clone().add(this.blueprintGroup.position);
+            slot.filled = false;
+        });
+
+        // SPAWN INTERACTIVE PIECES IN A SINGLE HORIZONTAL TRAY ROW, at real
+        // (true-to-blueprint) size, laid out along the camera's own "right"
+        // screen direction rather than plain world-X. Under this isometric
+        // tilt, world-X does NOT map to pure horizontal screen movement, but
+        // camRight does by definition (zero vertical side-effect) - so this
+        // is what keeps the row genuinely horizontal on screen. Pieces are
+        // packed using their true PROJECTED footprint (not their raw box
+        // size), since a piece's on-screen width under this tilt depends on
+        // all three of its dimensions, not just size[0].
+        const shuffledSlots = [...this.targetSlots].sort(() => Math.random() - 0.5);
+        const gap = 0.15;
+
+        const origin = new THREE.Vector3(0, 0, 0).project(this.camera);
+        const alongRight = this.camRight.clone().project(this.camera);
+        const ndcXPerWorldUnit = alongRight.x - origin.x;
+
+        const footprints = shuffledSlots.map(slot => this.computePieceScreenFootprint(slot.size));
+        let totalSpanWorld = 0;
+        footprints.forEach((fp, i) => {
+            totalSpanWorld += Math.abs(fp.ndcHalfWidth / ndcXPerWorldUnit) * 2;
+            if (i < footprints.length - 1) totalSpanWorld += gap;
+        });
+
+        const availableWidthWorld = (this.camera.right - this.camera.left) * 0.85;
+        const fitScale = Math.min(1, availableWidthWorld / totalSpanWorld);
+
+        // trayOrigin was already computed above (needed early to size the room floor).
+        let cursor = -(totalSpanWorld * fitScale) / 2;
+        shuffledSlots.forEach((slot, idx) => {
+            const worldHalfWidth = Math.abs(footprints[idx].ndcHalfWidth / ndcXPerWorldUnit) * fitScale;
+
+            const material = this.getMaterialForShapeKey(slot.shapeKey, slot.size);
+            const pieceMesh = this.createPieceMesh(slot.size, slot.shape, material);
+            pieceMesh.scale.setScalar(fitScale);
+
+            const posAlongRight = cursor + worldHalfWidth;
+            cursor += worldHalfWidth * 2 + gap * fitScale;
+
+            const homePos = trayOrigin.clone().addScaledVector(this.camRight, posAlongRight);
+            pieceMesh.position.copy(homePos);
+            this.scene.add(pieceMesh);
+
+            pieceMesh.userData = {
+                shapeKey: slot.shapeKey,
+                homePos: homePos.clone(),
+                trayScale: fitScale,
+                isSnapped: false,
+                isDragging: false,
+                shakeAnim: 0,
+                floatPhase: idx * 1.3
+            };
+
+            this.pieces.push(pieceMesh);
+        });
+    }
+
+    updateProductUI() {
+        const { name, price } = this.currentProduct;
+        document.getElementById('product-name-buy').textContent = name;
+        document.getElementById('product-price').textContent = price;
+        document.getElementById('product-name-over').textContent = name;
+    }
+
+    updateMenuProductUI(template) {
+        document.getElementById('product-name-start').textContent = template.name;
+        document.getElementById('product-price-start').textContent = template.price;
+
+        const dots = document.getElementById('product-dots');
+        dots.innerHTML = '';
+        this.templates.forEach((t, i) => {
+            const dot = document.createElement('span');
+            if (i === this.selectedProductIndex) dot.classList.add('active');
+            dots.appendChild(dot);
+        });
+    }
+
+    bindEvents() {
+        window.addEventListener('resize', () => this.handleResize());
+
+        // Universal Pointer Event Listeners
+        const canvas = this.canvas;
+        canvas.addEventListener('pointerdown', (e) => this.onPointerDown(e));
+        canvas.addEventListener('pointermove', (e) => this.onPointerMove(e));
+        canvas.addEventListener('pointerup', (e) => this.onPointerUp(e));
+        canvas.addEventListener('pointercancel', (e) => this.onPointerUp(e));
+
+        // UI Buttons
+        document.getElementById('start-btn').addEventListener('click', () => this.startGame());
+        document.getElementById('restart-btn').addEventListener('click', () => this.restartGame());
+        document.getElementById('quit-btn').addEventListener('click', () => this.quitToMenu());
+        document.getElementById('try-again-btn').addEventListener('click', () => this.restartGame());
+        document.getElementById('menu-btn-over').addEventListener('click', () => this.quitToMenu());
+        document.getElementById('menu-btn-win').addEventListener('click', () => this.quitToMenu());
+
+        document.getElementById('prev-product-btn').addEventListener('click', () => {
+            const count = this.templates.length;
+            this.buildMenuPreview((this.selectedProductIndex - 1 + count) % count);
+        });
+        document.getElementById('next-product-btn').addEventListener('click', () => {
+            const count = this.templates.length;
+            this.buildMenuPreview((this.selectedProductIndex + 1) % count);
+        });
+    }
+
+    handleResize() {
+        const aspect = window.innerWidth / window.innerHeight;
+        const d = this.camDistance;
+
+        this.camera.left = -d * aspect;
+        this.camera.right = d * aspect;
+        this.camera.top = d;
+        this.camera.bottom = -d;
+        this.camera.updateProjectionMatrix();
+
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    // Finds the world Y (at the given x,z) that projects to a target NDC y
+    // under the CURRENT camera/zoom - solved via the camera's own projection
+    // (two sample points, linear interpolation) rather than hand-derived
+    // constants, so it stays correct through any future camera tweaks. Under
+    // this tilted isometric camera, x AND z both affect NDC y, so both must
+    // be pinned to whichever point we're actually solving for.
+    solveWorldYForNDC(x, z, targetNdcY) {
+        const p0 = new THREE.Vector3(x, 0, z).project(this.camera).y;
+        const p1 = new THREE.Vector3(x, 10, z).project(this.camera).y;
+        const t = (targetNdcY - p0) / (p1 - p0);
+        return t * 10;
+    }
+
+    // The world Y that puts a product's OWN worst-case floor corner (checking
+    // both width AND depth, not just its center) at a target NDC y - under
+    // this tilted isometric camera, x and z both affect vertical screen
+    // position, so a corner can sit lower on screen than the object's center
+    // even when the center looks fine.
+    computeFloorY(totalWidth, totalDepth, targetNdcY) {
+        const halfWidth = totalWidth / 2;
+        const halfDepth = totalDepth / 2;
+        const floorCorners = [[-halfWidth, -halfDepth], [-halfWidth, halfDepth], [halfWidth, -halfDepth], [halfWidth, halfDepth]];
+        let worstCorner = floorCorners[0], worstNdcY = Infinity;
+        floorCorners.forEach(([x, z]) => {
+            const ndcY = new THREE.Vector3(x, 0, z).project(this.camera).y;
+            if (ndcY < worstNdcY) { worstNdcY = ndcY; worstCorner = [x, z]; }
+        });
+        return this.solveWorldYForNDC(worstCorner[0], worstCorner[1], targetNdcY);
+    }
+
+    // Disposes the rotating product-select preview (menu mode) so a new one
+    // can replace it - separate from disposeLayout() since only one of the
+    // two is ever on screen at a time, but both need their floor cleared.
+    disposePreview() {
+        if (this.previewGroup) {
+            this.scene.remove(this.previewGroup);
+            this.previewGroup.traverse(child => { if (child.isMesh) child.geometry.dispose(); });
+            this.previewGroup = null;
+        }
+        this.disposeRoomMeshes();
+    }
+
+    // Builds a fully-assembled, non-interactive preview of one product
+    // template for the product-select menu - same slot data as a real game,
+    // but rendered solid (no blueprint ghosts, no tray) and left to spin in
+    // animate() while mode === 'menu'.
+    buildMenuPreview(index) {
+        this.disposeLayout();
+        this.disposePreview();
+        this.selectedProductIndex = index;
+
+        const template = this.templates[index];
+        const { slots, totalWidth, totalHeight, totalDepth } = template.build();
+        slots.forEach(s => {
+            s.shape = s.shape || 'box';
+            s.shapeKey = this.shapeKeyFor(s.size, s.shape);
+        });
+
+        // Fresh part-colors each time the menu builds a preview; dispose the
+        // old ones first (they're canvas textures + materials, not shared
+        // elsewhere).
+        this.pieceMaterials.forEach(mat => {
+            if (mat.map) mat.map.dispose();
+            mat.dispose();
+        });
+        this.pieceMaterials = new Map();
+
+        // Fit the whole assembled product within the full view - no
+        // tray/blueprint split needed in preview mode, just one product.
+        const maxExtent = Math.max(totalWidth, totalHeight, totalDepth);
+        const dForHeight = maxExtent / 1.1;
+
+        // The prev/next arrows are fixed-size and screen-edge-anchored, so
+        // on a narrow/mobile viewport they eat a much bigger fraction of the
+        // width than on a wide screen. Zoom in at dForHeight first to
+        // measure the product's ACTUAL on-screen width, then solve for
+        // whatever extra zoom-out is needed to keep it clear of the arrows,
+        // rather than just picking a height-based zoom and hoping it's
+        // narrow enough.
+        this.camDistance = dForHeight;
+        this.handleResize();
+        const arrowReservePx = 80; // nav-btn's 16px offset + 46px width + a small gap
+        const halfWidthPx = window.innerWidth / 2;
+        const targetNdcHalfWidth = Math.max(0.3, (halfWidthPx - arrowReservePx) / halfWidthPx);
+        const footprint = this.computePieceScreenFootprint([totalWidth, totalHeight, totalDepth]);
+        const dForWidth = dForHeight * (footprint.ndcHalfWidth / targetNdcHalfWidth);
+
+        this.camDistance = Math.max(3.5, Math.min(16, Math.max(dForHeight, dForWidth)));
+        this.handleResize();
+
+        const floorY = this.computeFloorY(totalWidth, totalDepth, -0.55);
+        const roomFloorHalf = this.camDistance * 2;
+        const floorMesh = this.createFloorMesh(roomFloorHalf * 2, roomFloorHalf * 2, floorY);
+        this.scene.add(floorMesh);
+        this.roomMeshes.push(floorMesh);
+
+        this.previewGroup = new THREE.Group();
+        this.previewGroup.position.set(0, floorY, 0);
+        slots.forEach(slot => {
+            const material = this.getMaterialForShapeKey(slot.shapeKey, slot.size);
+            const mesh = new THREE.Mesh(this.createGeometryForShape(slot.size, slot.shape), material);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            mesh.position.copy(slot.pos);
+            this.previewGroup.add(mesh);
+        });
+        this.scene.add(this.previewGroup);
+
+        this.updateMenuProductUI(template);
+    }
+
+    setMode(mode) {
+        this.mode = mode;
+        this.canvas.parentElement.className = `mode-${mode}`;
+    }
+
+    // A piece's true on-screen footprint under the isometric camera - its
+    // bounding box's projected NDC half-width/half-height - independent of
+    // where in the scene it sits (translation doesn't change apparent size
+    // for an orthographic camera, only the box's own dimensions do).
+    computePieceScreenFootprint(size) {
+        const [w, h, d] = size;
+        const hw = w / 2, hh = h / 2, hd = d / 2;
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        for (const sx of [-1, 1]) {
+            for (const sy of [-1, 1]) {
+                for (const sz of [-1, 1]) {
+                    const c = new THREE.Vector3(sx * hw, sy * hh, sz * hd).project(this.camera);
+                    minX = Math.min(minX, c.x); maxX = Math.max(maxX, c.x);
+                    minY = Math.min(minY, c.y); maxY = Math.max(maxY, c.y);
+                }
+            }
+        }
+        return { ndcHalfWidth: (maxX - minX) / 2, ndcHalfHeight: (maxY - minY) / 2 };
+    }
+
+    updateMousePosition(e) {
+        this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+        this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+    }
+
+    onPointerDown(e) {
+        if (!this.isPlaying || this.autoMode) return;
+        this.updateMousePosition(e);
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        
+        // Find ray intersection with pieces
+        const intersectableObjects = [];
+        this.pieces.forEach(p => {
+            if (!p.userData.isSnapped) {
+                p.traverse(child => { if (child.isMesh) intersectableObjects.push(child); });
+            }
+        });
+
+        const intersects = this.raycaster.intersectObjects(intersectableObjects);
+
+        if (intersects.length > 0) {
+            // Find root group piece
+            let obj = intersects[0].object;
+            while (obj.parent && !this.pieces.includes(obj)) {
+                obj = obj.parent;
+            }
+
+            if (obj && !obj.userData.isSnapped) {
+                this.selectedPiece = obj;
+                this.selectedPiece.userData.isDragging = true;
+
+                // Pop to true size - tray pieces are shown shrunk/normalized
+                // to fit the tray row, but should read at real scale once
+                // picked up and while being matched against the blueprint.
+                this.selectedPiece.scale.setScalar(1);
+
+                // Create drag plane facing camera
+                this.planeNormal.copy(this.camera.position).normalize();
+                this.dragPlane.setFromNormalAndCoplanarPoint(this.planeNormal, this.selectedPiece.position);
+
+                if (this.raycaster.ray.intersectPlane(this.dragPlane, this.intersectionPoint)) {
+                    this.dragOffset.subVectors(this.selectedPiece.position, this.intersectionPoint);
+                }
+
+                // Lift piece visually
+                this.selectedPiece.position.y += 0.3;
+            }
+        }
+    }
+
+    onPointerMove(e) {
+        if (!this.isPlaying || !this.selectedPiece) return;
+        this.updateMousePosition(e);
+
+        this.raycaster.setFromCamera(this.mouse, this.camera);
+        if (this.raycaster.ray.intersectPlane(this.dragPlane, this.intersectionPoint)) {
+            this.selectedPiece.position.copy(this.intersectionPoint.add(this.dragOffset));
+        }
+    }
+
+    // The lowest build level that still has empty slots - the only level
+    // currently placeable. Every product is built bottom-up in levels (e.g. a
+    // table's legs are level 0, its tabletop level 1): a level only unlocks
+    // once every slot in the level(s) below it is filled. Pieces belonging to
+    // the same level remain freely interchangeable by shape.
+    getCurrentLevel() {
+        let minLevel = Infinity;
+        this.targetSlots.forEach(s => { if (!s.filled) minLevel = Math.min(minLevel, s.level); });
+        return minLevel;
+    }
+
+    // Finds the closest empty blueprint slot whose shape matches this piece
+    // AND whose level is currently unlocked, so any piece can snap into any
+    // matching slot in the active level (not just "its" slot), but never
+    // ahead of the build order.
+    // Distance is measured in on-screen (projected) space rather than 3D world
+    // space: the drag plane keeps a piece at whatever depth it was picked up
+    // from (its tray position), which can differ a lot from the target slot's
+    // depth, so a 3D distance check could reject a drop that visually landed
+    // right on top of the slot. Screen-space distance is also zoom-independent,
+    // since every product frames the camera differently.
+    findMatchingSlot(piece) {
+        let bestSlot = null;
+        let bestDist = Infinity;
+        const pieceScreen = piece.position.clone().project(this.camera);
+        const currentLevel = this.getCurrentLevel();
+
+        this.targetSlots.forEach(slot => {
+            if (slot.filled) return;
+            if (slot.shapeKey !== piece.userData.shapeKey) return;
+            if (slot.level !== currentLevel) return;
+
+            const slotScreen = slot.worldPos.clone().project(this.camera);
+            const dx = pieceScreen.x - slotScreen.x;
+            const dy = pieceScreen.y - slotScreen.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestSlot = slot;
+            }
+        });
+
+        return { slot: bestSlot, dist: bestDist };
+    }
+
+    onPointerUp(e) {
+        if (!this.selectedPiece) return;
+
+        const piece = this.selectedPiece;
+        const { slot, dist } = this.findMatchingSlot(piece);
+
+        // Proximity snapping check (threshold in normalized screen space, -1..1 per axis)
+        if (slot && dist < 0.22) {
+            this.finishSnap(piece, slot);
+        } else {
+            // FAIL SNAP - Trigger Error Slide Back Animation
+            sfx.playError();
+            piece.userData.isDragging = false;
+            piece.userData.shakeAnim = 1.0; // Trigger shake frame interpolation
+        }
+
+        this.selectedPiece = null;
+    }
+
+    // Locks a piece into its blueprint slot and advances progress/win state.
+    // Shared by manual drag-drop (onPointerUp) and auto-play (autoPlayTick).
+    finishSnap(piece, slot) {
+        piece.position.copy(slot.worldPos);
+        piece.scale.setScalar(1);
+        piece.userData.isSnapped = true;
+        piece.userData.isDragging = false;
+        piece.userData.autoTargetSlot = null;
+        slot.filled = true;
+        slot.reserved = false;
+        slot.wireMesh.visible = false;
+        slot.fillMesh.visible = false;
+
+        sfx.playSnap();
+        this.spawnParticles(slot.worldPos);
+
+        this.assembledCount++;
+        this.progressText.textContent = `${this.assembledCount} / ${this.totalPieces}`;
+
+        if (this.assembledCount === this.totalPieces) {
+            this.triggerWin();
+        }
+    }
+
+    // Picks one unclaimed piece and reserves it a matching, currently-unlocked
+    // empty slot, marking the slot 'reserved' (distinct from 'filled') so a
+    // second piece of the same shape isn't sent to the same spot while this
+    // one is still travelling. animate() tweens the piece toward slot.worldPos
+    // and calls finishSnap() once it arrives.
+    autoPlayTick() {
+        this.nextAutoMoveTime = Date.now() + 400;
+
+        // Try each unclaimed piece in turn until one actually has a matching
+        // open slot - picking only the first unclaimed piece would get stuck
+        // forever whenever that particular piece's shape isn't part of the
+        // currently unlocked level.
+        const currentLevel = this.getCurrentLevel();
+        const candidates = this.pieces.filter(p => !p.userData.isSnapped && !p.userData.autoTargetSlot);
+
+        for (const piece of candidates) {
+            const slot = this.targetSlots.find(s =>
+                !s.filled && !s.reserved && s.shapeKey === piece.userData.shapeKey && s.level === currentLevel
+            );
+            if (slot) {
+                slot.reserved = true;
+                piece.userData.autoTargetSlot = slot;
+                piece.userData.isDragging = true; // opt out of idle-float/shake handling in animate()
+                return;
+            }
+        }
+    }
+
+    // Moves to the next product template and starts a fresh build - used to
+    // keep auto-play cycling continuously after a win or a timeout.
+    autoAdvance() {
+        this.selectedProductIndex = (this.selectedProductIndex + 1) % this.templates.length;
+        this.startGame();
+    }
+
+    spawnParticles(pos) {
+        const particleGeo = new THREE.BoxGeometry(0.12, 0.12, 0.12);
+        for (let i = 0; i < 16; i++) {
+            const p = new THREE.Mesh(particleGeo, this.materials.particle);
+            p.position.copy(pos);
+            
+            // Random explosion velocity
+            p.userData = {
+                vel: new THREE.Vector3(
+                    (Math.random() - 0.5) * 0.2,
+                    Math.random() * 0.2 + 0.1,
+                    (Math.random() - 0.5) * 0.2
+                ),
+                life: 1.0
+            };
+
+            this.scene.add(p);
+            this.particles.push(p);
+        }
+    }
+
+    updateParticles() {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            const p = this.particles[i];
+            p.position.add(p.userData.vel);
+            p.userData.vel.y -= 0.008; // Gravity
+            p.userData.life -= 0.03;
+            p.scale.multiplyScalar(0.95);
+
+            if (p.userData.life <= 0) {
+                this.scene.remove(p);
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+
+    startGame() {
+        sfx.init();
+        this.generateLayout(this.selectedProductIndex);
+        document.getElementById('start-overlay').classList.add('hidden');
+        document.getElementById('gameover-overlay').classList.add('hidden');
+        document.getElementById('win-overlay').classList.add('hidden');
+        this.setMode('playing');
+        this.isPlaying = true;
+        this.startTime = Date.now();
+        this.startTimer();
+    }
+
+    startTimer() {
+        clearInterval(this.timerInterval);
+        this.timeLeft = 8 * this.totalPieces; // scale with generated piece count
+        this.timerText.textContent = `${this.timeLeft}s`;
+
+        this.timerInterval = setInterval(() => {
+            if (!this.isPlaying) return;
+            this.timeLeft--;
+            this.timerText.textContent = `${this.timeLeft}s`;
+
+            if (this.timeLeft <= 0) {
+                clearInterval(this.timerInterval);
+                this.triggerGameOver();
+            }
+        }, 1000);
+    }
+
+    triggerGameOver() {
+        this.isPlaying = false;
+        clearInterval(this.timerInterval);
+        sfx.playError();
+        this.setMode('gameover');
+        document.getElementById('gameover-overlay').classList.remove('hidden');
+
+        if (this.autoMode) {
+            setTimeout(() => this.autoAdvance(), 2000);
+        }
+    }
+
+    quitToMenu() {
+        this.isPlaying = false;
+        clearInterval(this.timerInterval);
+        document.getElementById('win-overlay').classList.add('hidden');
+        document.getElementById('gameover-overlay').classList.add('hidden');
+        document.getElementById('start-overlay').classList.remove('hidden');
+        this.buildMenuPreview(this.selectedProductIndex);
+        this.setMode('menu');
+    }
+
+    triggerWin() {
+        this.isPlaying = false;
+        clearInterval(this.timerInterval);
+        this.setMode('win');
+        sfx.playWin();
+
+        // Reparent every snapped piece onto the blueprint group so rotating
+        // that one group spins the whole assembled product together as a
+        // rigid body, instead of each piece spinning in place on its own axis.
+        this.pieces.forEach(p => {
+            p.position.sub(this.blueprintGroup.position);
+            this.blueprintGroup.add(p);
+        });
+
+        // The build is done - hide the wireframe/ghost placement guides so
+        // only the finished product itself is visible while it spins.
+        this.blueprintDecorations.forEach(mesh => { mesh.visible = false; });
+
+        setTimeout(() => {
+            document.getElementById('win-overlay').classList.remove('hidden');
+        }, 500);
+
+        if (this.autoMode) {
+            setTimeout(() => this.autoAdvance(), 3000);
+        }
+    }
+
+    restartGame() {
+        document.getElementById('win-overlay').classList.add('hidden');
+        document.getElementById('gameover-overlay').classList.add('hidden');
+
+        // startGame() regenerates the layout for the same selected product
+        this.startGame();
+    }
+
+    animate() {
+        requestAnimationFrame(() => this.animate());
+
+        // Auto-play: periodically claim one more piece for its slot, then
+        // tween every currently-claimed piece toward its target each frame.
+        if (this.isPlaying && this.autoMode && Date.now() > this.nextAutoMoveTime) {
+            this.autoPlayTick();
+        }
+        this.pieces.forEach(piece => {
+            const slot = piece.userData.autoTargetSlot;
+            if (slot) {
+                piece.position.lerp(slot.worldPos, 0.12);
+                piece.scale.lerp(new THREE.Vector3(1, 1, 1), 0.12);
+                if (piece.position.distanceTo(slot.worldPos) < 0.03) {
+                    this.finishSnap(piece, slot);
+                }
+            }
+        });
+
+        // Smooth animations for error bounce-back & idle floats
+        this.pieces.forEach(piece => {
+            if (piece.userData.autoTargetSlot) return; // handled above
+            if (!piece.userData.isSnapped && !piece.userData.isDragging) {
+                if (piece.userData.shakeAnim > 0) {
+                    // Interpolate back to home spot with elastic shake
+                    piece.userData.shakeAnim -= 0.05;
+                    piece.position.lerp(piece.userData.homePos, 0.15);
+                    piece.position.x += Math.sin(piece.userData.shakeAnim * Math.PI * 8) * 0.1;
+                    // Shrink back to its normalized tray display size
+                    const ts = piece.userData.trayScale;
+                    piece.scale.lerp(new THREE.Vector3(ts, ts, ts), 0.15);
+                } else {
+                    // Gentle Idle Floating
+                    piece.position.y = piece.userData.homePos.y + Math.sin(Date.now() * 0.003 + piece.userData.floatPhase) * 0.05;
+                }
+            }
+        });
+
+        // Rotate the assembled product as one rigid body. Snapped pieces are
+        // reparented onto blueprintGroup in triggerWin(), so this single
+        // rotation spins the whole product together instead of each piece
+        // spinning in place around its own center.
+        if (this.assembledCount === this.totalPieces && this.blueprintGroup) {
+            this.blueprintGroup.rotation.y += 0.005;
+        }
+
+        // Spin the product-select menu's preview product
+        if (this.previewGroup) {
+            this.previewGroup.rotation.y += 0.008;
+        }
+
+        this.updateParticles();
+        this.renderer.render(this.scene, this.camera);
+    }
+}
+
+// Launch Game on Load
+window.addEventListener('load', () => {
+    window.gameInstance = new Game();
+});
+</script>
+</body>
+</html>

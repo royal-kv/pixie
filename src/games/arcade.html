@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoFee Games Arcade</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    :root {
+      --gd:#1A3D28; --gm:#3D9B5F; --gl:#A8D5B8; --gp:#D4F0E4;
+      --bg:#07080F;
+    }
+
+    html, body {
+      width:100%; height:100%; height:100dvh; overflow:hidden;
+      background:var(--bg);
+      font-family:'Press Start 2P', monospace;
+    }
+
+    /* subtle pixel grid overlay */
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:
+        linear-gradient(rgba(61,155,95,.04) 1px, transparent 1px),
+        linear-gradient(90deg,rgba(61,155,95,.04) 1px, transparent 1px);
+      background-size:28px 28px;
+    }
+
+    /* ── Header ─────────────────────────── */
+    header {
+      position:fixed; top:0; left:0; right:0; z-index:100;
+      padding:14px 20px 24px;
+      background:linear-gradient(var(--bg) 55%, transparent);
+      display:flex; align-items:center; justify-content:center; gap:10px;
+      pointer-events:none;
+    }
+    .hpx { width:9px; height:9px; background:var(--gm); flex-shrink:0; }
+    header h1 {
+      font-size:clamp(7px,2.2vw,12px); color:var(--gl);
+      letter-spacing:3px;
+      text-shadow:2px 2px 0 var(--gd), 4px 4px 0 rgba(0,0,0,.4);
+    }
+
+    /* ── Scene ──────────────────────────── */
+    .scene {
+      width:100%; height:100%; height:100dvh;
+      display:flex; align-items:center; justify-content:center;
+      overflow:hidden; position:relative;
+    }
+
+    /* ── Track wrapper — receives the CSS transform ── */
+    #wrapper {
+      will-change:transform;
+      transform-origin:center center;
+      /* transition set dynamically */
+    }
+
+    /* ── Track — 5×5 CSS grid ──────────── */
+    #track {
+      display:grid;
+      grid-template-columns: repeat(5, var(--cw,300px));
+      grid-template-rows:    repeat(5, var(--ch,560px));
+      gap:var(--gap,36px);
+    }
+
+    /* ── Card (phone frame) ─────────────── */
+    .card {
+      flex-shrink:0;
+      width:var(--cw,300px); height:var(--ch,560px);
+      border-radius:24px; overflow:hidden;
+      position:relative;
+      box-shadow:0 6px 24px rgba(0,0,0,.6);
+      transition:box-shadow .5s;
+      cursor:pointer;
+    }
+    /* Glowing border on focused card */
+    .card.focused {
+      box-shadow:
+        0 0 0 2px var(--gm),
+        0 0 32px rgba(61,155,95,.35),
+        0 8px 40px rgba(0,0,0,.7);
+    }
+    /* Bezel ring */
+    .card::after {
+      content:''; position:absolute; inset:0; border-radius:24px;
+      border:1.5px solid rgba(255,255,255,.08);
+      pointer-events:none; z-index:30;
+    }
+
+    /* iframe fills the whole card */
+    .card iframe {
+      width:100%; height:100%; border:none; display:block;
+      pointer-events:none; /* showcase only — prevents input stealing */
+    }
+
+    /* Dim overlay on non-focused cards */
+    .card-dim {
+      position:absolute; inset:0; z-index:20;
+      background:rgba(4,5,12,.58);
+      transition:opacity .55s;
+      pointer-events:none;
+    }
+    .card.focused .card-dim { opacity:0; }
+    /* Remove all dims when fully zoomed out */
+    #wrapper.zoomed-out .card-dim { opacity:0; }
+
+    /* Game name label at bottom */
+    .card-lbl {
+      position:absolute; bottom:0; left:0; right:0; z-index:25;
+      padding:32px 14px 13px;
+      background:linear-gradient(transparent, rgba(4,5,12,.82));
+      pointer-events:none;
+      display:flex; align-items:flex-end; justify-content:space-between;
+    }
+    .lbl-name { font-size:6.5px; color:#D4F0E4; line-height:1.9; letter-spacing:1px; }
+    .lbl-tag  { font-size:5px;   color:var(--gm); letter-spacing:.5px; text-align:right; }
+
+    /* ── Footer ─────────────────────────── */
+    footer {
+      position:fixed; bottom:0; left:0; right:0; z-index:100;
+      padding:16px 20px 14px;
+      background:linear-gradient(transparent, var(--bg) 52%);
+      display:flex; flex-direction:column; align-items:center; gap:10px;
+      pointer-events:none;
+    }
+
+    /* 5×5 mini-grid position indicator */
+    #dots {
+      display:grid;
+      grid-template-columns: repeat(5, 7px);
+      grid-template-rows:    repeat(5, 7px);
+      gap:4px;
+    }
+    .dot {
+      width:7px; height:7px;
+      background:rgba(168,213,184,.14);
+      border:1px solid rgba(168,213,184,.18);
+      transition:background .4s, border-color .4s, transform .4s;
+    }
+    .dot.on {
+      background:var(--gm); border-color:var(--gm);
+      transform:scale(1.3);
+    }
+
+    /* Status text */
+    #status {
+      font-size:5.5px; color:rgba(168,213,184,.3); letter-spacing:2px;
+      transition:opacity .4s;
+    }
+
+    /* ── Phase label (centre of screen, fades in/out) ── */
+    #phase-lbl {
+      position:fixed; top:54px; left:50%; transform:translateX(-50%);
+      z-index:99; white-space:nowrap;
+      font-size:clamp(6px,1.8vw,9px); color:rgba(168,213,184,.55);
+      letter-spacing:2px;
+      transition:opacity .4s;
+      pointer-events:none;
+    }
+  </style>
+</head>
+<body>
+
+
+<div class="scene">
+  <div id="wrapper">
+    <div id="track"></div>
+  </div>
+</div>
+
+<div id="phase-lbl"></div>
+
+<footer>
+  <div id="dots"></div>
+  <div id="status">AUTO PRESENTATION</div>
+</footer>
+
+<script>
+/* ════════════════════════════════════════════════════════════
+   CoFee Games Arcade — 2D grid, viewport-fitted
+   ════════════════════════════════════════════════════════════
+
+   COLS and ROWS are calculated so GRID_W/GRID_H ≈ vw/vh.
+   That makes Math.min(vw/GRID_W, vh/GRID_H) fill BOTH axes
+   simultaneously with minimal dead space.
+
+   Transform math (transform-origin: center center):
+     tx = s × (GRID_W/2 − col×SX − CARD_W/2)
+     ty = s × (GRID_H/2 − row×SY − CARD_H/2)
+   Centre card [CR,CC] always gives tx=ty=0.               ✓
+   ════════════════════════════════════════════════════════════ */
+
+// ── Base game pool ────────────────────────────────────────
+const BASE = [
+  { src:'lead-rush.html',        name:'LEAD RUSH',       tag:'SWIPE TO SORT'   },
+  { src:'lead-rush-cyber.html',  name:'LEAD RUSH CYBER', tag:'NEON EDITION'    },
+  { src:'lead-catcher.html',     name:'LEAD CATCHER',    tag:'BASKET CATCH'    },
+  { src:'lead-dodger.html',      name:'LEAD DODGER',     tag:'ROAD RUNNER'     },
+  { src:'pizza.html',            name:'PIZZA HUT',       tag:'BUILD YOUR PIZZA'},
+  { src:'ikea-build.html',       name:'IKEA BUILD',      tag:'ASSEMBLY TIME'   },
+  { src:'pepsi_flapy_bird.html',   name:'PEPSI FLAPPY',    tag:'3D FLAPPY BIRD'  },
+  { src:'football-shootout.html', name:'FOOTBALL',        tag:'PENALTY SHOOTOUT'},
+  { src:'roomba-rush.html',       name:'ROOMBA RUSH',     tag:'CLEAN SWEEP'     },
+  { src:'burger-munch.html',      name:'BURGER MUNCH',    tag:'PIXEL PAC-MAN'   },
+  { src:'cola-snake.html',        name:'COLA SNAKE',      tag:'3D SNAKE'        },
+  { src:'atelier-merge-send.html',  name:'ATELIER MERGE',   tag:'JEWELRY PUZZLE'  },
+  { src:'everstone-cut-send.html',  name:'EVERSTONE CUT',   tag:'GEM CUTTING'     },
+  { src:'dress-cut-demo.html',      name:'DRESS CUT',       tag:'FASHION DESIGN'  },
+];
+
+// ── Fixed card dimensions ─────────────────────────────────
+const CARD_W   = 300;
+const CARD_H   = 560;
+const GAP      = 36;
+const STRIDE_X = CARD_W + GAP;   // 336
+const STRIDE_Y = CARD_H + GAP;   // 596
+
+// ── Dynamic grid state (set by calcAndBuild) ──────────────
+let COLS, ROWS, GRID_W, GRID_H, CR, CC;
+let GAMES = [];
+let cards = [], dots = [];
+
+// ── DOM refs ──────────────────────────────────────────────
+const wrapper  = document.getElementById('wrapper');
+const track    = document.getElementById('track');
+const dotsEl   = document.getElementById('dots');
+const phaseLbl = document.getElementById('phase-lbl');
+
+// ── Nearest odd integer to x (min 3) ─────────────────────
+function nearestOdd(x) {
+  let r = Math.round(x);
+  if (r % 2 === 0) {
+    // pick the closer odd neighbour
+    r = (Math.abs(r-1-x) <= Math.abs(r+1-x)) ? r-1 : r+1;
+  }
+  return Math.max(3, r);
+}
+
+// ── Calculate grid dims so GRID_W/GRID_H ≈ vw/vh ─────────
+//    Portrait → 5 rows; Landscape → 3 rows.
+//    Then COLS is chosen so both scale factors are equal.
+function calcDims() {
+  const vw = window.innerWidth, vh = window.innerHeight;
+  ROWS = vh > vw ? 5 : 3;
+  // Solve: (COLS·SX−GAP)/(ROWS·SY−GAP) = vw/vh  →  COLS = …
+  const idealCols = ((vw / vh) * (ROWS * STRIDE_Y - GAP) + GAP) / STRIDE_X;
+  COLS   = Math.max(7, nearestOdd(idealCols)); // need ≥7 for 5 pinned slots (CC-2..CC+2)
+  GRID_W = COLS * STRIDE_X - GAP;
+  GRID_H = ROWS * STRIDE_Y - GAP;
+  CR     = Math.floor(ROWS / 2);
+  CC     = Math.floor(COLS / 2);
+}
+
+// ── Pinned games ──────────────────────────────────────────
+// Centre-left2  → Dress Cut
+// Centre-left   → Pepsi Flappy Bird
+// Centre        → IKEA Build
+// Centre-right  → Lead Rush
+// Centre-right2 → Everstone Cut
+// Everything else cycles through the remaining games
+const PINNED_CENTER = BASE.find(g => g.src === 'ikea-build.html');
+const PINNED_LEFT   = BASE.find(g => g.src === 'pepsi_flapy_bird.html');
+const PINNED_LEFT2  = BASE.find(g => g.src === 'dress-cut-demo.html');
+const PINNED_RIGHT  = BASE.find(g => g.src === 'lead-rush.html');
+const PINNED_RIGHT2 = BASE.find(g => g.src === 'everstone-cut-send.html');
+const POOL = BASE.filter(g => g !== PINNED_CENTER && g !== PINNED_LEFT && g !== PINNED_LEFT2 && g !== PINNED_RIGHT && g !== PINNED_RIGHT2);
+
+// ── Build (or rebuild) the card grid ─────────────────────
+function calcAndBuild() {
+  calcDims();
+  const total = ROWS * COLS;
+
+  // ── Even repetition, randomly distributed, no same-game adjacency ──
+  // 1. Compute how many times each game appears in non-pinned slots
+  //    (pinned games already have 1 fixed appearance, so subtract that).
+  const base  = Math.floor(total / BASE.length);
+  const extra = total % BASE.length;
+  const quota = new Map();
+  BASE.forEach((g, i) => {
+    const totalApps = i < extra ? base + 1 : base;
+    const isPinned  = g === PINNED_CENTER || g === PINNED_LEFT || g === PINNED_LEFT2 || g === PINNED_RIGHT || g === PINNED_RIGHT2;
+    quota.set(g, totalApps - (isPinned ? 1 : 0));
+  });
+
+  // 2. Collect non-pinned positions in row-major order (needed so
+  //    left/top neighbours are already assigned when we reach each cell).
+  const nonPinned = [];
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (!(r === CR && (c === CC || c === CC-1 || c === CC-2 || c === CC+1 || c === CC+2)))
+        nonPinned.push([r, c]);
+
+  // 3. For each position pick a random game that:
+  //    a) still has quota remaining
+  //    b) doesn't match any already-assigned or pinned neighbour
+  const assigned = new Map();
+
+  for (const [r, c] of nonPinned) {
+    // Forbidden = games already placed in the 4 adjacent cells
+    const forbidden = new Set();
+    [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].forEach(([nr,nc]) => {
+      const v = assigned.get(`${nr},${nc}`);
+      if (v) forbidden.add(v);
+      // also forbid pinned neighbours
+      if (nr === CR && nc === CC)   forbidden.add(PINNED_CENTER);
+      if (nr === CR && nc === CC-1) forbidden.add(PINNED_LEFT);
+      if (nr === CR && nc === CC-2) forbidden.add(PINNED_LEFT2);
+      if (nr === CR && nc === CC+1) forbidden.add(PINNED_RIGHT);
+      if (nr === CR && nc === CC+2) forbidden.add(PINNED_RIGHT2);
+    });
+
+    // Candidates: quota > 0 and not forbidden
+    let candidates = BASE.filter(g => quota.get(g) > 0 && !forbidden.has(g));
+    // Fallback: relax adjacency if no valid candidate (rare)
+    if (!candidates.length) candidates = BASE.filter(g => quota.get(g) > 0);
+
+    // Random pick among candidates
+    const chosen = candidates[Math.floor(Math.random() * candidates.length)];
+    assigned.set(`${r},${c}`, chosen);
+    quota.set(chosen, quota.get(chosen) - 1);
+  }
+
+  GAMES = Array.from({ length: total }, (_, i) => {
+    const row = Math.floor(i / COLS), col = i % COLS;
+    if (row === CR && col === CC)     return PINNED_CENTER;
+    if (row === CR && col === CC - 1) return PINNED_LEFT;
+    if (row === CR && col === CC - 2) return PINNED_LEFT2;
+    if (row === CR && col === CC + 1) return PINNED_RIGHT;
+    if (row === CR && col === CC + 2) return PINNED_RIGHT2;
+    return assigned.get(`${row},${col}`);
+  });
+
+  // CSS custom props
+  document.documentElement.style.setProperty('--cw',  CARD_W + 'px');
+  document.documentElement.style.setProperty('--ch',  CARD_H + 'px');
+  document.documentElement.style.setProperty('--gap', GAP    + 'px');
+
+  // Override the grid template dynamically
+  track.style.gridTemplateColumns = `repeat(${COLS}, ${CARD_W}px)`;
+  track.style.gridTemplateRows    = `repeat(${ROWS}, ${CARD_H}px)`;
+  dotsEl.style.gridTemplateColumns = `repeat(${COLS}, 7px)`;
+  dotsEl.style.gridTemplateRows    = `repeat(${ROWS}, 7px)`;
+
+  // Rebuild DOM
+  track.innerHTML  = '';
+  dotsEl.innerHTML = '';
+
+  GAMES.forEach((g, i) => {
+    const row = Math.floor(i / COLS), col = i % COLS;
+    const isCentre = row === CR && col === CC;
+
+    const card = document.createElement('div');
+    card.className  = 'card';
+    card.dataset.i  = i;
+    card.innerHTML  = `
+      <iframe src="${g.src}" title="${g.name}"
+              loading="${isCentre ? 'eager' : 'lazy'}"
+              sandbox="allow-scripts allow-same-origin"></iframe>
+      <div class="card-dim"></div>
+      <div class="card-lbl">
+        <div class="lbl-name">${g.name}</div>
+        <div class="lbl-tag">${g.tag}</div>
+      </div>`;
+    track.appendChild(card);
+
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dotsEl.appendChild(dot);
+  });
+
+  cards = [...document.querySelectorAll('.card')];
+  dots  = [...document.querySelectorAll('.dot')];
+}
+
+// ── Scale helpers ─────────────────────────────────────────
+function zoomInScale() {
+  const byW = (window.innerWidth  * 0.62) / CARD_W;
+  const byH = (window.innerHeight * 0.74) / CARD_H;
+  return Math.min(byW, byH, 1.6);
+}
+function zoomOutScale() {
+  // Math.min: all cards always visible; grid fills both axes because
+  // GRID_W/GRID_H was tuned to match vw/vh above.
+  const byW = (window.innerWidth  * 0.98) / GRID_W;
+  const byH = (window.innerHeight * 0.98) / GRID_H;
+  return Math.min(byW, byH);
+}
+
+// ── Transform helpers ─────────────────────────────────────
+const txFor = (r, c, s) => s * (GRID_W/2 - c*STRIDE_X - CARD_W/2);
+const tyFor = (r, c, s) => s * (GRID_H/2 - r*STRIDE_Y - CARD_H/2);
+
+function move(tx, ty, s, dur=0.95, ease='cubic-bezier(.4,0,.2,1)') {
+  wrapper.style.transition = dur===0 ? 'none' : `transform ${dur}s ${ease}`;
+  wrapper.style.transform  = `translate(${tx}px,${ty}px) scale(${s})`;
+}
+
+// ── Focus helpers ─────────────────────────────────────────
+let curRow, curCol, zoomed = true;
+
+function setFocus(row, col) {
+  curRow = row; curCol = col;
+  const idx = row * COLS + col;
+  cards.forEach((c, i) => c.classList.toggle('focused', i === idx));
+  dots.forEach((d, i)  => d.classList.toggle('on',      i === idx));
+}
+function clearFocus() {
+  cards.forEach(c => c.classList.remove('focused'));
+  dots.forEach(d  => d.classList.remove('on'));
+}
+
+// ── Camera moves ──────────────────────────────────────────
+function panTo(row, col, dur) {
+  const s = zoomInScale();
+  move(txFor(row,col,s), tyFor(row,col,s), s, dur);
+  setFocus(row, col);
+  phaseLbl.textContent = GAMES[row * COLS + col]?.name || '';
+  zoomed = true;
+  wrapper.classList.remove('zoomed-out');
+}
+function showAll(dur) {
+  move(0, 0, zoomOutScale(), dur, 'cubic-bezier(.25,.46,.45,.94)');
+  clearFocus();
+  phaseLbl.textContent = 'ALL GAMES';
+  zoomed = false;
+  wrapper.classList.add('zoomed-out');
+}
+
+// ── Animation sequence (built dynamically) ────────────────
+let SEQ = [], si = 0, timer = null;
+
+function buildSeq() {
+  // Only highlight the three pinned games while panning
+  SEQ = [
+    ['focus', CR, CC,     3000],        // IKEA Build — centre, fills screen
+    ['pan',   CR, CC - 1, 1000, 2000],  // pan left  → Pepsi Flappy Bird
+    ['pan',   CR, CC,      900, 1000],  // back to IKEA
+    ['pan',   CR, CC + 1, 1000, 2000],  // pan right → Lead Rush
+    ['pan',   CR, CC,      900,  500],  // back to centre
+    ['out',             1700, 3500],    // zoom out — whole grid visible
+    ['in',    CR, CC,   1500],          // zoom back in on IKEA → loop
+  ];
+}
+
+function tick() {
+  clearTimeout(timer);
+  const s = SEQ[si % SEQ.length];
+  let delay = 0;
+
+  if      (s[0]==='focus') { panTo(s[1],s[2],0.8);          delay=s[3]; }
+  else if (s[0]==='pan')   { panTo(s[1],s[2],s[3]/1000);    delay=s[3]+s[4]; }
+  else if (s[0]==='out')   { showAll(s[1]/1000);             delay=s[1]+s[2]; }
+  else if (s[0]==='in')    { panTo(s[1],s[2],s[3]/1000);    delay=s[3]+800; }
+
+  timer = setTimeout(() => { si=(si+1)%SEQ.length; tick(); }, delay);
+}
+
+// ── Resize ────────────────────────────────────────────────
+window.addEventListener('resize', () => {
+  if (zoomed) {
+    const s = zoomInScale();
+    move(txFor(curRow,curCol,s), tyFor(curRow,curCol,s), s, 0);
+  } else {
+    move(0, 0, zoomOutScale(), 0);
+  }
+});
+
+// ── Init ──────────────────────────────────────────────────
+(function init() {
+  calcAndBuild();
+  buildSeq();
+
+  const s0 = zoomInScale();
+  move(txFor(CR,CC,s0), tyFor(CR,CC,s0), s0, 0);
+  setFocus(CR, CC);
+  phaseLbl.textContent = GAMES[CR * COLS + CC].name;
+
+  timer = setTimeout(tick, 2200);
+})();
+</script>
+</body>
+</html>

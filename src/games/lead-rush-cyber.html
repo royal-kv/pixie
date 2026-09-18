@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Lead Rush 🎮 — Cyber</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gd: #00FF9C; --gm: #00FF9C; --gl: #00FF9C44; --gp: #0A0A1A;
+      --cream: #0D0D1F; --gold: #FF00FF; --red: #FF003C; --gray: #5566AA;
+    }
+    * { margin:0; padding:0; box-sizing:border-box;
+        -webkit-tap-highlight-color:transparent; user-select:none; touch-action:manipulation; }
+
+    html, body {
+      width:100%; height:100%; height:100dvh; overflow:hidden;
+      background: #07071A;
+      font-family: 'Press Start 2P', 'Courier New', monospace;
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:
+        linear-gradient(rgba(0,255,156,.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,255,156,.07) 1px, transparent 1px);
+      background-size: 28px 28px;
+    }
+    /* scanline overlay */
+    body::after {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,.18) 2px, rgba(0,0,0,.18) 4px);
+    }
+
+    #app {
+      width:100%; height:100%; height:100dvh;
+      position:relative; overflow:hidden; max-width:480px; margin:0 auto; z-index:1;
+    }
+
+    .screen {
+      position:absolute; inset:0; display:flex;
+      flex-direction:column; align-items:center;
+    }
+    .hidden { display:none !important; }
+
+    /* ══════════════════ SPLASH ══════════════════ */
+    #splash {
+      justify-content:center; gap:18px; text-align:center; padding:28px 24px;
+    }
+    .s-mascot { width:clamp(130px,38vw,180px); height:clamp(195px,57vw,270px);
+                image-rendering:pixelated;
+                filter: drop-shadow(0 0 16px #00FF9C) drop-shadow(0 0 32px #00FF9C44); }
+    .s-mascot svg { width:100%; height:100%; image-rendering:pixelated; }
+    .s-title {
+      font-size:clamp(26px,9vw,38px); color:#00FF9C; line-height:1.3;
+      text-shadow: 0 0 10px #00FF9C, 0 0 30px #00FF9C88, 4px 4px 0 #003322;
+    }
+    .s-title em { color:#FF00FF; font-style:normal; text-shadow: 0 0 10px #FF00FF, 0 0 30px #FF00FF88; }
+    .s-start { margin-top:4px; }
+
+    .blink { font-size:8px; color:#00FF9C; animation:blink .8s step-end infinite;
+             text-shadow: 0 0 8px #00FF9C; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    .btn {
+      font-family:'Press Start 2P',monospace; font-size:10px; border:none;
+      cursor:pointer; letter-spacing:1px; transition:transform .05s;
+    }
+    .btn:active { transform:translate(2px,2px); }
+    .btn-green {
+      background: transparent;
+      color: #00FF9C;
+      border: 2px solid #00FF9C;
+      box-shadow: 0 0 12px #00FF9C, inset 0 0 12px rgba(0,255,156,.1), 4px 4px 0 #003322;
+      padding:14px 32px; width:100%; max-width:260px;
+    }
+    .btn-green:active { box-shadow: 0 0 6px #00FF9C, 2px 2px 0 #003322; }
+
+    /* ══════════════════ GAME ══════════════════ */
+    #game { padding:0; justify-content:flex-start; }
+
+    .hud {
+      width:100%; background:#0A0A1E; color:#00FF9C;
+      padding:10px 18px; display:flex; align-items:center;
+      justify-content:space-between; flex-shrink:0; gap:10px;
+      border-bottom: 1px solid #00FF9C44;
+    }
+    .hud-streak { font-size:9px; line-height:1.9; color:#5566AA; }
+    .hud-streak span { color:#00FF9C; font-size:15px; text-shadow: 0 0 10px #00FF9C; }
+    .hud-best { font-size:7px; color:#5566AA; line-height:1.9; text-align:right; }
+    .hud-best span { color:#FF00FF; text-shadow: 0 0 8px #FF00FF; }
+
+    .tbar-wrap { width:100%; height:4px; background:#0D0D2A; flex-shrink:0; }
+    .tbar { height:100%; background:#00FF9C;
+            box-shadow: 0 0 8px #00FF9C;
+            transition:width linear, background .4s; }
+    .tbar.crit { background:#FF003C; box-shadow: 0 0 8px #FF003C; }
+
+    /* Card play area */
+    .play-area {
+      flex:1; width:100%; position:relative;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:center;
+      overflow:hidden; gap:12px;
+    }
+
+    /* Swipe direction hints */
+    .hint-strip {
+      display:flex; justify-content:space-between; align-items:center;
+      width:100%; padding:0 16px; pointer-events:none;
+      position:absolute; top:50%; transform:translateY(-50%);
+    }
+    .hint {
+      font-size:7px; padding:5px 8px; border:2px solid; opacity:.2;
+      transition:opacity .15s, transform .15s; background:rgba(7,7,26,.8);
+    }
+    .hint-l { color:#FF003C; border-color:#FF003C; }
+    .hint-r { color:#00FF9C; border-color:#00FF9C; }
+    .hint.active { opacity:1; transform:scale(1.12);
+                   box-shadow: 0 0 10px currentColor; }
+
+    /* Swipe overlay stamps */
+    .stamp {
+      position:absolute; font-size:16px; padding:8px 16px;
+      border:3px solid; font-weight:bold; letter-spacing:2px;
+      z-index:20; opacity:0; pointer-events:none; background:#07071A;
+      transition:opacity .1s;
+    }
+    .stamp-l { left:14px; top:50%; transform:translateY(-50%) rotate(-15deg);
+               color:#FF003C; border-color:#FF003C;
+               text-shadow: 0 0 8px #FF003C; }
+    .stamp-r { right:14px; top:50%; transform:translateY(-50%) rotate(15deg);
+               color:#00FF9C; border-color:#00FF9C;
+               text-shadow: 0 0 8px #00FF9C; }
+
+    /* Ghost stack cards */
+    .ghost {
+      position:absolute; background:rgba(0,255,156,.04);
+      border:2px solid rgba(0,255,156,.2);
+    }
+    #gh2 { width:200px; height:40px; transform:translateY(14px) rotate(-3deg); z-index:3; opacity:.5; }
+    #gh1 { width:210px; height:40px; transform:translateY(8px) rotate(2.5deg); z-index:4; }
+
+    /* THE LEAD CARD */
+    #lcard {
+      width:clamp(200px, 55vw, 240px);
+      background: #0D0D24;
+      border:2px solid #00FF9C;
+      box-shadow: 0 0 20px rgba(0,255,156,.3), 0 0 60px rgba(0,255,156,.1), 6px 6px 0 #003322;
+      position:relative; z-index:10;
+      display:flex; flex-direction:column; align-items:center;
+      padding:18px 14px 16px;
+      cursor:grab;
+    }
+    #lcard.drag { cursor:grabbing; }
+    #lcard.shake { animation:shake .4s ease-out; }
+    @keyframes shake {
+      0%,100%{transform:translateX(0)}
+      20%{transform:translateX(-10px)} 40%{transform:translateX(10px)}
+      60%{transform:translateX(-7px)} 80%{transform:translateX(7px)}
+    }
+
+    /* Per-card timer bar (top of card) */
+    .ctbar-wrap { position:absolute; top:0; left:0; right:0; height:4px; }
+    .ctbar { height:100%; background:#00FF9C;
+             box-shadow: 0 0 6px #00FF9C; transition:background .4s; }
+
+    /* Character display area */
+    .char-area {
+      width:clamp(110px, 30vw, 160px);
+      height:clamp(165px, 45vw, 240px);
+      display:flex; align-items:center; justify-content:center;
+      position:relative;
+    }
+    .char-area svg { width:100%; height:100%; image-rendering:pixelated; }
+
+    /* Glow halo behind char */
+    .char-glow {
+      position:absolute; inset:-12px; z-index:0;
+      border-radius:50%;
+      animation:pulse-glow 2s ease-in-out infinite;
+    }
+    @keyframes pulse-glow {
+      0%,100% { opacity:.4; transform:scale(1); }
+      50% { opacity:.7; transform:scale(1.08); }
+    }
+    .char-area svg { position:relative; z-index:1; }
+
+    /* Action buttons */
+    .action-row {
+      width:100%; display:grid; grid-template-columns:1fr 1fr; gap:8px;
+      padding:10px 14px 14px; flex-shrink:0;
+      background:#09091C; border-top:1px solid #00FF9C33;
+    }
+    .abtn {
+      font-family:'Press Start 2P',monospace; font-size:9px;
+      border:2px solid; cursor:pointer; letter-spacing:.5px;
+      padding:12px 8px; display:flex; flex-direction:column;
+      align-items:center; gap:6px; transition:transform .05s;
+      background:transparent;
+    }
+    .abtn:active { transform:translate(2px,2px); }
+    .abtn-dis { color:#FF003C; border-color:#FF003C;
+                box-shadow: 0 0 10px rgba(255,0,60,.3), 3px 3px 0 #3A0010; }
+    .abtn-dis:active { box-shadow: 0 0 4px rgba(255,0,60,.2), 1px 1px 0 #3A0010; }
+    .abtn-qua { color:#00FF9C; border-color:#00FF9C;
+                box-shadow: 0 0 10px rgba(0,255,156,.3), 3px 3px 0 #003322; }
+    .abtn-qua:active { box-shadow: 0 0 4px rgba(0,255,156,.2), 1px 1px 0 #003322; }
+
+    /* ══════════════════ GAME OVER ══════════════════ */
+    #gameover { justify-content:center; gap:22px; text-align:center; padding:36px 28px; }
+
+    .go-big-msg {
+      font-size:clamp(18px,6.5vw,26px); color:#00FF9C;
+      line-height:1.6;
+      text-shadow: 0 0 12px #00FF9C, 0 0 40px #00FF9C55;
+    }
+    .go-big-msg em { color:#FF00FF; font-style:normal;
+                     text-shadow: 0 0 12px #FF00FF, 0 0 40px #FF00FF55; }
+
+    .go-sub {
+      font-size:clamp(7px,2.2vw,9px); color:#00FF9C; line-height:2;
+      text-shadow: 0 0 8px #00FF9C66;
+    }
+
+    .go-cta-btn {
+      font-family:'Press Start 2P',monospace; font-size:10px;
+      background: transparent;
+      color: #00FF9C; padding:16px 28px;
+      text-decoration:none;
+      border: 2px solid #00FF9C;
+      box-shadow: 0 0 16px rgba(0,255,156,.4), 5px 5px 0 #003322;
+      display:inline-block; letter-spacing:1px;
+      transition:transform .05s;
+    }
+    .go-cta-btn:active { transform:translate(2px,2px); box-shadow: 0 0 8px rgba(0,255,156,.2), 3px 3px 0 #003322; }
+
+    .btn-ghost {
+      background:transparent; color:#5566AA;
+      font-size:7px; padding:8px 12px;
+      border:2px solid #5566AA44; letter-spacing:1px;
+      cursor:pointer;
+    }
+    .btn-ghost:active { background:rgba(85,102,170,.1); }
+
+    /* ══════════════════ FX ══════════════════ */
+    .flash { position:fixed; inset:0; pointer-events:none; z-index:990; animation:fadfl .35s ease-out forwards; }
+    .flash-g { background:rgba(0,255,156,.18); }
+    .flash-r { background:rgba(255,0,60,.25); }
+    @keyframes fadfl { 0%{opacity:1} 100%{opacity:0} }
+
+    .spop {
+      position:fixed; font-family:'Press Start 2P',monospace; font-size:15px;
+      pointer-events:none; z-index:995; animation:popfl .9s ease-out forwards;
+    }
+    @keyframes popfl {
+      0%{opacity:1;transform:translateY(0) scale(1)}
+      100%{opacity:0;transform:translateY(-80px) scale(.7)}
+    }
+
+    .streak-pop {
+      position:fixed; left:50%; transform:translateX(-50%);
+      font-family:'Press Start 2P',monospace; font-size:16px;
+      color:#FF00FF; text-shadow: 0 0 12px #FF00FF, 0 0 30px #FF00FF88;
+      pointer-events:none; z-index:994;
+      animation:stkpop .9s cubic-bezier(.2,1.5,.4,1) forwards;
+    }
+    @keyframes stkpop {
+      0%{opacity:0;transform:translateX(-50%) scale(.3)}
+      40%{opacity:1;transform:translateX(-50%) scale(1.15)}
+      100%{opacity:0;transform:translateX(-50%) scale(1)}
+    }
+
+    .wrong-x {
+      position:fixed; left:50%; top:42%;
+      transform:translate(-50%,-50%);
+      font-size:80px; pointer-events:none; z-index:996;
+      animation:wrongx .5s ease-out forwards;
+    }
+    @keyframes wrongx {
+      0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}
+      30%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}
+      100%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    }
+
+    #pcanvas { position:fixed; inset:0; pointer-events:none; z-index:988; }
+
+    /* Speed level badge */
+    .speed-badge {
+      position:absolute; top:8px; right:8px;
+      font-size:6px; color:#FF00FF; background:#09091C;
+      border:1px solid #FF00FF44;
+      padding:4px 8px; z-index:12;
+      text-shadow: 0 0 8px #FF00FF;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════ SPLASH ══════════════ -->
+  <div id="splash" class="screen">
+    <div class="s-mascot" id="splashMascot"></div>
+    <div class="s-title">LEAD<br><em>RUSH</em></div>
+    <button class="btn btn-green s-start" id="startBtn">▶ &nbsp;START</button>
+    <div class="blink">— TAP TO PLAY —</div>
+  </div>
+
+  <!-- ══════════════ GAME ══════════════ -->
+  <div id="game" class="screen hidden">
+    <div class="hud">
+      <div class="hud-streak">STREAK<br><span id="streakDisp">0</span></div>
+      <div class="hud-best">BEST<br><span id="bestDisp">0</span></div>
+    </div>
+    <div class="tbar-wrap"><div class="tbar" id="tbar" style="width:100%"></div></div>
+
+    <div class="play-area" id="playArea">
+      <div class="hint-strip">
+        <div class="hint hint-l" id="hintL">← DISQUALIFY</div>
+        <div class="hint hint-r" id="hintR">QUALIFY →</div>
+      </div>
+
+      <!-- Stamp overlays -->
+      <div class="stamp stamp-l" id="stampL">NOPE!</div>
+      <div class="stamp stamp-r" id="stampR">QUALIFY!</div>
+
+      <!-- Ghost stack -->
+      <div class="ghost" id="gh2"></div>
+      <div class="ghost" id="gh1"></div>
+
+      <!-- Lead card -->
+      <div id="lcard">
+        <div class="ctbar-wrap"><div class="ctbar" id="ctbar"></div></div>
+        <div class="char-area" id="charArea">
+          <div class="char-glow" id="charGlow"></div>
+        </div>
+        <div class="speed-badge" id="speedBadge">LVL 1</div>
+      </div>
+    </div>
+
+    <div class="action-row">
+      <button class="abtn abtn-dis" data-dir="left">
+        ← DISQUALIFY
+      </button>
+      <button class="abtn abtn-qua" data-dir="right">
+        QUALIFY →
+      </button>
+    </div>
+  </div>
+
+  <!-- ══════════════ GAME OVER ══════════════ -->
+  <div id="gameover" class="screen hidden">
+    <div class="go-big-msg">
+      Managing your leads<br>doesn't have to<br>be this <em>tough.</em>
+    </div>
+    <div class="go-sub">Try CoFee LMS — smart leads, zero chaos.</div>
+    <a class="go-cta-btn" href="https://www.cofee.life" target="_blank">Visit CoFee →</a>
+    <button class="btn btn-ghost" id="restartBtn">↺ Play again</button>
+  </div>
+
+</div>
+
+<canvas id="pcanvas"></canvas>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   LEAD RUSH — Pixel CRM  |  Full Game Engine
+   ═══════════════════════════════════════════════════════ */
+
+// ── Config ───────────────────────────────────────────
+const SWIPE_THRESHOLD = 45; // px before registering swipe
+const BASE_CARD_MS    = 3500; // starting timer per card (ms)
+const MIN_CARD_MS     = 900;  // fastest timer
+const SPEED_STEP      = 1;    // every N streaks = speed up
+
+// ── Demo / Auto-play mode ────────────────────────────
+// Set to true to have the game play itself (useful for arcade display)
+const DEMO_MODE = true;
+
+// Good lead color palettes — cyberpunk neons
+const GOOD_PALETTES = [
+  { body:'#00FF9C', dark:'#007A4A', hair:'#003322' }, // neon green
+  { body:'#00EEFF', dark:'#007888', hair:'#001A20' }, // neon cyan
+  { body:'#50FF80', dark:'#207A40', hair:'#102A14' }, // electric lime
+  { body:'#00CCAA', dark:'#006655', hair:'#001A15' }, // cyber teal
+];
+
+// Bad lead color palettes — danger neons
+const BAD_PALETTES = [
+  { body:'#FF003C', dark:'#800020', hair:'#1A0008' }, // neon red
+  { body:'#FF00FF', dark:'#880088', hair:'#1A001A' }, // neon magenta
+  { body:'#FF4400', dark:'#882200', hair:'#1A0800' }, // neon orange
+  { body:'#CC0066', dark:'#660033', hair:'#140010' }, // neon pink
+];
+
+// ── Pixel character generator ─────────────────────────
+/*
+  Grid: 10 wide × 15 tall (logical pixels)
+  Scale: 8 → SVG size = 80 × 120
+  Layout:
+    Row  0   : hair top
+    Rows 1-7 : head (face-colored), hair overlay rows 0-1
+    Row  3   : brows (bad only)
+    Row  4   : eyes
+    Row  5   : cheeks
+    Rows 6-7 : mouth
+    Rows 8-11: body + arms at x=0,9
+    Rows 12-13: legs
+    Row  14  : shoes
+*/
+function charSVG(isGood, variant = 0) {
+  const S  = 8;
+  const pal = isGood ? GOOD_PALETTES[variant % GOOD_PALETTES.length]
+                     : BAD_PALETTES[variant % BAD_PALETTES.length];
+  const B  = pal.body;
+  const BD = pal.dark;
+  const H  = pal.hair;
+  const F  = '#D0E8FF'; // face (pale blue-white, android look)
+  const EY = isGood ? '#00FF9C' : '#FF003C'; // glowing eyes match type
+  const CH = isGood ? 'rgba(0,255,156,.3)' : 'rgba(255,0,60,.3)'; // neon cheeks
+  const MO = '#8899CC'; // mouth
+  const LG = '#0A0A2A'; // legs (dark)
+  const SH = '#050514'; // shoes (near black)
+
+  const W  = 10 * S;
+  const HH = 15 * S;
+
+  const px = (x, y, c) =>
+    `<rect x="${x*S}" y="${y*S}" width="${S}" height="${S}" fill="${c}"/>`;
+  const rw = (x1, x2, y, c) => {
+    let s = '';
+    for (let x = x1; x <= x2; x++) s += px(x, y, c);
+    return s;
+  };
+
+  let d = '';
+
+  // ── Body / limbs (back layer) ──
+  for (let y = 8; y <= 11; y++) d += rw(1, 8, y, B);
+  // Arms
+  for (let y = 9; y <= 10; y++) { d += px(0, y, BD); d += px(9, y, BD); }
+  // Legs
+  for (let y = 12; y <= 13; y++) {
+    d += rw(2, 3, y, LG);
+    d += rw(6, 7, y, LG);
+  }
+  // Shoes
+  d += rw(1, 4, 14, SH);
+  d += rw(5, 8, 14, SH);
+
+  // ── Head (face) ──
+  for (let y = 1; y <= 7; y++) d += rw(1, 8, y, F);
+
+  // ── Hair on top of head ──
+  d += rw(3, 6, 0, H);
+  d += rw(2, 7, 1, H);
+
+  // ── Brows (bad only, row 3) ──
+  if (!isGood) {
+    // Angry slanted: outer pixel lower, inner pixel higher
+    d += px(2, 3, EY); d += px(3, 3, EY); // left brow base
+    d += px(6, 3, EY); d += px(7, 3, EY); // right brow base
+    // Inner lifted pixels to create angle
+    d += px(3, 2, EY); // left inner lifted
+    d += px(6, 2, EY); // right inner lifted
+  }
+
+  // ── Eyes (row 4) ──
+  d += rw(2, 3, 4, EY); // left eye (2px wide)
+  d += rw(6, 7, 4, EY); // right eye
+
+  // ── Good: sparkle eyes ──
+  if (isGood) {
+    d += px(2, 4, '#FFFFFF'); // left eye glint (1px)
+    d += px(6, 4, '#FFFFFF'); // right eye glint
+  }
+
+  // ── Cheeks (row 5, outer edges) ──
+  d += px(1, 5, CH);
+  d += px(8, 5, CH);
+
+  // ── Mouth ──
+  if (isGood) {
+    // U-shaped smile
+    d += px(3, 6, MO); d += px(6, 6, MO); // corners
+    d += rw(4, 5, 7, MO);                  // bottom bar
+  } else {
+    // n-shaped frown
+    d += rw(3, 6, 6, MO);                  // top bar
+    d += px(3, 7, MO); d += px(6, 7, MO); // dropping corners
+  }
+
+  // ── Hands on top of arms ──
+  d += px(0, 11, F);
+  d += px(9, 11, F);
+
+  // ── Accessories ──
+  if (isGood) {
+    // Tiny star sparkles above head (pixel art stars)
+    d += `<rect x="${2*S}" y="${-1*S}" width="2" height="2" fill="#FFD700"/>`;
+    d += `<rect x="${7*S}" y="${-1*S}" width="2" height="2" fill="#FFD700"/>`;
+    d += `<rect x="${4*S}" y="${-2*S}" width="2" height="2" fill="#FFD700"/>`;
+  } else {
+    // Tiny X marks above head
+    d += `<rect x="${2*S}" y="${-1*S}" width="2" height="2" fill="#E85A5A"/>`;
+    d += `<rect x="${7*S}" y="${-1*S}" width="2" height="2" fill="#E85A5A"/>`;
+    d += `<rect x="${4*S}" y="${-2*S}" width="2" height="2" fill="#E85A5A"/>`;
+  }
+
+  return `<svg width="${W}" height="${HH}" viewBox="${0} ${-2*S} ${W} ${HH+2*S}" `+
+    `style="image-rendering:pixelated;overflow:visible">${d}</svg>`;
+}
+
+// ── Pre-build all 8 sprites ──────────────────────────
+const SPRITES = {
+  good: [0,1,2,3].map(v => charSVG(true,  v)),
+  bad:  [0,1,2,3].map(v => charSVG(false, v)),
+};
+
+// ── DOM refs ─────────────────────────────────────────
+const $  = id => document.getElementById(id);
+const splashEl  = $('splash');
+const gameEl    = $('game');
+const goEl      = $('gameover');
+const lcard     = $('lcard');
+const charArea  = $('charArea');
+const charGlow  = $('charGlow');
+const playArea  = $('playArea');
+const pcanvas   = $('pcanvas');
+const pctx      = pcanvas.getContext('2d');
+
+let particles = [];
+let gs        = {};
+let animating = false;
+let ctRAF     = null;
+let ctStart   = 0;
+let ctDuration = BASE_CARD_MS;
+let audioCtx  = null;
+
+// ── Canvas resize ────────────────────────────────────
+(function resize() {
+  pcanvas.width  = window.innerWidth;
+  pcanvas.height = window.innerHeight;
+})();
+window.addEventListener('resize', () => {
+  pcanvas.width  = window.innerWidth;
+  pcanvas.height = window.innerHeight;
+});
+
+// ── Splash sprites ───────────────────────────────────
+(function initSplash() {
+  const el = $('splashMascot');
+  el.innerHTML = SPRITES.good[0];
+  el.querySelector('svg').style.cssText = 'width:100%;height:100%;image-rendering:pixelated';
+})();
+
+// ── Screen management ────────────────────────────────
+function showScreen(name) {
+  splashEl.classList.add('hidden');
+  gameEl.classList.add('hidden');
+  goEl.classList.add('hidden');
+  if (name === 'splash') splashEl.classList.remove('hidden');
+  else if (name === 'game') gameEl.classList.remove('hidden');
+  else if (name === 'gameover') goEl.classList.remove('hidden');
+}
+
+// ── Game start ───────────────────────────────────────
+function startGame() {
+  gs = {
+    streak: 0, bestStreak: parseInt(localStorage.getItem('lrBest') || '0'),
+    goodCount: 0, badCount: 0, running: true, lastLead: null,
+  };
+  animating   = false;
+  ctDuration  = BASE_CARD_MS;
+
+  $('streakDisp').textContent = '0';
+  $('bestDisp').textContent   = gs.bestStreak;
+  $('speedBadge').textContent = 'LVL 1';
+
+  showScreen('game');
+  loadNext();
+}
+
+// ── Calculate card timer duration ───────────────────
+function getCardDuration() {
+  // Speed up every SPEED_STEP streaks — each level shaves 350ms
+  const level = Math.floor(gs.streak / SPEED_STEP);
+  const dur   = BASE_CARD_MS - level * 220;
+  return Math.max(dur, MIN_CARD_MS);
+}
+
+function getLevel() {
+  return Math.floor(gs.streak / SPEED_STEP) + 1;
+}
+
+// ── Load next lead card ──────────────────────────────
+function loadNext() {
+  if (!gs.running) return;
+  animating = false;
+
+  // 50/50 good/bad but avoid 3 of the same type in a row
+  let isGood;
+  if (!gs.lastLead) {
+    isGood = Math.random() < 0.5;
+  } else {
+    // Weight: if last 2 were same, force opposite
+    isGood = Math.random() < 0.5;
+  }
+
+  const variant = Math.floor(Math.random() * 4);
+  gs.currentLead = { isGood, variant };
+  gs.lastLead = isGood;
+
+  // Render char
+  charArea.innerHTML = `<div class="char-glow" id="charGlow"></div>`;
+  const svgWrap = document.createElement('div');
+  svgWrap.style.cssText = 'width:100%;height:100%;image-rendering:pixelated;position:relative;z-index:1;';
+  svgWrap.innerHTML = SPRITES[isGood ? 'good' : 'bad'][variant];
+  svgWrap.querySelector('svg').style.cssText = 'width:100%;height:100%;image-rendering:pixelated';
+  charArea.appendChild(svgWrap);
+
+  // Glow color
+  const glow = charArea.querySelector('.char-glow');
+  glow.style.background = isGood
+    ? 'radial-gradient(circle, rgba(0,255,156,.3) 0%, transparent 70%)'
+    : 'radial-gradient(circle, rgba(255,0,60,.3) 0%, transparent 70%)';
+
+  // Card border color
+  lcard.style.cssText = '';
+  lcard.style.background  = '#0D0D24';
+  lcard.style.borderColor = isGood ? '#00FF9C' : '#FF003C';
+  lcard.style.boxShadow   = isGood
+    ? '0 0 20px rgba(0,255,156,.4), 6px 6px 0 #003322'
+    : '0 0 20px rgba(255,0,60,.4), 6px 6px 0 #3A0010';
+
+  $('speedBadge').textContent = `LVL ${getLevel()}`;
+
+  // Entrance animation
+  lcard.style.transition   = 'none';
+  lcard.style.transform    = 'scale(0.85) translateY(28px)';
+  lcard.style.opacity      = '0';
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    lcard.style.transition = 'transform .24s ease-out, opacity .2s ease-out';
+    lcard.style.transform  = '';
+    lcard.style.opacity    = '1';
+  }));
+
+  // Start per-card timer
+  ctDuration = getCardDuration();
+  startCT();
+
+  // Demo AI: auto-swipe the correct direction after a "thinking" pause
+  if (DEMO_MODE) {
+    const thinkMs = 700 + Math.random() * 800;
+    setTimeout(() => {
+      if (gs.running && !animating && gs.currentLead) {
+        processAction(gs.currentLead.isGood ? 'right' : 'left');
+      }
+    }, thinkMs);
+  }
+}
+
+// ── Per-card countdown timer ─────────────────────────
+function startCT() {
+  ctStart = performance.now();
+  animCT();
+}
+function animCT() {
+  const bar = $('ctbar');
+  if (!bar || !gs.running) return;
+  const elapsed = performance.now() - ctStart;
+  const ratio   = 1 - Math.min(elapsed / ctDuration, 1);
+  bar.style.width      = (ratio * 100) + '%';
+  bar.style.background = ratio > 0.35 ? '#00FF9C' : '#FF003C';
+  bar.style.boxShadow  = ratio > 0.35 ? '0 0 6px #00FF9C' : '0 0 6px #FF003C';
+  if (ratio > 0) {
+    ctRAF = requestAnimationFrame(animCT);
+  } else {
+    if (gs.running && !animating) {
+      // Timed out = game over
+      triggerGameOver('⏱️ TOO SLOW!');
+    }
+  }
+}
+function stopCT() { cancelAnimationFrame(ctRAF); ctRAF = null; }
+
+// ── Process a swipe action ───────────────────────────
+function processAction(dir) {
+  if (!gs.running || !gs.currentLead || animating) return;
+  animating = true;
+  stopCT();
+
+  const { isGood } = gs.currentLead;
+  // correct: good + right, or bad + left
+  const correct = (isGood && dir === 'right') || (!isGood && dir === 'left');
+
+  if (correct) {
+    gs.streak++;
+    if (isGood) gs.goodCount++; else gs.badCount++;
+    if (gs.streak > gs.bestStreak) gs.bestStreak = gs.streak;
+    $('streakDisp').textContent = gs.streak;
+    $('bestDisp').textContent   = gs.bestStreak;
+
+    flashScreen('g');
+    spawnParticles(isGood ? '#00FF9C' : '#FF00FF');
+    playSound('ok');
+
+    // Milestone pops
+    if (gs.streak % SPEED_STEP === 0) {
+      showStreakPop(`LVL UP! ×${getLevel()}`);
+    } else if (gs.streak % 10 === 0) {
+      showStreakPop(`${gs.streak} STREAK! 🔥`);
+    }
+
+    flyCard(dir, true);
+  } else {
+    // Wrong!
+    const reason = isGood
+      ? '🔥 That was a GOOD lead!'
+      : '💀 That was a BAD lead!';
+    triggerGameOver(reason);
+  }
+}
+
+// ── Trigger game over ────────────────────────────────
+function triggerGameOver(reason) {
+  gs.running = false;
+  animating  = true;
+  stopCT();
+
+  // Save best
+  if (gs.streak > parseInt(localStorage.getItem('lrBest') || '0')) {
+    localStorage.setItem('lrBest', gs.streak);
+  }
+
+  // Wrong X icon
+  const xEl = document.createElement('div');
+  xEl.className = 'wrong-x';
+  xEl.textContent = '❌';
+  document.body.appendChild(xEl);
+
+  flashScreen('r');
+  playSound('bad');
+  lcard.classList.add('shake');
+
+  setTimeout(() => {
+    lcard.classList.remove('shake');
+    xEl.remove();
+
+    // Populate game over
+    showScreen('gameover');
+    if (DEMO_MODE) setTimeout(startGame, 3000);
+  }, 700);
+}
+
+// ── Card fly animation ───────────────────────────────
+function flyCard(dir, correct) {
+  const map = {
+    right: 'translateX(500px) rotate(25deg)',
+    left:  'translateX(-500px) rotate(-25deg)',
+  };
+  lcard.style.transition = 'transform .32s ease-in, opacity .28s ease-in';
+  lcard.style.transform  = map[dir];
+  lcard.style.opacity    = '0';
+  gs.currentLead = null;
+  setTimeout(loadNext, 320);
+}
+
+// ── Swipe / drag detection ───────────────────────────
+let txS = 0, tyS = 0, txC = 0, tyC = 0, dragging = false;
+
+function dragStart(x, y) {
+  txS = x; tyS = y; txC = x; tyC = y;
+  dragging = true;
+  lcard.classList.add('drag');
+}
+function dragMove(x, y) {
+  if (!dragging) return;
+  txC = x; tyC = y;
+  const dx = x - txS;
+  const dy = y - tyS;
+  lcard.style.transition = 'none';
+  lcard.style.transform  = `translate(${dx}px, ${dy*0.3}px) rotate(${dx * 0.045}deg)`;
+
+  const thr  = 22;
+  const goR  = Math.abs(dx) > thr && dx > 0;
+  const goL  = Math.abs(dx) > thr && dx < 0;
+
+  $('hintL').classList.toggle('active', goL);
+  $('hintR').classList.toggle('active', goR);
+  $('stampL').style.opacity = goL ? '1' : '0';
+  $('stampR').style.opacity = goR ? '1' : '0';
+
+  // Card tint while dragging
+  if (goR) {
+    lcard.style.background = 'rgba(0,255,156,0.08)';
+  } else if (goL) {
+    lcard.style.background = 'rgba(255,0,60,0.08)';
+  } else {
+    lcard.style.background = '#0D0D24';
+  }
+}
+function dragEnd() {
+  if (!dragging) return;
+  dragging = false;
+  lcard.classList.remove('drag');
+
+  $('hintL').classList.remove('active');
+  $('hintR').classList.remove('active');
+  $('stampL').style.opacity = '0';
+  $('stampR').style.opacity = '0';
+
+  const dx = txC - txS;
+
+  if (Math.abs(dx) > SWIPE_THRESHOLD) {
+    processAction(dx > 0 ? 'right' : 'left');
+  } else {
+    // Snap back
+    lcard.style.transition = 'transform .25s ease-out, background .2s';
+    lcard.style.transform  = '';
+    lcard.style.background = '#0D0D24';
+  }
+}
+
+// Touch events
+playArea.addEventListener('touchstart', e => {
+  e.preventDefault();
+  dragStart(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+playArea.addEventListener('touchmove', e => {
+  e.preventDefault();
+  dragMove(e.touches[0].clientX, e.touches[0].clientY);
+}, { passive: false });
+playArea.addEventListener('touchend', e => {
+  e.preventDefault();
+  dragEnd();
+}, { passive: false });
+
+// Mouse events
+playArea.addEventListener('mousedown', e => dragStart(e.clientX, e.clientY));
+document.addEventListener('mousemove', e => { if (dragging) dragMove(e.clientX, e.clientY); });
+document.addEventListener('mouseup', () => { if (dragging) dragEnd(); });
+
+// Button taps
+document.querySelectorAll('.abtn').forEach(btn => {
+  btn.addEventListener('click', () => processAction(btn.dataset.dir));
+  btn.addEventListener('touchend', e => { e.preventDefault(); processAction(btn.dataset.dir); });
+});
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (!gs.running) return;
+  if (e.key === 'ArrowLeft')  { e.preventDefault(); processAction('left');  }
+  if (e.key === 'ArrowRight') { e.preventDefault(); processAction('right'); }
+});
+
+// Start/restart buttons
+$('startBtn').addEventListener('click',   startGame);
+$('restartBtn').addEventListener('click', startGame);
+splashEl.addEventListener('click', e => {
+  if (e.target === splashEl) startGame();
+});
+
+// Demo mode: auto-start and auto-restart after game over
+if (DEMO_MODE) {
+  setTimeout(startGame, 1200);
+}
+
+// ── Visual effects ───────────────────────────────────
+function flashScreen(t) {
+  const d = document.createElement('div');
+  d.className = 'flash ' + (t === 'g' ? 'flash-g' : 'flash-r');
+  document.body.appendChild(d);
+  setTimeout(() => d.remove(), 380);
+}
+
+function showStreakPop(text) {
+  const el = document.createElement('div');
+  el.className = 'streak-pop';
+  el.textContent = text;
+  el.style.top = '38%';
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 950);
+}
+
+// ── Particle system ──────────────────────────────────
+function spawnParticles(color) {
+  const cx = window.innerWidth  * 0.5;
+  const cy = window.innerHeight * 0.42;
+  for (let i = 0; i < 28; i++) {
+    const angle = (Math.PI * 2 * i) / 28;
+    const spd   = 4 + Math.random() * 7;
+    particles.push({
+      x: cx, y: cy,
+      vx: Math.cos(angle) * spd,
+      vy: Math.sin(angle) * spd - 2,
+      size: 5 + Math.random() * 8,
+      color,
+      life: 1, decay: 0.017 + Math.random() * 0.02,
+    });
+  }
+}
+(function animParticles() {
+  pctx.clearRect(0, 0, pcanvas.width, pcanvas.height);
+  particles = particles.filter(p => p.life > 0);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy; p.vy += 0.25;
+    p.life -= p.decay;
+    pctx.globalAlpha = p.life;
+    pctx.fillStyle   = p.color;
+    pctx.fillRect(Math.round(p.x), Math.round(p.y), Math.ceil(p.size), Math.ceil(p.size));
+  });
+  pctx.globalAlpha = 1;
+  requestAnimationFrame(animParticles);
+})();
+
+// ── Web Audio (chip-tune) ─────────────────────────────
+function getAC() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function playSound(type) {
+  if (window !== window.top) return; // muted when embedded in iframe
+  try {
+    const ac   = getAC();
+    const osc  = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    const t = ac.currentTime;
+    if (type === 'ok') {
+      osc.type = 'square';
+      osc.frequency.setValueAtTime(440, t);
+      osc.frequency.setValueAtTime(660, t + .06);
+      osc.frequency.setValueAtTime(880, t + .12);
+      gain.gain.setValueAtTime(.1, t);
+      gain.gain.exponentialRampToValueAtTime(.001, t + .22);
+      osc.start(t); osc.stop(t + .22);
+    } else {
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(220, t);
+      osc.frequency.setValueAtTime(140, t + .1);
+      gain.gain.setValueAtTime(.1, t);
+      gain.gain.exponentialRampToValueAtTime(.001, t + .2);
+      osc.start(t); osc.stop(t + .2);
+    }
+  } catch(e) {}
+}
+
+</script>
+</body>
+</html>

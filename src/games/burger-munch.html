@@ -1,0 +1,879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>BigMac Munch — McDonald's</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bangers&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#1A0000;font-family:'Courier New',Courier,monospace;color:#fff;}
+body{display:flex;flex-direction:column;align-items:center;}
+
+/* ── HUD ───────────────────────────── */
+#hud{
+  width:100%;
+  display:flex;justify-content:space-between;align-items:center;
+  padding:6px 14px;
+  background:#DA291C;
+  border-bottom:3px solid #FFC72C;
+  font-size:14px;font-weight:700;letter-spacing:1px;
+  flex-shrink:0;z-index:5;
+}
+#hud-left{color:#FFC72C;text-shadow:0 1px 3px #000;}
+#hud-right{color:#fff;font-size:18px;letter-spacing:2px;}
+#hud-brand{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:20px;letter-spacing:2px;
+  color:#FFC72C;text-shadow:1px 1px 0 #000;
+}
+
+canvas{display:block;image-rendering:pixelated;image-rendering:crisp-edges;}
+
+/* ── Overlay screens ───────────────── */
+.screen{
+  position:fixed;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(20,0,0,.93);z-index:20;
+  padding:0 20px;
+}
+.screen.hidden{display:none;}
+
+/* Golden arches decorative text mark */
+.arches{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(52px,14vw,88px);
+  color:#FFC72C;
+  line-height:1;
+  text-shadow:0 0 20px rgba(255,200,0,.6), 3px 3px 0 #B8880A;
+  margin-bottom:2px;
+  letter-spacing:-2px;
+}
+.scr-title{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(28px,7vw,48px);font-weight:400;letter-spacing:4px;
+  color:#DA291C;
+  text-shadow:-2px -2px 0 #FFC72C, 2px 2px 0 #000;
+  margin-bottom:4px;line-height:1;
+}
+.scr-sub{
+  font-size:clamp(11px,3vw,14px);color:#D4A060;
+  margin-bottom:22px;text-align:center;line-height:1.7;
+}
+.scr-tagline{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(16px,4vw,22px);
+  color:#FFC72C;letter-spacing:2px;margin-bottom:24px;
+}
+.scr-btn{
+  background:#DA291C;color:#fff;border:3px solid #FFC72C;
+  padding:12px 32px;font-size:16px;font-weight:900;
+  border-radius:4px;cursor:pointer;
+  font-family:'Courier New',monospace;letter-spacing:2px;
+  display:inline-block;text-decoration:none;text-align:center;
+  margin:6px;
+}
+.scr-btn:active{transform:scale(.95);}
+.scr-btn.gold{background:#FFC72C;color:#1A0000;border-color:#DA291C;}
+.scr-btn.order{
+  background:#FFC72C;color:#1A0000;border:3px solid #DA291C;
+  font-size:clamp(14px,4vw,18px);padding:14px 28px;
+  box-shadow:0 4px 16px rgba(255,200,0,.4);
+}
+.scr-btn.order:hover{background:#FFD84C;}
+
+.scr-score{
+  font-family:'Bangers',Impact,sans-serif;
+  font-size:clamp(36px,10vw,60px);color:#FFC72C;
+  text-shadow:2px 2px 0 #B8880A;
+  margin-bottom:2px;line-height:1;
+}
+.scr-label{font-size:11px;color:#888;margin-bottom:16px;letter-spacing:2px;text-transform:uppercase;}
+.scr-divider{width:60px;height:3px;background:#FFC72C;margin:12px auto 18px;}
+.end-msg{
+  font-size:clamp(13px,3.5vw,16px);color:#D4A060;
+  margin-bottom:6px;text-align:center;line-height:1.5;
+}
+</style>
+</head>
+<body>
+
+<!-- HUD -->
+<div id="hud">
+  <div id="hud-left">SCORE: <span id="score">0</span></div>
+  <div id="hud-brand">McPAC</div>
+  <div id="hud-right"><span id="lives">&#9829;&#9829;&#9829;</span></div>
+</div>
+
+<canvas id="c"></canvas>
+
+<!-- Start screen -->
+<div class="screen" id="s-start">
+  <div class="arches">M</div>
+  <div class="scr-title">BigMac MUNCH</div>
+  <div class="scr-tagline">ba da ba ba baaa</div>
+  <div class="scr-sub">
+    Guide the burger through the maze.<br>
+    Eat all the fries — grab a <b style="color:#FFC72C">POWER FRIES</b> box to<br>
+    munch the sauce monsters!
+  </div>
+  <button class="scr-btn gold" id="btn-start">I'M LOVIN' IT &rarr;</button>
+</div>
+
+<!-- End screen -->
+<div class="screen hidden" id="s-end">
+  <div class="arches">M</div>
+  <div class="scr-title" id="end-title">GAME OVER</div>
+  <div class="scr-score" id="end-score">0</div>
+  <div class="scr-label">POINTS SCORED</div>
+  <div class="scr-divider"></div>
+  <div class="end-msg" id="end-msg">Still hungry? Grab the real thing.</div>
+  <a class="scr-btn order" href="https://www.mcdonalds.com" target="_blank" rel="noopener">
+    ORDER A BIG MAC
+  </a>
+  <button class="scr-btn" id="btn-restart">PLAY AGAIN</button>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   BURGER MUNCH  —  Pixelated Pac-Man style game
+   ═══════════════════════════════════════════════════════ */
+
+// ── Demo / Auto-play mode ─────────────────────────────────
+const DEMO_MODE = true;
+
+// ── Maze layout ───────────────────────────────────────────
+// 0=patty  1=wall  2=power patty  3=empty  4=pen  5=door
+const COLS = 19, ROWS = 22;
+const TUNNEL_ROW = 10;
+
+const BASE_MAP = [
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], // 0
+ [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1], // 1
+ [1,2,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,2,1], // 2
+ [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1], // 3
+ [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // 4
+ [1,0,1,1,0,1,0,1,1,1,1,1,0,1,0,1,1,0,1], // 5
+ [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1], // 6
+ [1,1,1,1,0,1,1,1,3,5,3,1,1,1,0,1,1,1,1], // 7  ghost door at (7,9)
+ [3,3,3,1,0,1,3,3,3,3,3,3,3,1,0,1,3,3,3], // 8  tunnel
+ [1,1,1,1,0,1,3,1,1,4,1,1,3,1,0,1,1,1,1], // 9
+ [3,3,3,3,0,3,3,1,4,4,4,1,3,3,0,3,3,3,3], // 10 tunnel
+ [1,1,1,1,0,1,3,1,1,1,1,1,3,1,0,1,1,1,1], // 11
+ [3,3,3,1,0,1,3,3,3,3,3,3,3,1,0,1,3,3,3], // 12 tunnel
+ [1,1,1,1,0,1,3,1,1,1,1,1,3,1,0,1,1,1,1], // 13
+ [1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,1], // 14
+ [1,0,1,1,0,1,1,1,0,1,0,1,1,1,0,1,1,0,1], // 15
+ [1,2,0,1,0,0,0,0,0,3,0,0,0,0,0,1,0,2,1], // 16
+ [1,1,0,1,0,1,0,1,1,1,1,1,0,1,0,1,0,1,1], // 17
+ [1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1], // 18
+ [1,0,1,1,1,1,1,1,0,1,0,1,1,1,1,1,1,0,1], // 19
+ [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1], // 20
+ [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1], // 21
+];
+
+let map; // mutable copy
+function resetMap() { map = BASE_MAP.map(r => [...r]); }
+
+// ── Canvas ────────────────────────────────────────────────
+const canvas = document.getElementById('c');
+const ctx    = canvas.getContext('2d');
+
+let TILE = 28;
+function resize() {
+  const hudH = document.getElementById('hud').offsetHeight;
+  const mxW  = window.innerWidth;
+  const mxH  = window.innerHeight - hudH;
+  TILE = Math.max(12, Math.floor(Math.min(mxW / COLS, mxH / ROWS)));
+  canvas.width  = TILE * COLS;
+  canvas.height = TILE * ROWS;
+}
+
+// ── Game state ────────────────────────────────────────────
+let score = 0, lives = 3;
+let gameState = 'idle'; // idle | playing | dying | win | over
+let totalDots = 0, eatenDots = 0;
+let powerTimer = 0;
+let frame = 0;
+let autoRestartTimer = 0;
+
+const POWER_FRAMES  = 400;
+const BURGER_SPEED  = 0.115;
+const MONSTER_SPEED = 0.090;
+
+// ── Burger ────────────────────────────────────────────────
+let bg = {};
+function resetBurger() {
+  bg = { r:16, c:9, pr:16, pc:9, dr:0, dc:-1, ndr:0, ndc:-1,
+         mouth:0, mouthDir:1 };
+}
+
+// ── Monsters ──────────────────────────────────────────────
+// Monster identities: Ketchup, Mustard, Pickle, Special Sauce
+const MONSTER_DEFS = [
+  { color:'#CC1010', label:'KETCHUP'  }, // red
+  { color:'#E8C010', label:'MUSTARD'  }, // yellow
+  { color:'#3A8C20', label:'PICKLE'   }, // green
+  { color:'#D4956C', label:'SAUCE'    }, // special sauce tan
+];
+let monsters = [];
+function resetMonsters() {
+  monsters = [
+    { r:9,  c:9,  pr:9,  pc:9,  dr:0, dc:0, ...MONSTER_DEFS[0], mode:'pen', delay:0   },
+    { r:10, c:8,  pr:10, pc:8,  dr:0, dc:0, ...MONSTER_DEFS[1], mode:'pen', delay:50  },
+    { r:10, c:10, pr:10, pc:10, dr:0, dc:0, ...MONSTER_DEFS[2], mode:'pen', delay:110 },
+    { r:10, c:9,  pr:10, pc:9,  dr:0, dc:0, ...MONSTER_DEFS[3], mode:'pen', delay:170 },
+  ];
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function tval(r, c) {
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return -1;
+  return map[r][c];
+}
+function bval(r, c) { // base map value (never changes)
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return -1;
+  return BASE_MAP[r][c];
+}
+function passable(r, c, monster = false) {
+  const v = tval(r, c);
+  if (v === -1 || v === 1) return false;
+  if (!monster && (v === 4 || v === 5)) return false;
+  return true;
+}
+function wrapC(c) {
+  if (c < 0) return COLS - 1;
+  if (c >= COLS) return 0;
+  return c;
+}
+
+// ── Init ──────────────────────────────────────────────────
+function initGame() {
+  resetMap();
+  score = 0; lives = 3;
+  totalDots = 0; eatenDots = 0;
+  for (let r = 0; r < ROWS; r++)
+    for (let c = 0; c < COLS; c++)
+      if (BASE_MAP[r][c] === 0 || BASE_MAP[r][c] === 2) totalDots++;
+  powerTimer = 0; frame = 0; autoRestartTimer = 0;
+  resetBurger(); resetMonsters();
+  gameState = 'playing';
+  updateHUD();
+}
+
+function updateHUD() {
+  document.getElementById('score').textContent = score;
+  document.getElementById('lives').innerHTML = '&#9829;'.repeat(Math.max(0, lives));
+}
+
+// ── Movement helpers ──────────────────────────────────────
+const DIRS = [[-1,0],[1,0],[0,-1],[0,1]];
+
+function tryStep(r, c, dr, dc) {
+  // Returns [newR, newC, wrapped] or null if blocked
+  let nr = r + dr, nc = c + dc;
+  let wrapped = false;
+  if (r === TUNNEL_ROW && (nc < 0 || nc >= COLS)) {
+    nc = wrapC(nc); wrapped = true;
+  }
+  if (!passable(nr, nc)) return null;
+  return [nr, nc, wrapped];
+}
+
+// ── Burger update ─────────────────────────────────────────
+function updateBurger() {
+  // Mouth animation
+  bg.mouth += bg.mouthDir * 0.11;
+  if (bg.mouth >= 1) { bg.mouth = 1; bg.mouthDir = -1; }
+  if (bg.mouth <= 0) { bg.mouth = 0; bg.mouthDir = 1; }
+
+  const spd = BURGER_SPEED;
+  const dpr = bg.r - bg.pr, dpc = bg.c - bg.pc;
+  const dist = Math.abs(dpr) + Math.abs(dpc);
+
+  if (dist < spd * 1.5) {
+    // Snap to tile
+    bg.pr = bg.r; bg.pc = bg.c;
+
+    // Eat anything at current cell
+    const cv = map[bg.r][bg.c];
+    if (cv === 0) {
+      map[bg.r][bg.c] = 3; score += 10; eatenDots++;
+      updateHUD();
+      if (eatenDots >= totalDots) { winGame(); return; }
+    } else if (cv === 2) {
+      map[bg.r][bg.c] = 3; score += 50; eatenDots++;
+      updateHUD();
+      powerTimer = POWER_FRAMES;
+      monsters.forEach(m => { if (m.mode === 'chase') m.mode = 'frightened'; });
+      if (eatenDots >= totalDots) { winGame(); return; }
+    }
+
+    // Try queued direction, then current
+    let moved = false;
+    for (const [dr, dc] of [[bg.ndr, bg.ndc], [bg.dr, bg.dc]]) {
+      const res = tryStep(bg.r, bg.c, dr, dc);
+      if (res) {
+        const [nr, nc, wrapped] = res;
+        bg.r = nr; bg.c = nc;
+        bg.dr = dr; bg.dc = dc;
+        if (wrapped) { bg.pr = nr; bg.pc = nc; } // snap on tunnel
+        moved = true;
+        break;
+      }
+    }
+    if (!moved) { bg.mouth = 0; } // stop chomping if stuck
+  } else {
+    // Glide toward target
+    const len = Math.sqrt(dpr*dpr + dpc*dpc) || 1;
+    bg.pr += (dpr / len) * spd;
+    bg.pc += (dpc / len) * spd;
+  }
+}
+
+// ── Monster update ────────────────────────────────────────
+function updateMonsters() {
+  if (powerTimer > 0) {
+    powerTimer--;
+    if (powerTimer === 0)
+      monsters.forEach(m => { if (m.mode === 'frightened') m.mode = 'chase'; });
+  }
+
+  for (const m of monsters) {
+    if (m.mode === 'pen') {
+      m.delay--;
+      // Bounce visually
+      m.pr = 10 + Math.sin(frame * 0.12) * 0.28;
+      m.pc = m.c;
+      if (m.delay <= 0) { m.mode = 'leaving'; }
+      continue;
+    }
+
+    if (m.mode === 'leaving') {
+      // Glide toward pen exit at (7, 9)
+      const dpr = 7 - m.pr, dpc = 9 - m.pc;
+      const d = Math.sqrt(dpr*dpr + dpc*dpc);
+      if (d < MONSTER_SPEED * 2) {
+        m.pr = 7; m.pc = 9; m.r = 7; m.c = 9;
+        m.mode = powerTimer > 0 ? 'frightened' : 'chase';
+        m.dr = -1; m.dc = 0;
+      } else {
+        m.pr += (dpr / d) * MONSTER_SPEED * 0.8;
+        m.pc += (dpc / d) * MONSTER_SPEED * 0.8;
+      }
+      continue;
+    }
+
+    const spd = m.mode === 'frightened' ? MONSTER_SPEED * 0.55 : MONSTER_SPEED;
+    const dpr = m.r - m.pr, dpc = m.c - m.pc;
+    const dist = Math.abs(dpr) + Math.abs(dpc);
+
+    if (dist < spd * 1.5) {
+      m.pr = m.r; m.pc = m.c;
+      chooseMonsterDir(m);
+    } else {
+      const len = Math.sqrt(dpr*dpr + dpc*dpc) || 1;
+      m.pr += (dpr / len) * spd;
+      m.pc += (dpc / len) * spd;
+    }
+  }
+}
+
+function chooseMonsterDir(m) {
+  const reverse = [-m.dr, -m.dc];
+  const options = DIRS.filter(([dr, dc]) => {
+    if (dr === reverse[0] && dc === reverse[1]) return false;
+    const nr = m.r + dr;
+    let nc = m.c + dc;
+    if (m.r === TUNNEL_ROW) nc = wrapC(nc);
+    return passable(nr, nc, true);
+  });
+
+  if (!options.length) return; // stuck (shouldn't happen)
+
+  let chosen;
+  if (m.mode === 'frightened') {
+    chosen = options[Math.floor(Math.random() * options.length)];
+  } else {
+    // Chase: pick direction minimising Manhattan distance to burger
+    let best = Infinity;
+    for (const [dr, dc] of options) {
+      const nr = m.r + dr;
+      let nc = m.c + dc;
+      if (m.r === TUNNEL_ROW) nc = wrapC(nc);
+      const d = Math.abs(nr - bg.r) + Math.abs(nc - bg.c);
+      if (d < best) { best = d; chosen = [dr, dc]; }
+    }
+  }
+
+  if (!chosen) return;
+  m.dr = chosen[0]; m.dc = chosen[1];
+  let nr = m.r + m.dr, nc = m.c + m.dc;
+  if (m.r === TUNNEL_ROW) nc = wrapC(nc);
+  m.r = nr; m.c = nc;
+}
+
+// ── Collision ─────────────────────────────────────────────
+function checkCollisions() {
+  for (const m of monsters) {
+    if (m.mode === 'pen' || m.mode === 'leaving') continue;
+    const dr = Math.abs(m.pr - bg.pr), dc = Math.abs(m.pc - bg.pc);
+    if (dr < 0.65 && dc < 0.65) {
+      if (m.mode === 'frightened') {
+        m.mode = 'pen'; m.delay = 220;
+        m.r = 10; m.c = 9; m.pr = 10; m.pc = 9;
+        score += 200; updateHUD();
+      } else {
+        loseLife(); return;
+      }
+    }
+  }
+}
+
+function loseLife() {
+  lives--;
+  updateHUD();
+  if (lives <= 0) { gameState = 'over'; showEnd(false); }
+  else { resetBurger(); resetMonsters(); }
+}
+
+function winGame()  { gameState = 'win';  showEnd(true); }
+
+function showEnd(won) {
+  document.getElementById('end-title').textContent = won ? 'YOU WIN!' : 'GAME OVER';
+  document.getElementById('end-score').textContent = score;
+  document.getElementById('end-msg').textContent   = won
+    ? 'You earned it. Treat yourself.'
+    : 'Still hungry? Grab the real thing.';
+  document.getElementById('s-end').classList.remove('hidden');
+  if (DEMO_MODE) autoRestartTimer = 240; // ~4s
+}
+
+// ── Demo AI ───────────────────────────────────────────────
+function demoTick() {
+  if (frame % 10 !== 0) return; // recalculate every 10 frames
+  const step = bfsStep(bg.r, bg.c);
+  if (step) { bg.ndr = step[0]; bg.ndc = step[1]; }
+}
+
+function bfsStep(sr, sc) {
+  const visited = new Set([`${sr},${sc}`]);
+  const queue = [[sr, sc, null]];
+  while (queue.length) {
+    const [r, c, first] = queue.shift();
+    const v = map[r][c];
+    if ((v === 0 || v === 2) && !(r === sr && c === sc)) return first;
+    for (const [dr, dc] of DIRS) {
+      const nr = r + dr;
+      let nc = c + dc;
+      if (r === TUNNEL_ROW) nc = wrapC(nc);
+      if (!passable(nr, nc)) continue;
+      // Avoid monsters if not frightened
+      let danger = false;
+      if (powerTimer === 0) {
+        for (const m of monsters) {
+          if (m.mode === 'frightened' || m.mode === 'pen' || m.mode === 'leaving') continue;
+          if (Math.abs(m.pr - nr) + Math.abs(m.pc - nc) < 1.8) { danger = true; break; }
+        }
+      }
+      if (danger) continue;
+      const k = `${nr},${nc}`;
+      if (!visited.has(k)) { visited.add(k); queue.push([nr, nc, first || [dr, dc]]); }
+    }
+  }
+  return null;
+}
+
+// ── Rendering ─────────────────────────────────────────────
+const C_BG    = '#1A0000';   // deep dark red — restaurant vibe
+const C_WALL  = '#8B0000';   // dark red walls
+const C_EDGE  = '#FFC72C';   // McDonald's golden arch yellow
+const C_DOT   = '#DA291C';   // McDonald's red — ketchup patties
+const C_POW   = '#FFC72C';   // golden power patty
+
+function drawMaze() {
+  // Checkerboard restaurant floor
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (BASE_MAP[r][c] !== 1) {
+        ctx.fillStyle = (r + c) % 2 === 0 ? '#1A0000' : '#200000';
+        ctx.fillRect(c * TILE, r * TILE, TILE, TILE);
+      }
+    }
+  }
+  // Faint golden M watermark in background
+  ctx.save();
+  ctx.globalAlpha = 0.04;
+  ctx.fillStyle   = '#FFC72C';
+  ctx.font        = `bold ${TILE * 8}px Impact, sans-serif`;
+  ctx.textAlign   = 'center';
+  ctx.textBaseline= 'middle';
+  ctx.fillText('M', canvas.width / 2, canvas.height / 2);
+  ctx.restore();
+
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const v   = map[r][c];
+      const bv  = BASE_MAP[r][c];
+      const x   = c * TILE, y = r * TILE;
+      const T   = TILE;
+
+      if (bv === 1) {
+        // Wall — fill + bright edge toward adjacent paths
+        ctx.fillStyle = C_WALL;
+        ctx.fillRect(x + 1, y + 1, T - 2, T - 2);
+        ctx.fillStyle = C_EDGE;
+        const ew = Math.max(2, Math.round(T * 0.08));
+        for (const [dr, dc] of DIRS) {
+          if (bval(r + dr, c + dc) !== 1) {
+            if (dr === -1) ctx.fillRect(x + ew, y, T - ew*2, ew);
+            if (dr ===  1) ctx.fillRect(x + ew, y + T - ew, T - ew*2, ew);
+            if (dc === -1) ctx.fillRect(x, y + ew, ew, T - ew*2);
+            if (dc ===  1) ctx.fillRect(x + T - ew, y + ew, ew, T - ew*2);
+          }
+        }
+      } else if (v === 0) {
+        // Small french fry — 3 thin golden strips
+        const fw = Math.max(2, Math.round(T * 0.09));  // fry width
+        const fh = Math.max(5, Math.round(T * 0.34));  // fry height
+        const cx2 = x + T / 2, cy2 = y + T / 2;
+        const offsets = [-fw - 1, 0, fw + 1];          // 3 fries side-by-side
+        offsets.forEach(ox => {
+          // Fry body (golden yellow)
+          ctx.fillStyle = '#F0C040';
+          ctx.fillRect(cx2 + ox - fw/2, cy2 - fh/2, fw, fh);
+          // Fry tip shading (slightly darker top)
+          ctx.fillStyle = '#C89820';
+          ctx.fillRect(cx2 + ox - fw/2, cy2 - fh/2, fw, Math.max(1, fw));
+          // Fry side shadow
+          ctx.fillStyle = '#D4A828';
+          ctx.fillRect(cx2 + ox - fw/2 + fw - 1, cy2 - fh/2 + fw, 1, fh - fw);
+        });
+      } else if (v === 2) {
+        // POWER fries — bigger bundle with a red McDonald's box
+        const pulse  = (Math.sin(frame * 0.14) + 1) * 0.5;
+        const boxW   = Math.round(T * 0.58 + pulse * T * 0.04);
+        const boxH   = Math.round(T * 0.44);
+        const bx     = x + T / 2 - boxW / 2;
+        const by     = y + T / 2 - boxH / 2 + T * 0.08;
+
+        // Glow behind box
+        ctx.shadowColor = '#FFC72C';
+        ctx.shadowBlur  = 10;
+
+        // Red fry box
+        ctx.fillStyle = '#DA291C';
+        ctx.fillRect(bx, by, boxW, boxH);
+        // Box golden stripe
+        ctx.fillStyle = '#FFC72C';
+        ctx.fillRect(bx, by, boxW, Math.max(2, Math.round(boxH * 0.22)));
+        // Golden arches M on box (tiny)
+        ctx.fillStyle = '#DA291C';
+        ctx.font = `bold ${Math.max(6, Math.round(boxW * 0.45))}px Impact,sans-serif`;
+        ctx.textAlign   = 'center';
+        ctx.textBaseline= 'middle';
+        ctx.fillText('M', x + T / 2, by + boxH * 0.11);
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+
+        ctx.shadowBlur = 0;
+
+        // Fries sticking up above the box
+        const fryCount = 5;
+        const fryW = Math.max(2, Math.round(boxW / (fryCount * 2 - 0.5)));
+        const fryTopY = y + T / 2 - boxH / 2 - T * 0.18;
+        const spread = boxW / (fryCount + 0.5);
+        for (let i = 0; i < fryCount; i++) {
+          const fx = bx + spread * 0.3 + i * spread;
+          const fh2 = Math.round(T * (0.25 + ((i % 3) * 0.07))); // staggered heights
+          ctx.fillStyle = '#F0C040';
+          ctx.fillRect(fx, fryTopY + (T * 0.25 - fh2), fryW, fh2 + T * 0.2);
+          ctx.fillStyle = '#C89820';
+          ctx.fillRect(fx, fryTopY + (T * 0.25 - fh2), fryW, fryW);
+        }
+      } else if (bv === 5) {
+        // Sauce door — red-gold gradient stripe
+        ctx.fillStyle = '#FFC72C';
+        ctx.fillRect(x + 2, y + T/2 - 2, T - 4, 4);
+        ctx.fillStyle = '#DA291C';
+        ctx.fillRect(x + 2, y + T/2 - 1, T - 4, 2);
+      }
+    }
+  }
+
+  // Power timer bar — golden with red base
+  if (powerTimer > 0) {
+    const frac = powerTimer / POWER_FRAMES;
+    ctx.fillStyle = '#DA291C';
+    ctx.fillRect(0, 0, canvas.width, 4);
+    ctx.fillStyle = `rgba(255,199,44,${0.85 + 0.15 * Math.sin(frame * 0.2)})`;
+    ctx.fillRect(0, 0, canvas.width * frac, 4);
+  }
+}
+
+function drawBurger() {
+  const px = bg.pc * TILE, py = bg.pr * TILE;
+  const T  = TILE;
+  const cx = px + T / 2, cy = py + T / 2;
+
+  // How wide/tall to make the burger
+  const bw  = T * 0.46;   // half-width (front to back)
+  const h1  = T * 0.13;   // layer height unit
+
+  // Mouth: top half pivots UP, bottom half pivots DOWN,
+  // both around the BACK edge (-bw, 0) in local space.
+  const mAngle = bg.mouth * 0.36;
+
+  // Direction → rotation so burger always faces travel direction
+  const dirA = bg.dc === 1 ?  0 :
+               bg.dc ==-1 ?  Math.PI :
+               bg.dr ==-1 ? -Math.PI/2 : Math.PI/2;
+
+  // ── Shadow ──────────────────────────────────────────────
+  ctx.save();
+  ctx.translate(cx + 2, cy + 3);
+  ctx.rotate(dirA);
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  ctx.beginPath();
+  ctx.ellipse(0, 0, bw + 1, h1 * 2.2, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+
+  // ── Main drawing ─────────────────────────────────────────
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(dirA);
+
+  // Helper: pivot-rotate a half around the back edge, then draw with drawFn
+  function drawHalf(angle, drawFn) {
+    ctx.save();
+    ctx.translate(-bw, 0);   // move to back pivot
+    ctx.rotate(angle);
+    ctx.translate(bw, 0);    // move back to center
+    drawFn();
+    ctx.restore();
+  }
+
+  // ══ TOP HALF — top bun + lettuce + cheese (pivots UP) ══
+  drawHalf(-mAngle, () => {
+    // Cheese: yellow slab (drawn first so bun covers its edge)
+    ctx.fillStyle = '#F2C820';
+    ctx.fillRect(-bw * 0.95, -h1 * 0.05, bw * 1.9, h1 * 1.0);
+    ctx.fillStyle = '#C8A010';
+    ctx.fillRect(-bw * 0.95, h1 * 0.85, bw * 1.9, h1 * 0.15);
+
+    // Lettuce: green strip just above cheese
+    ctx.fillStyle = '#28A020';
+    ctx.fillRect(-bw, -h1 * 1.0, bw * 2, h1 * 1.1);
+    // Lettuce ribs
+    ctx.fillStyle = '#1C7818';
+    for (let i = -3; i <= 3; i++) {
+      ctx.fillRect(i * bw * 0.32, -h1 * 0.9, bw * 0.12, h1 * 0.9);
+    }
+
+    // Top bun body (covers lettuce edge, fills gap to dome)
+    ctx.fillStyle = '#D4861A';
+    ctx.fillRect(-bw, -h1 * 2.3, bw * 2, h1 * 1.4);
+
+    // Top bun dome — half ellipse drawn upward
+    ctx.beginPath();
+    ctx.moveTo(-bw, -h1 * 2.3);
+    ctx.ellipse(0, -h1 * 2.3, bw, h1 * 2.6, 0, Math.PI, 0, true);
+    ctx.closePath();
+    ctx.fill();
+
+    // Bun highlight
+    ctx.fillStyle = '#F0B040';
+    ctx.beginPath();
+    ctx.ellipse(-bw * 0.1, -h1 * 3.0, bw * 0.62, h1 * 1.8, -0.12, Math.PI, 0, true);
+    ctx.closePath();
+    ctx.fill();
+
+    // Sesame seeds (oval white seeds — fixed rotations)
+    ctx.fillStyle = '#FFF8DC';
+    const seeds = [
+      [-bw*0.42, -h1*3.4, -0.3],
+      [-bw*0.05, -h1*3.7,  0.1],
+      [ bw*0.32, -h1*3.3,  0.4],
+      [-bw*0.20, -h1*2.8, -0.2],
+      [ bw*0.12, -h1*3.1,  0.3],
+    ];
+    seeds.forEach(([sx, sy, sr]) => {
+      ctx.save();
+      ctx.translate(sx, sy);
+      ctx.rotate(sr);
+      ctx.fillRect(-3, -1, 6, 2);
+      ctx.restore();
+    });
+
+    // Eye (dark, near the back of the bun)
+    ctx.fillStyle = '#1A0808';
+    const eyeSize = Math.max(2, T * 0.09);
+    ctx.fillRect(-bw * 0.6, -h1 * 1.8, eyeSize, eyeSize);
+    // Eye shine
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(-bw * 0.6, -h1 * 1.8, Math.max(1, eyeSize * 0.5), Math.max(1, eyeSize * 0.5));
+  });
+
+  // ══ BOTTOM HALF — patty + bottom bun (pivots DOWN) ══
+  drawHalf(mAngle, () => {
+    // Beef patty
+    ctx.fillStyle = '#5C1800';
+    ctx.fillRect(-bw * 0.9, -h1 * 0.1, bw * 1.8, h1 * 1.5);
+
+    // Grill marks on patty
+    ctx.fillStyle = '#380A00';
+    for (let i = -2; i <= 2; i++) {
+      ctx.fillRect(-bw * 0.84 + i * bw * 0.38, -h1 * 0.05, 2, h1 * 1.4);
+    }
+
+    // Patty edge highlight (seared crust)
+    ctx.fillStyle = '#7C2800';
+    ctx.fillRect(-bw * 0.9, -h1 * 0.1, bw * 1.8, h1 * 0.18);
+    ctx.fillRect(-bw * 0.9, h1 * 1.22, bw * 1.8, h1 * 0.18);
+
+    // Bottom bun body
+    ctx.fillStyle = '#C07018';
+    ctx.fillRect(-bw, h1 * 1.35, bw * 2, h1 * 1.2);
+
+    // Bottom bun dome
+    ctx.beginPath();
+    ctx.moveTo(-bw, h1 * 2.55);
+    ctx.ellipse(0, h1 * 2.55, bw, h1 * 2.0, 0, Math.PI, 0, false);
+    ctx.closePath();
+    ctx.fill();
+
+    // Bottom bun top highlight
+    ctx.fillStyle = '#D88020';
+    ctx.fillRect(-bw * 0.68, h1 * 1.4, bw * 1.36, h1 * 0.28);
+  });
+
+  ctx.restore();
+}
+
+function drawMonster(m) {
+  const px = m.pc * TILE, py = m.pr * TILE;
+  const T  = TILE, r = T * 0.41;
+  const cx = px + T/2, cy = py + T/2;
+
+  const fright    = m.mode === 'frightened';
+  const flashing  = fright && powerTimer < 100 && Math.floor(powerTimer / 18) % 2 === 0;
+  const bodyColor = fright ? (flashing ? '#FFFFFF' : '#2030CC') : m.color;
+
+  // Body — rounded top + wavy bottom
+  ctx.fillStyle = bodyColor;
+  ctx.beginPath();
+  ctx.arc(cx, cy - r * 0.12, r, Math.PI, 0);
+  const by = cy + r * 0.88;
+  const hw = r / 1.5;
+  ctx.lineTo(cx + r, by);
+  ctx.quadraticCurveTo(cx + r - hw * 0.5, by - r * 0.28, cx + r - hw, by);
+  ctx.quadraticCurveTo(cx - hw * 0.5,      by - r * 0.28, cx,          by);
+  ctx.quadraticCurveTo(cx - r + hw * 0.5, by - r * 0.28, cx - r + hw, by);
+  ctx.lineTo(cx - r, by);
+  ctx.lineTo(cx - r, cy - r * 0.12);
+  ctx.fill();
+
+  // Eyes
+  const ew = Math.max(2, T * 0.13);
+  const eh = Math.max(3, T * 0.17);
+  if (!fright || flashing) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(cx - r * 0.44, cy - r * 0.38, ew, eh);
+    ctx.fillRect(cx + r * 0.08, cy - r * 0.38, ew, eh);
+    ctx.fillStyle = '#001AFF';
+    const pd = m.dc * 0.1 * r, pu = m.dr * 0.08 * r;
+    ctx.fillRect(cx - r*0.38 + pd, cy - r*0.26 + pu, ew*0.55, eh*0.6);
+    ctx.fillRect(cx + r*0.14 + pd, cy - r*0.26 + pu, ew*0.55, eh*0.6);
+  } else {
+    // Worried — wavy line
+    ctx.fillStyle = '#AAAAFF';
+    for (let i = 0; i < 5; i++) {
+      const wx = cx - r * 0.38 + i * r * 0.19;
+      const wy = cy - r * 0.12 - (i % 2) * r * 0.12;
+      ctx.fillRect(wx, wy, r * 0.12, r * 0.1);
+    }
+  }
+}
+
+function drawAll() {
+  drawMaze();
+  if (gameState === 'playing' || gameState === 'dying') {
+    drawBurger();
+    monsters.forEach(drawMonster);
+  }
+}
+
+// ── Game loop ─────────────────────────────────────────────
+let rafId = null;
+function loop() {
+  rafId = requestAnimationFrame(loop);
+  frame++;
+
+  // Demo auto-start: fires on frame 60 (~1 s), reliable inside iframes
+  if (DEMO_MODE && gameState === 'idle' && frame === 60) {
+    document.getElementById('s-start').classList.add('hidden');
+    initGame();
+  }
+
+  if (gameState === 'playing') {
+    if (DEMO_MODE) demoTick();
+    updateBurger();
+    updateMonsters();
+    checkCollisions();
+  }
+
+  if (DEMO_MODE && autoRestartTimer > 0) {
+    autoRestartTimer--;
+    if (autoRestartTimer === 0) {
+      document.getElementById('s-end').classList.add('hidden');
+      initGame();
+    }
+  }
+
+  drawAll();
+}
+
+// ── Input ─────────────────────────────────────────────────
+const KEY_MAP = {
+  ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1],
+  w:[-1,0], s:[1,0], a:[0,-1], d:[0,1],
+  W:[-1,0], S:[1,0], A:[0,-1], D:[0,1],
+};
+window.addEventListener('keydown', e => {
+  const d = KEY_MAP[e.key];
+  if (d) { bg.ndr = d[0]; bg.ndc = d[1]; e.preventDefault(); }
+});
+
+let swX = 0, swY = 0;
+window.addEventListener('touchstart', e => { swX=e.touches[0].clientX; swY=e.touches[0].clientY; },{passive:true});
+window.addEventListener('touchend', e => {
+  if (gameState !== 'playing') return;
+  const dx = e.changedTouches[0].clientX - swX;
+  const dy = e.changedTouches[0].clientY - swY;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 25) return;
+  if (Math.abs(dx) > Math.abs(dy)) { bg.ndr=0; bg.ndc=dx>0?1:-1; }
+  else                               { bg.ndr=dy>0?1:-1; bg.ndc=0; }
+});
+
+// ── Buttons ───────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click', () => {
+  document.getElementById('s-start').classList.add('hidden');
+  initGame();
+  if (!rafId) loop();
+});
+document.getElementById('btn-restart').addEventListener('click', () => {
+  document.getElementById('s-end').classList.add('hidden');
+  initGame();
+});
+
+// ── Bootstrap ─────────────────────────────────────────────
+window.addEventListener('resize', () => { resize(); });
+resize();
+loop(); // begin rendering (shows maze on start screen)
+
+// Demo auto-start: trigger inside the RAF loop so it isn't throttled in iframes
+// The loop checks frame count and fires after ~60 frames (~1s)
+</script>
+</body>
+</html>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Lead Dodger 🛣️</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gd:#1A3D28; --gm:#3D9B5F; --gl:#A8D5B8; --gp:#D4F0E4;
+      --cream:#F8FFF4; --gold:#FFB830; --red:#E85A5A; --gray:#8F9B8F;
+    }
+    * { margin:0; padding:0; box-sizing:border-box;
+        -webkit-tap-highlight-color:transparent; user-select:none; touch-action:manipulation; }
+    html, body {
+      width:100%; height:100%; height:100dvh; overflow:hidden;
+      background: linear-gradient(155deg, #F0F9E8 0%, #D4F0E4 55%, #C2EAD8 100%);
+      font-family:'Press Start 2P','Courier New',monospace; color:var(--gd);
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:
+        linear-gradient(rgba(61,155,95,.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61,155,95,.06) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+    #app {
+      width:100%; height:100%; height:100dvh;
+      position:relative; overflow:hidden; max-width:480px; margin:0 auto;
+    }
+    .screen {
+      position:absolute; inset:0; display:flex;
+      flex-direction:column; align-items:center; justify-content:center;
+      gap:18px; text-align:center; padding:28px;
+    }
+    .hidden { display:none !important; }
+
+    /* ── Splash ────────────────────────── */
+    .s-title {
+      font-size:clamp(22px,8vw,34px); color:var(--gd); line-height:1.3;
+      text-shadow:4px 4px 0 var(--gl), 7px 7px 0 rgba(0,0,0,.07);
+    }
+    .s-title em { color:var(--gm); font-style:normal; }
+    .s-rules {
+      background:rgba(61,155,95,.06); border:2px solid rgba(61,155,95,.3);
+      padding:14px 18px; width:100%; max-width:300px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .s-rule { display:flex; align-items:center; gap:10px; font-size:6px; color:var(--gray); }
+    .s-dot  { width:18px; height:18px; flex-shrink:0; }
+    .btn {
+      font-family:'Press Start 2P',monospace; font-size:10px; border:none;
+      cursor:pointer; letter-spacing:1px; transition:transform .05s; padding:14px 32px;
+    }
+    .btn:active { transform:translate(2px,2px); }
+    .btn-amber {
+      background:transparent; color:var(--gd); border:2px solid var(--gm);
+      box-shadow:4px 4px 0 var(--gl), 7px 7px 0 rgba(0,0,0,.07); width:100%; max-width:260px;
+    }
+    .btn-amber:active { box-shadow:2px 2px 0 var(--gl); }
+    .blink { font-size:8px; color:var(--gm); animation:blink .8s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── HUD ───────────────────────────── */
+    #hud {
+      position:absolute; top:0; left:0; right:0; z-index:20;
+      background:rgba(212,240,228,.92); pointer-events:none;
+      padding:10px 18px; display:flex; align-items:center;
+      justify-content:space-between; border-bottom:2px solid rgba(61,155,95,.25);
+    }
+    .h-score { font-size:9px; line-height:1.9; color:var(--gray); }
+    .h-score span { color:var(--gd); font-size:14px; text-shadow:2px 2px 0 var(--gl); }
+    .h-lives { font-size:clamp(22px,7vw,28px); letter-spacing:5px; line-height:1; }
+
+    /* ── Lane indicator ────────────────── */
+    #laneBar {
+      position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+      display:flex; gap:14px; z-index:20; pointer-events:none;
+    }
+    .ld { width:12px; height:12px; border:2px solid rgba(61,155,95,.35); }
+    .ld.on { background:var(--gm); border-color:var(--gm);
+              box-shadow:2px 2px 0 var(--gl); }
+
+    /* ── Tap zones ─────────────────────── */
+    #tapL, #tapR {
+      position:absolute; top:48px; bottom:0; z-index:10;
+      display:flex; align-items:flex-end; justify-content:center;
+      padding-bottom:56px;
+    }
+    #tapL { left:0; width:50%; }
+    #tapR { right:0; width:50%; }
+    .tap-lbl { font-size:6px; color:rgba(61,155,95,.28); letter-spacing:1px; }
+
+    /* ── Game over ─────────────────────── */
+    #gameover .go-title {
+      font-size:clamp(20px,7vw,28px); color:var(--gd); line-height:1.4;
+      text-shadow:4px 4px 0 var(--gl), 7px 7px 0 rgba(0,0,0,.07);
+    }
+    #gameover .go-title em { color:var(--red); font-style:normal; }
+    .go-score { font-size:9px; color:var(--gray); line-height:2; }
+    .go-score span { color:var(--gm); font-size:20px; text-shadow:2px 2px 0 var(--gl); }
+    .go-cta {
+      background:rgba(61,155,95,.07); border:2px solid rgba(61,155,95,.35);
+      padding:14px 18px; width:100%; max-width:300px;
+      display:flex; flex-direction:column; gap:8px; align-items:center; text-align:center;
+    }
+    .go-cta-msg { font-size:clamp(7px,2.2vw,9px); color:var(--gd); line-height:2.2; }
+    .go-cta-msg em { color:var(--gm); font-style:normal; }
+    .go-cta-sub { font-size:6px; color:var(--gray); }
+    .go-cta-link {
+      font-family:'Press Start 2P',monospace; font-size:8px; background:transparent;
+      color:var(--gd); padding:10px 18px; text-decoration:none;
+      border:2px solid var(--gm);
+      box-shadow:4px 4px 0 var(--gl), 6px 6px 0 rgba(0,0,0,.06); display:inline-block;
+    }
+    .go-cta-link:active { transform:translate(2px,2px); }
+
+    /* ── Score popup ───────────────────── */
+    .spop {
+      position:absolute; pointer-events:none; z-index:30;
+      font-family:'Press Start 2P',monospace; font-size:11px;
+      animation:popfl .85s ease-out forwards;
+    }
+    @keyframes popfl { 0%{opacity:1;transform:translateY(0)} 100%{opacity:0;transform:translateY(-55px)} }
+
+    #gameCanvas { position:absolute; inset:0; width:100%; height:100%; display:block; image-rendering:pixelated; }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SPLASH ══ -->
+  <div id="splash" class="screen">
+    <div class="s-title">LEAD<br><em>DODGER</em></div>
+    <div class="s-rules">
+      <div class="s-rule"><div class="s-dot" style="background:#E85A5A"></div>Bad leads rush at you — switch lanes to dodge!</div>
+      <div class="s-rule"><div class="s-dot" style="background:#FFB830"></div>Collect gold bonus leads for extra points!</div>
+      <div class="s-rule"><div class="s-dot" style="background:#3D9B5F"></div>Tap LEFT / RIGHT to change lanes. 3 lives!</div>
+    </div>
+    <button class="btn btn-amber" id="startBtn">▶ START</button>
+    <div class="blink">TAP SIDES TO SWITCH LANE</div>
+  </div>
+
+  <!-- ══ GAME ══ -->
+  <div id="game" class="screen hidden" style="padding:0;">
+    <canvas id="gameCanvas"></canvas>
+    <div id="hud">
+      <div class="h-score">SCORE<br><span id="scoreDisp">0</span></div>
+      <div class="h-lives" id="livesDisp">♥♥♥</div>
+    </div>
+    <!-- Tap zones -->
+    <div id="tapL"><div class="tap-lbl">← LEFT</div></div>
+    <div id="tapR"><div class="tap-lbl">RIGHT →</div></div>
+    <!-- Lane dots -->
+    <div id="laneBar">
+      <div class="ld" id="ld0"></div>
+      <div class="ld on" id="ld1"></div>
+      <div class="ld" id="ld2"></div>
+    </div>
+  </div>
+
+  <!-- ══ GAME OVER ══ -->
+  <div id="gameover" class="screen hidden">
+    <div class="go-title">GAME<br><em>OVER!</em></div>
+    <div class="go-score">SCORE<br><span id="finalScore">0</span></div>
+    <div class="go-cta">
+      <div class="go-cta-msg">Managing your leads<br>doesn't have to be this <em>tough.</em></div>
+      <div class="go-cta-sub">Try CoFee LMS — smart leads, zero chaos.</div>
+      <a class="go-cta-link" href="https://www.cofee.life" target="_blank">Visit CoFee →</a>
+    </div>
+    <button class="btn btn-amber" id="restartBtn">↺ PLAY AGAIN</button>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   LEAD DODGER — Road Runner Edition
+   Perspective road, 3 lanes, leads rush from horizon
+   ═══════════════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+const canvas = $('gameCanvas');
+const ctx    = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+// ── Road perspective variables (recalculated on resize) ──
+let HY, CX, RT, RB; // horizon Y, center X, road half at top/bottom
+
+function calcRoad() {
+  HY = canvas.height * 0.33;
+  CX = canvas.width  / 2;
+  RT = 52;
+  RB = canvas.width  * 0.44;
+}
+
+// Perspective math helpers
+const rHalf  = z  => RT + z * (RB - RT);
+const scrY   = z  => HY + z * (canvas.height - HY);
+const scrX   = (z, lx) => CX + lx * rHalf(z);
+const dScale = z  => 0.08 + z * 0.92;
+
+// ── Lanes ───────────────────────────────────────────────
+const LANE_X  = [-0.38, 0, 0.38]; // laneX offset per lane
+const N_LANES = 3;
+
+// ── Pixel character palette ──────────────────────────────
+const FACE='#FFDBA4', EYE='#1A1A2E', CHEEK='#FFB090', MOUTH='#C07060';
+const LEG='#2C3E50', SHOE='#1A2838';
+const BAD_B  = ['#E85A5A','#CC3333','#E04040','#D44848'];
+const BAD_D  = ['#991212','#882222','#991212','#882222'];
+const BAD_H  = ['#1A0808','#100505','#1A0808','#100505'];
+const BON_B  = ['#FFB830','#FFD700','#FFC840','#FFAA20'];
+const BON_D  = ['#CC8800','#BB9900','#CC9400','#BB7700'];
+const BON_H  = ['#3D1800','#2A1200','#3D2000','#2A1000'];
+const PLR_B  = '#3D9B5F', PLR_D = '#1A3D28', PLR_H = '#0A1F12';
+
+// ── Draw pixel character (bottom-center anchored) ────────
+function drawChar(cx, by, B, D, H, isGood, S) {
+  const ox = cx - 5*S;
+  const oy = by - 15*S;
+  const p = (x,y,w,h,c) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(
+      Math.round(ox+x*S), Math.round(oy+y*S),
+      Math.max(1,Math.round(w*S)), Math.max(1,Math.round(h*S))
+    );
+  };
+  // Body + limbs (back)
+  for(let y=8;y<=11;y++) p(1,y,8,1,B);
+  p(0,9,1,2,D); p(9,9,1,2,D);
+  p(2,12,2,2,LEG); p(6,12,2,2,LEG);
+  p(1,14,3,1,SHOE); p(5,14,3,1,SHOE);
+  // Head
+  for(let y=1;y<=7;y++) p(1,y,8,1,FACE);
+  // Hair
+  p(3,0,4,1,H); p(2,1,6,1,H);
+  // Angry brows
+  if(!isGood){ p(2,3,2,1,EYE); p(6,3,2,1,EYE); p(3,2,1,1,EYE); p(6,2,1,1,EYE); }
+  // Eyes
+  p(2,4,2,1,EYE); p(6,4,2,1,EYE);
+  if(isGood){ p(2,4,1,1,'#fff'); p(6,4,1,1,'#fff'); }
+  // Cheeks + mouth
+  p(1,5,1,1,CHEEK); p(8,5,1,1,CHEEK);
+  if(isGood){ p(3,6,1,1,MOUTH); p(6,6,1,1,MOUTH); p(4,7,2,1,MOUTH); }
+  else      { p(3,6,4,1,MOUTH); p(3,7,1,1,MOUTH); p(6,7,1,1,MOUTH); }
+  // Hands
+  p(0,11,1,1,FACE); p(9,11,1,1,FACE);
+}
+
+// ── Clouds ───────────────────────────────────────────────
+let clouds = [];
+function initClouds() {
+  clouds = Array.from({length:7}, () => ({
+    x: Math.random() * canvas.width,
+    y: 10 + Math.random() * (HY * 0.75),
+    w: 28 + Math.random() * 48,
+    h:  8 + Math.random() * 12,
+    a: 0.55 + Math.random() * 0.35,
+  }));
+}
+
+// ── Road scrolling offset ────────────────────────────────
+let roadScroll = 0;
+
+// ── Draw sky + road ──────────────────────────────────────
+function drawWorld(dt) {
+  // Sky — bright daytime blue-mint
+  const sky = ctx.createLinearGradient(0, 0, 0, HY);
+  sky.addColorStop(0,    '#7EC8E3');
+  sky.addColorStop(0.55, '#B0DFF0');
+  sky.addColorStop(1,    '#D4F0E4');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, canvas.width, HY);
+
+  // Pixel clouds
+  clouds.forEach(c => {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.globalAlpha = c.a;
+    ctx.fillRect(Math.round(c.x),      Math.round(c.y),      Math.round(c.w),       Math.round(c.h));
+    ctx.fillRect(Math.round(c.x + 8),  Math.round(c.y - 5),  Math.round(c.w * 0.55),Math.round(c.h));
+    ctx.fillRect(Math.round(c.x + c.w*0.55), Math.round(c.y - 3), Math.round(c.w*0.35), Math.round(c.h));
+  });
+  ctx.globalAlpha = 1;
+
+  // Soft horizon haze
+  const hglow = ctx.createLinearGradient(0, HY-20, 0, HY+16);
+  hglow.addColorStop(0, 'rgba(168,213,184,0)');
+  hglow.addColorStop(0.5, 'rgba(168,213,184,0.35)');
+  hglow.addColorStop(1, 'rgba(168,213,184,0)');
+  ctx.fillStyle = hglow;
+  ctx.fillRect(0, HY-20, canvas.width, 36);
+
+  // Side ground — fresh green grass
+  const sideGrad = ctx.createLinearGradient(0, HY, 0, canvas.height);
+  sideGrad.addColorStop(0, '#4A8A40');
+  sideGrad.addColorStop(1, '#5AAA4A');
+  ctx.fillStyle = sideGrad;
+  ctx.fillRect(0, HY, canvas.width, canvas.height - HY);
+
+  // Road trapezoid — warm gray asphalt
+  const roadGrad = ctx.createLinearGradient(0, HY, 0, canvas.height);
+  roadGrad.addColorStop(0, '#888272');
+  roadGrad.addColorStop(1, '#6A6258');
+  ctx.fillStyle = roadGrad;
+  ctx.beginPath();
+  ctx.moveTo(CX-RT, HY); ctx.lineTo(CX+RT, HY);
+  ctx.lineTo(CX+RB, canvas.height); ctx.lineTo(CX-RB, canvas.height);
+  ctx.closePath();
+  ctx.fill();
+
+  // Road edge lines — clean white
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(CX-RT,HY); ctx.lineTo(CX-RB,canvas.height); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(CX+RT,HY); ctx.lineTo(CX+RB,canvas.height); ctx.stroke();
+
+  // Scrolling lane dividers — white dashes
+  const divLanes = [
+    LANE_X[0] * 0.5 + LANE_X[1] * 0.5,
+    LANE_X[1] * 0.5 + LANE_X[2] * 0.5,
+  ];
+  const DASH_N = 14;
+  for (const dlx of divLanes) {
+    for (let i=0; i<DASH_N; i++) {
+      const z = ((i/DASH_N) + roadScroll) % 1;
+      if (z < 0.04) continue;
+      const sx = scrX(z, dlx);
+      const sy = scrY(z);
+      const sc = dScale(z);
+      const dw = Math.max(2, Math.round(4 * sc));
+      const dh = Math.max(1, Math.round(10 * sc));
+      ctx.fillStyle = '#FFFFFF';
+      ctx.globalAlpha = 0.2 + z * 0.5;
+      ctx.fillRect(Math.round(sx - dw/2), Math.round(sy - dh/2), dw, dh);
+    }
+  }
+  ctx.globalAlpha = 1;
+
+  // Road surface speed stripes (subtle depth cue)
+  for (let i=0; i<6; i++) {
+    const z = ((i/6) + roadScroll * 1.5) % 1;
+    if (z < 0.05 || z > 0.95) continue;
+    const z2 = Math.min(z + 0.12, 1);
+    const y1 = scrY(z), y2 = scrY(z2);
+    const lx1 = CX - rHalf(z),  rx1 = CX + rHalf(z);
+    const lx2 = CX - rHalf(z2), rx2 = CX + rHalf(z2);
+    ctx.fillStyle = i%2===0 ? 'rgba(255,255,255,.03)' : 'rgba(0,0,0,.04)';
+    ctx.beginPath();
+    ctx.moveTo(lx1,y1); ctx.lineTo(rx1,y1);
+    ctx.lineTo(rx2,y2); ctx.lineTo(lx2,y2);
+    ctx.closePath();
+    ctx.fill();
+  }
+}
+
+// ── Particles ────────────────────────────────────────────
+let ptcls = [];
+function burst(x, y, color, n=18) {
+  for (let i=0; i<n; i++) {
+    const a = (Math.PI*2*i)/n;
+    const s = 3+Math.random()*6;
+    ptcls.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-2,
+                size:4+Math.random()*5,color,life:1,decay:.02+Math.random()*.025});
+  }
+}
+
+// ── Score popup ───────────────────────────────────────────
+function scorePop(text, x, y, color) {
+  const el = document.createElement('div');
+  el.className='spop'; el.textContent=text;
+  el.style.cssText=`left:${x-28}px;top:${y}px;color:${color};`;
+  $('game').appendChild(el);
+  setTimeout(()=>el.remove(), 900);
+}
+
+// ── Flash overlay ─────────────────────────────────────────
+let flashClr=null, flashA=0;
+function doFlash(c,a){flashClr=c;flashA=a;}
+
+// ── HUD & lane indicator ──────────────────────────────────
+function updHUD() {
+  $('scoreDisp').textContent = gs.score.toLocaleString();
+  const h=$('livesDisp');
+  h.textContent='♥'.repeat(PLR.lives)+'♡'.repeat(Math.max(0,3-PLR.lives));
+  h.style.color = PLR.lives<=1?'#E85A5A':'#1A3D28';
+}
+function updLane() {
+  for(let i=0;i<3;i++) {
+    $(`ld${i}`).className='ld'+(PLR.lane===i?' on':'');
+  }
+}
+
+// ── Player ───────────────────────────────────────────────
+const PLR = { lane:1, laneX:0, lives:3, invincible:0, visible:true };
+const PLR_S = 4; // pixel scale for player
+const PLR_H_PX = 15 * PLR_S; // player height in px
+let PLR_Y = 0; // computed on resize
+
+function switchLane(dir) {
+  PLR.lane = Math.max(0, Math.min(N_LANES-1, PLR.lane + dir));
+  updLane();
+  snd('switch');
+}
+
+// ── Demo / Auto-play mode ────────────────────────────────
+// Set to true to have the game play itself (useful for arcade display)
+const DEMO_MODE = true;
+
+// ── Game state ────────────────────────────────────────────
+let gs    = {};
+let leads = [];
+let raf   = null;
+let lastT = 0;
+let spawnT= 0;
+let demoThinkT = 0; // throttle demo AI decisions
+
+function spawnWave() {
+  // Only block lanes that have a lead still very close to the horizon
+  const busy  = new Set(leads.filter(l=>l.z < 0.12).map(l=>l.lane));
+  const free  = [0,1,2].filter(l=>!busy.has(l)).sort(()=>Math.random()-0.5);
+  if (!free.length) return;
+
+  // Always spawn 2 from the start; unlock 3rd lane at lvl 3+
+  const waveSize = Math.min(free.length, gs.lvl >= 3 ? 3 : 2);
+  const lanes    = free.slice(0, waveSize);
+
+  // For 3-lead waves: one lead is staggered ~0.2 units ahead of the others
+  // so they never form a flat impassable wall — pick the lucky index randomly
+  const advIdx = lanes.length === 3 ? Math.floor(Math.random() * 3) : -1;
+
+  lanes.forEach((lane, i) => {
+    const isGood = gs.elapsed > 5 && Math.random() < 0.18;
+    const speed  = 0.30 + gs.lvl * 0.04 + Math.random() * 0.06;
+
+    // Base small stagger (0, 0.05, 0.10) so they're never perfectly flat;
+    // additionally the chosen "advanced" lead gets an extra 0.18 jump forward.
+    const zStart = 0.04 + i * 0.05 + (i === advIdx ? 0.18 : 0);
+
+    leads.push({ z: zStart, lane, laneX: LANE_X[lane], isGood, speed,
+                 variant: Math.floor(Math.random() * 4), done: false });
+  });
+}
+
+// ── Main loop ─────────────────────────────────────────────
+function loop(now) {
+  if (!gs.running) return;
+  raf = requestAnimationFrame(loop);
+
+  const dt  = Math.min((now - lastT)/1000, 0.05);
+  lastT = now;
+  gs.elapsed += dt;
+  gs.score   += Math.floor(dt * 10);
+
+  gs.lvl = Math.floor(gs.elapsed / 8);
+  // Wave interval shrinks with level; waves carry more leads as lvl grows
+  const interval = Math.max(1000, 2800 - gs.lvl * 200);
+
+  // Road scroll speed increases with level
+  roadScroll = (roadScroll + dt * (0.65 + gs.lvl*0.1)) % 1;
+
+  // Spawn wave
+  spawnT -= dt * 1000;
+  if (spawnT <= 0) { spawnWave(); spawnT = interval; }
+
+  // Demo AI: look ahead and switch to the safest lane
+  if (DEMO_MODE) {
+    demoThinkT -= dt;
+    if (demoThinkT <= 0) {
+      demoThinkT = 0.12; // re-evaluate ~8x per second
+      const THREAT_Z = 0.55; // react when a bad lead is this close
+      const inDanger = leads.some(
+        l => !l.done && !l.isGood && l.lane === PLR.lane && l.z >= THREAT_Z
+      );
+      if (inDanger) {
+        // Score each lane: prefer lanes free of close bad leads, closer to current
+        const scores = [0,1,2].map(lane => {
+          if (lane === PLR.lane) return -999;
+          const hasThreat = leads.some(
+            l => !l.done && !l.isGood && l.lane === lane && l.z >= THREAT_Z
+          );
+          return hasThreat ? -500 : -Math.abs(lane - PLR.lane);
+        });
+        const best = scores.indexOf(Math.max(...scores));
+        if (best !== PLR.lane) switchLane(best - PLR.lane > 0 ? 1 : -1);
+      }
+    }
+  }
+
+  // Player lane smooth transition
+  PLR.laneX += (LANE_X[PLR.lane] - PLR.laneX) * 0.14;
+  const PLR_X = CX + PLR.laneX * RB; // player screen x (at road bottom)
+
+  // Invincibility
+  if (PLR.invincible > 0) {
+    PLR.invincible -= dt;
+    PLR.visible = Math.floor(PLR.invincible*10)%2===0;
+  } else { PLR.visible=true; }
+
+  // Update leads
+  for (const l of leads) {
+    if (l.done) continue;
+    l.z += l.speed * dt;
+
+    // Collision zone: lead reaches player depth
+    if (l.z >= 0.92) {
+      l.done = true;
+      // Check if in same lane (allow slight overshoot during transition)
+      const sameLane = l.lane === PLR.lane ||
+        (Math.abs(l.laneX - PLR.laneX) < 0.22);
+
+      if (l.isGood) {
+        if (sameLane) {
+          const pts = 70 + gs.lvl*15;
+          gs.score += pts;
+          burst(PLR_X, PLR_Y, '#FFB830');
+          scorePop('+'+pts, PLR_X, PLR_Y-20, '#1A3D28');
+          doFlash('#FFB830', 0.14);
+          snd('good');
+        }
+      } else {
+        if (sameLane && PLR.invincible<=0) {
+          PLR.lives--;
+          PLR.invincible = 1.8;
+          burst(PLR_X, PLR_Y, '#E85A5A');
+          scorePop('-1 ♥', PLR_X, PLR_Y-20, '#E85A5A');
+          doFlash('#E85A5A', 0.35);
+          snd('hit');
+          if (PLR.lives<=0) { gs.running=false; setTimeout(endGame,500); }
+        }
+      }
+      updHUD();
+      continue;
+    }
+
+    if (l.z > 1.1) l.done=true;
+  }
+  leads = leads.filter(l=>!l.done);
+
+  // Sort leads back-to-front for painter's algorithm
+  leads.sort((a,b)=>a.z-b.z);
+
+  // Particles
+  ptcls.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=0.3;p.life-=p.decay;});
+  ptcls=ptcls.filter(p=>p.life>0);
+
+  // ── Draw ──────────────────────────────────────────────
+  drawWorld(dt);
+
+  // Draw danger lane highlight when a bad lead is approaching player's lane
+  const danger = leads.find(l=>!l.isGood&&l.lane===PLR.lane&&l.z>0.45);
+  if (danger) {
+    const warnA = ((danger.z-0.45)/0.55)*0.18*(0.5+0.5*Math.sin(performance.now()/140));
+    ctx.fillStyle='#E85A5A';
+    ctx.globalAlpha=warnA;
+    // Draw faded red strip in player's lane on the road
+    const lx1=scrX(0.8,LANE_X[PLR.lane]-0.18), rx1=scrX(0.8,LANE_X[PLR.lane]+0.18);
+    const lx2=CX+LANE_X[PLR.lane]*RB-24, rx2=CX+LANE_X[PLR.lane]*RB+24;
+    ctx.beginPath();
+    ctx.moveTo(lx1,scrY(0.8)); ctx.lineTo(rx1,scrY(0.8));
+    ctx.lineTo(rx2,canvas.height); ctx.lineTo(lx2,canvas.height);
+    ctx.closePath(); ctx.fill();
+    ctx.globalAlpha=1;
+  }
+
+  // Draw leads (sorted back to front already)
+  for (const l of leads) {
+    const lsx = scrX(l.z, l.laneX);
+    const lsy = scrY(l.z);
+    const sc  = Math.max(0.5, 3 * dScale(l.z));
+
+    if (l.isGood) {
+      // Bonus lead: pulsing green glow ring
+      ctx.save();
+      ctx.globalAlpha = 0.2 + 0.1*Math.sin(performance.now()/300);
+      ctx.strokeStyle = '#FFB830';
+      ctx.lineWidth   = Math.max(1, 2*sc);
+      const gw = 12*sc, gh = 16*sc;
+      ctx.strokeRect(lsx-gw/2-2, lsy-gh-2, gw+4, gh+4);
+      ctx.restore();
+      drawChar(lsx, lsy, BON_B[l.variant], BON_D[l.variant], BON_H[l.variant], true, sc);
+    } else {
+      drawChar(lsx, lsy, BAD_B[l.variant], BAD_D[l.variant], BAD_H[l.variant], false, sc);
+    }
+  }
+
+  // Draw player
+  if (PLR.visible) {
+    // Green glow under player
+    const gw=PLR_S*12, gh=PLR_S*4;
+    ctx.fillStyle='#3D9B5F';
+    ctx.globalAlpha=0.15;
+    ctx.fillRect(PLR_X-gw/2, PLR_Y+PLR_H_PX-gh, gw, gh);
+    ctx.globalAlpha=1;
+    drawChar(PLR_X, PLR_Y+PLR_H_PX, PLR_B, PLR_D, PLR_H, true, PLR_S);
+  }
+
+  // Particles
+  ptcls.forEach(p=>{
+    ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(Math.round(p.x),Math.round(p.y),Math.ceil(p.size),Math.ceil(p.size));
+  });
+  ctx.globalAlpha=1;
+
+  // Screen flash
+  if (flashA>0) {
+    ctx.fillStyle=flashClr; ctx.globalAlpha=flashA;
+    ctx.fillRect(0,0,canvas.width,canvas.height);
+    ctx.globalAlpha=1; flashA-=0.04;
+  }
+
+  updHUD();
+}
+
+// ── Screens ───────────────────────────────────────────────
+function show(name) {
+  ['splash','game','gameover'].forEach(id=>$(id).classList.add('hidden'));
+  $(name).classList.remove('hidden');
+}
+
+// ── Resize ────────────────────────────────────────────────
+function resize() {
+  canvas.width  = canvas.offsetWidth  || window.innerWidth;
+  canvas.height = canvas.offsetHeight || window.innerHeight;
+  calcRoad();
+  PLR_Y = canvas.height - PLR_H_PX - 28;
+  initClouds();
+}
+
+// ── Start ─────────────────────────────────────────────────
+function startGame() {
+  leads=[]; ptcls=[]; flashA=0; roadScroll=0; spawnT=700;
+  PLR.lane=1; PLR.laneX=0; PLR.lives=3; PLR.invincible=0; PLR.visible=true;
+  gs={score:0,lvl:0,elapsed:0,running:true};
+  updHUD(); updLane();
+  show('game');
+  resize();
+  lastT=performance.now();
+  raf=requestAnimationFrame(loop);
+}
+
+function endGame() {
+  cancelAnimationFrame(raf);
+  const hs=parseInt(localStorage.getItem('ldHS')||'0');
+  if(gs.score>hs) localStorage.setItem('ldHS',gs.score);
+  $('finalScore').textContent=gs.score.toLocaleString();
+  show('gameover');
+  if (DEMO_MODE) setTimeout(startGame, 3000);
+}
+
+// ── Touch controls ────────────────────────────────────────
+$('tapL').addEventListener('touchstart',e=>{e.preventDefault();if(gs&&gs.running)switchLane(-1);},{passive:false});
+$('tapR').addEventListener('touchstart',e=>{e.preventDefault();if(gs&&gs.running)switchLane(+1);},{passive:false});
+$('tapL').addEventListener('click',()=>{if(gs&&gs.running)switchLane(-1);});
+$('tapR').addEventListener('click',()=>{if(gs&&gs.running)switchLane(+1);});
+
+// Swipe gesture
+let swipeX=0;
+document.addEventListener('touchstart',e=>{swipeX=e.touches[0].clientX;},{passive:true});
+document.addEventListener('touchend',e=>{
+  if(!gs||!gs.running) return;
+  const dx=e.changedTouches[0].clientX-swipeX;
+  if(Math.abs(dx)>40) switchLane(dx>0?1:-1);
+});
+
+// ── Keyboard ──────────────────────────────────────────────
+document.addEventListener('keydown',e=>{
+  if(!gs||!gs.running) return;
+  if(e.key==='ArrowLeft'||e.key==='a')  {e.preventDefault();switchLane(-1);}
+  if(e.key==='ArrowRight'||e.key==='d') {e.preventDefault();switchLane(+1);}
+});
+
+// ── Buttons ───────────────────────────────────────────────
+$('startBtn').addEventListener('click',   startGame);
+$('restartBtn').addEventListener('click', startGame);
+
+// ── Audio ─────────────────────────────────────────────────
+let AC=null;
+function snd(type) {
+  if (window !== window.top) return; // muted when embedded in iframe
+  try {
+    if(!AC) AC=new(window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    const t=AC.currentTime;
+    if(type==='switch') {
+      o.type='sine';
+      o.frequency.setValueAtTime(350,t); o.frequency.setValueAtTime(500,t+.07);
+      g.gain.setValueAtTime(.05,t); g.gain.exponentialRampToValueAtTime(.001,t+.15);
+      o.start(t); o.stop(t+.15);
+    } else if(type==='good') {
+      o.type='square';
+      o.frequency.setValueAtTime(520,t); o.frequency.setValueAtTime(780,t+.07);
+      g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.22);
+      o.start(t); o.stop(t+.22);
+    } else {
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(180,t); o.frequency.setValueAtTime(100,t+.12);
+      g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.22);
+      o.start(t); o.stop(t+.22);
+    }
+  } catch(e){}
+}
+
+// ── Init ──────────────────────────────────────────────────
+resize();
+window.addEventListener('resize',()=>{if(gs&&gs.running)resize();});
+
+// Demo mode: auto-start on load, auto-restart is handled in endGame
+if (DEMO_MODE) setTimeout(startGame, 1200);
+</script>
+</body>
+</html>

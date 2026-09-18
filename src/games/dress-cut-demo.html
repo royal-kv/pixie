@@ -1,0 +1,2229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#1f6f6a" />
+  <title>Dress Cut — Snip &amp; Sew</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+/* Dress Cut — soft mint atelier, coral energy */
+:root {
+  --bg-deep: #1a4f4b;
+  --bg-mid: #2a7a74;
+  --bg-soft: #d8efe9;
+  --surface: #f4fbf8;
+  --ink: #143836;
+  --ink-soft: #3d6a66;
+  --coral: #ff6b6b;
+  --coral-deep: #e84d5b;
+  --gold: #f4c15d;
+  --mint: #6fd3c2;
+  --mint-deep: #2a9b8f;
+  --shadow: rgba(20, 56, 54, 0.18);
+  --radius: 22px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --font-display: "Fredoka", system-ui, sans-serif;
+  --font-ui: "Nunito", system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-deep);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.app {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr auto;
+  height: 100%;
+  max-width: 480px;
+  margin: 0 auto;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.studio-bg {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 80% at 50% -10%, #3aa89c 0%, transparent 55%),
+    linear-gradient(180deg, #1f6f6a 0%, #16554f 42%, #0f3d3a 100%);
+}
+
+.studio-wash {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 20% 80%, rgba(255, 107, 107, 0.18), transparent 60%),
+    radial-gradient(ellipse 70% 45% at 90% 30%, rgba(244, 193, 93, 0.16), transparent 55%);
+}
+
+.studio-grid {
+  position: absolute;
+  inset: 0;
+  opacity: 0.07;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: linear-gradient(180deg, transparent, #000 20%, #000 80%, transparent);
+}
+
+.studio-glow {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+}
+
+.studio-glow-a {
+  top: 18%;
+  left: -60px;
+  background: rgba(111, 211, 194, 0.35);
+  animation: drift 9s ease-in-out infinite alternate;
+}
+
+.studio-glow-b {
+  bottom: 12%;
+  right: -40px;
+  background: rgba(255, 107, 107, 0.22);
+  animation: drift 11s ease-in-out infinite alternate-reverse;
+}
+
+@keyframes drift {
+  from { transform: translate(0, 0); }
+  to { transform: translate(24px, -18px); }
+}
+
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(10px + var(--safe-top)) 16px 8px;
+  z-index: 2;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: linear-gradient(145deg, #ff8a7a, var(--coral-deep));
+  color: #fff;
+  font-size: 18px;
+  box-shadow: 0 8px 18px rgba(232, 77, 91, 0.35);
+  transform: rotate(-12deg);
+  animation: snip-wiggle 3.2s ease-in-out infinite;
+}
+
+@keyframes snip-wiggle {
+  0%, 100% { transform: rotate(-12deg); }
+  50% { transform: rotate(-18deg) scale(1.04); }
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  letter-spacing: 0.04em;
+  color: #fff;
+}
+
+.brand-sub {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.demo-pill {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ff8a7a, var(--coral-deep));
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  box-shadow: 0 6px 14px rgba(232, 77, 91, 0.35);
+  animation: demo-pulse 1.4s ease-in-out infinite;
+}
+
+.demo-pill[hidden] {
+  display: none !important;
+}
+
+@keyframes demo-pulse {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.06); opacity: 0.88; }
+}
+
+.dock-ghost {
+  margin-top: 10px;
+  background: rgba(255, 255, 255, 0.14) !important;
+  color: #fff !important;
+}
+
+.dock-ghost:active {
+  background: rgba(255, 255, 255, 0.24) !important;
+}
+
+.app.demo-mode .stage {
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.22),
+    0 0 0 2px rgba(255, 107, 107, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+.icon-btn {
+  width: 42px;
+  height: 42px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  backdrop-filter: blur(8px);
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.icon-btn:active {
+  transform: scale(0.92);
+  background: rgba(255, 255, 255, 0.24);
+}
+
+.target-strip {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto 1fr;
+  gap: 0 14px;
+  margin: 0 14px 8px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: rgba(244, 251, 248, 0.94);
+  box-shadow: 0 10px 28px var(--shadow);
+  align-items: center;
+  z-index: 2;
+  animation: rise-in 0.55s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(-12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.target-label {
+  grid-column: 1 / -1;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--mint-deep);
+}
+
+#targetCanvas {
+  width: 64px;
+  height: 78px;
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, #fff 0%, #eef8f5 100%);
+  box-shadow: inset 0 0 0 1px rgba(42, 122, 116, 0.12);
+}
+
+.target-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: var(--ink);
+}
+
+.target-piece {
+  margin: 2px 0 8px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.piece-dots {
+  display: flex;
+  gap: 6px;
+}
+
+.piece-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #c5ddd8;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.piece-dot.done {
+  background: var(--mint-deep);
+}
+
+.piece-dot.active {
+  background: var(--coral);
+  transform: scale(1.25);
+  box-shadow: 0 0 0 4px rgba(255, 107, 107, 0.22);
+}
+
+.stage {
+  position: relative;
+  margin: 0 10px;
+  border-radius: 28px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #f7fcfa 0%, #e7f5f0 100%);
+  box-shadow:
+    0 18px 40px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  min-height: 0;
+  touch-action: none;
+}
+
+#gameCanvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: none;
+}
+
+.fx-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.fiber {
+  position: absolute;
+  width: 4px;
+  height: 10px;
+  border-radius: 2px;
+  opacity: 0.9;
+  animation: fiber-fly 0.55s ease-out forwards;
+}
+
+@keyframes fiber-fly {
+  to {
+    transform: translate(var(--dx), var(--dy)) rotate(var(--rot));
+    opacity: 0;
+  }
+}
+
+.scissors {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 36px;
+  height: 36px;
+  margin: -10px 0 0 -8px;
+  font-size: 26px;
+  line-height: 1;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+  transform: rotate(-25deg);
+  transition: transform 0.08s linear;
+  z-index: 5;
+}
+
+.scissors.cutting {
+  transform: rotate(-40deg) scale(1.08);
+  animation: snip-pulse 0.18s ease;
+}
+
+@keyframes snip-pulse {
+  50% { transform: rotate(-48deg) scale(1.14); }
+}
+
+.cut-hud {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: center;
+  pointer-events: none;
+  z-index: 4;
+}
+
+.accuracy-ring {
+  position: relative;
+  width: 56px;
+  height: 56px;
+}
+
+.accuracy-ring svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.ring-track {
+  fill: none;
+  stroke: rgba(20, 56, 54, 0.12);
+  stroke-width: 6;
+}
+
+.ring-fill {
+  fill: none;
+  stroke: var(--mint-deep);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 163.36;
+  stroke-dashoffset: 0;
+  transition: stroke 0.15s ease, stroke-dashoffset 0.1s linear;
+}
+
+.accuracy-ring span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+.cut-progress {
+  height: 12px;
+  border-radius: 999px;
+  background: rgba(20, 56, 54, 0.1);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+.cut-progress-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--mint), var(--coral));
+  transition: width 0.08s linear;
+}
+
+.grade-toast {
+  position: absolute;
+  left: 50%;
+  bottom: 54px;
+  transform: translateX(-50%) scale(0.85);
+  padding: 8px 16px;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1rem;
+  box-shadow: 0 10px 24px var(--shadow);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.grade-toast.show {
+  animation: toast-pop 1.1s cubic-bezier(0.2, 1.2, 0.3, 1) forwards;
+}
+
+@keyframes toast-pop {
+  0% { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.8); }
+  18% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.05); }
+  70% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.95); }
+}
+
+.stage-hint {
+  position: absolute;
+  left: 50%;
+  top: 12px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(20, 56, 54, 0.78);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 4;
+  transition: opacity 0.25s ease;
+}
+
+.stage-hint.dim {
+  opacity: 0.35;
+}
+
+.fabric-dock {
+  padding: 12px 16px calc(14px + var(--safe-bottom));
+  z-index: 2;
+  animation: rise-in 0.6s 0.08s cubic-bezier(0.2, 0.9, 0.2, 1) both;
+}
+
+.dock-label {
+  margin: 0 0 10px;
+  text-align: center;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 800;
+  font-size: 0.85rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.fabric-row {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-bottom: 12px;
+}
+
+.fabric-swatch {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border: 0;
+  border-radius: 20px;
+  padding: 0;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.fabric-swatch::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+}
+
+.fabric-swatch:active {
+  transform: scale(0.94);
+}
+
+.fabric-swatch.selected {
+  transform: translateY(-4px) scale(1.04);
+  box-shadow:
+    0 0 0 3px #fff,
+    0 0 0 6px var(--coral),
+    0 14px 28px rgba(0, 0, 0, 0.28);
+}
+
+.fabric-swatch canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.fabric-swatch .swatch-name {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 4px 4px 6px;
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.55));
+  color: #fff;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+.primary-btn,
+.ghost-btn {
+  display: block;
+  width: 100%;
+  border: 0;
+  border-radius: 18px;
+  padding: 15px 18px;
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 650;
+  cursor: pointer;
+  transition: transform 0.15s ease, opacity 0.15s ease, background 0.15s ease;
+}
+
+.primary-btn {
+  background: linear-gradient(180deg, #ff8a7a 0%, var(--coral-deep) 100%);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(232, 77, 91, 0.38);
+}
+
+.primary-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+  box-shadow: none;
+}
+
+.primary-btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+
+.ghost-btn {
+  margin-top: 10px;
+  background: rgba(42, 122, 116, 0.1);
+  color: var(--ink);
+}
+
+.ghost-btn:active {
+  transform: scale(0.97);
+  background: rgba(42, 122, 116, 0.18);
+}
+
+.overlay .primary-btn {
+  /* keep coral CTA */
+}
+
+.overlay .ghost-btn {
+  background: rgba(42, 122, 116, 0.1);
+  color: var(--ink-soft);
+}
+
+.app.playing .fabric-dock {
+  display: none !important;
+}
+
+.app.playing {
+  grid-template-rows: auto auto 1fr;
+}
+
+.fabric-dock.hidden,
+.cut-hud[hidden],
+.overlay[hidden],
+.scissors[hidden] {
+  display: none !important;
+}
+
+.fabric-dock.leaving {
+  animation: dock-out 0.35s ease forwards;
+  pointer-events: none;
+}
+
+@keyframes dock-out {
+  to { opacity: 0; transform: translateY(24px); }
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: end center;
+  padding: 18px 14px calc(18px + var(--safe-bottom));
+  background: rgba(10, 35, 33, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.result-card {
+  width: min(100%, 380px);
+  padding: 18px 18px 16px;
+  border-radius: 28px;
+  background: linear-gradient(180deg, #fff 0%, #f0faf6 100%);
+  box-shadow: 0 24px 50px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  animation: card-up 0.5s cubic-bezier(0.2, 1.1, 0.3, 1) both;
+}
+
+@keyframes card-up {
+  from { opacity: 0; transform: translateY(40px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.result-kicker {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  color: var(--mint-deep);
+}
+
+#resultCanvas {
+  display: block;
+  width: 150px;
+  height: 190px;
+  margin: 8px auto 4px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, #eef8f5, #dff0ea);
+}
+
+.result-title {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 1.7rem;
+  color: var(--ink);
+}
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 14px;
+  min-height: 34px;
+}
+
+.star {
+  font-size: 1.85rem;
+  color: #c5d9d4;
+  transform: scale(0.6);
+  opacity: 0.55;
+}
+
+.star.lit {
+  color: var(--gold);
+  opacity: 1;
+  text-shadow: 0 4px 10px rgba(244, 193, 93, 0.45);
+  animation: star-pop 0.45s cubic-bezier(0.2, 1.4, 0.3, 1) forwards;
+}
+
+@keyframes star-pop {
+  from { opacity: 0; transform: scale(0.4) rotate(-20deg); }
+  to { opacity: 1; transform: scale(1) rotate(0); }
+}
+
+.score-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.score-cell {
+  padding: 10px 8px;
+  border-radius: 14px;
+  background: rgba(42, 122, 116, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.score-cell span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.score-cell strong {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--ink);
+}
+
+.score-cell.highlight {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.12), rgba(111, 211, 194, 0.18));
+}
+
+.unlock-note {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--mint-deep);
+}
+
+.demo-continue {
+  margin: 14px 0 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+.shake {
+  animation: shake 0.28s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+@media (min-height: 780px) {
+  #targetCanvas {
+    width: 72px;
+    height: 88px;
+  }
+
+  .fabric-swatch {
+    width: 88px;
+    height: 88px;
+  }
+}
+
+  </style>
+</head>
+<body>
+<div id="app" class="app demo-mode playing">
+    <div class="studio-bg" aria-hidden="true">
+      <div class="studio-wash"></div>
+      <div class="studio-grid"></div>
+      <div class="studio-glow studio-glow-a"></div>
+      <div class="studio-glow studio-glow-b"></div>
+    </div>
+
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">✂</span>
+        <div class="brand-text">
+          <span class="brand-name">DRESS CUT</span>
+          <span class="brand-sub">SNIP &amp; SEW</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <span class="demo-pill" id="demoPill">DEMO</span>
+        <button type="button" class="icon-btn" id="soundBtn" aria-label="Toggle sound" title="Sound">♪</button>
+      </div>
+    </header>
+
+    <section class="target-strip" id="targetStrip" aria-live="polite">
+      <div class="target-label">MAKE THIS</div>
+      <canvas id="targetCanvas" width="200" height="240" aria-hidden="true"></canvas>
+      <div class="target-meta">
+        <h1 class="target-title" id="targetTitle">Sunny Shift</h1>
+        <p class="target-piece" id="targetPiece">Cutting…</p>
+        <div class="piece-dots" id="pieceDots" aria-hidden="true"></div>
+      </div>
+    </section>
+
+    <main class="stage" id="stage">
+      <canvas id="gameCanvas" width="720" height="960" aria-label="Fabric cutting demo"></canvas>
+      <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+      <div class="scissors" id="scissors" hidden aria-hidden="true">✂</div>
+      <div class="cut-hud" id="cutHud" hidden>
+        <div class="accuracy-ring">
+          <svg viewBox="0 0 64 64" aria-hidden="true">
+            <circle class="ring-track" cx="32" cy="32" r="26" />
+            <circle class="ring-fill" id="accuracyRing" cx="32" cy="32" r="26" />
+          </svg>
+          <span id="accuracyPct">100</span>
+        </div>
+        <div class="cut-progress">
+          <div class="cut-progress-fill" id="cutProgressFill"></div>
+        </div>
+        <div class="grade-toast" id="gradeToast" hidden></div>
+      </div>
+      <p class="stage-hint" id="stageHint">Watch the cut</p>
+    </main>
+
+    <div class="overlay" id="resultOverlay" hidden aria-hidden="true">
+      <div class="result-card">
+        <p class="result-kicker" id="resultKicker">DEMO COMPLETE</p>
+        <canvas id="resultCanvas" width="280" height="360" aria-hidden="true"></canvas>
+        <h2 class="result-title" id="resultTitle">Beautiful!</h2>
+        <div class="stars" id="resultStars" aria-label="Star rating"></div>
+        <div class="score-grid">
+          <div class="score-cell">
+            <span>Cutting</span>
+            <strong id="scoreCutting">0%</strong>
+          </div>
+          <div class="score-cell">
+            <span>Pattern</span>
+            <strong id="scorePattern">0%</strong>
+          </div>
+          <div class="score-cell highlight">
+            <span>Dress Quality</span>
+            <strong id="scoreQuality">0%</strong>
+          </div>
+        </div>
+        <p class="unlock-note" id="unlockNote" hidden></p>
+        <p class="demo-continue" id="demoContinue">Next fabric soon…</p>
+      </div>
+    </div>
+  </div>
+
+<script>
+/** Level & fabric definitions for Dress Cut */
+
+const FABRICS = [
+  {
+    id: "coral-dots",
+    name: "Coral Dots",
+    base: "#ff7a6e",
+    secondary: "#ffd4ce",
+    accent: "#fff5f2",
+    pattern: "dots",
+  },
+  {
+    id: "sage-stripe",
+    name: "Sage Stripe",
+    base: "#6fbfa8",
+    secondary: "#dff5ec",
+    accent: "#2f7a68",
+    pattern: "stripes",
+  },
+  {
+    id: "sky-check",
+    name: "Sky Check",
+    base: "#6eb6e0",
+    secondary: "#e8f5fc",
+    accent: "#2a6f96",
+    pattern: "gingham",
+  },
+];
+
+/** Normalized path helpers — points in 0–1 of fabric rect */
+function ovalRing(cx, cy, rx, ry, steps = 48) {
+  const pts = [];
+  for (let i = 0; i < steps; i++) {
+    const a = (i / steps) * Math.PI * 2 - Math.PI / 2;
+    pts.push({ x: cx + Math.cos(a) * rx, y: cy + Math.sin(a) * ry });
+  }
+  return pts;
+}
+
+/** Sleeveless front dress panel — large, friendly silhouette */
+function frontBodicePath() {
+  // Start at left shoulder, clockwise around dress front
+  return [
+    { x: 0.28, y: 0.14 },
+    { x: 0.34, y: 0.12 },
+    { x: 0.42, y: 0.16 }, // left neck
+    { x: 0.50, y: 0.20 }, // neck center
+    { x: 0.58, y: 0.16 },
+    { x: 0.66, y: 0.12 },
+    { x: 0.72, y: 0.14 }, // right shoulder
+    { x: 0.76, y: 0.22 }, // right armhole
+    { x: 0.74, y: 0.30 },
+    { x: 0.72, y: 0.38 }, // underarm
+    { x: 0.74, y: 0.48 },
+    { x: 0.78, y: 0.62 },
+    { x: 0.82, y: 0.78 }, // hem right
+    { x: 0.70, y: 0.84 },
+    { x: 0.50, y: 0.86 }, // hem center
+    { x: 0.30, y: 0.84 },
+    { x: 0.18, y: 0.78 }, // hem left
+    { x: 0.22, y: 0.62 },
+    { x: 0.26, y: 0.48 },
+    { x: 0.28, y: 0.38 },
+    { x: 0.26, y: 0.30 },
+    { x: 0.24, y: 0.22 },
+  ];
+}
+
+function backBodicePath() {
+  return [
+    { x: 0.30, y: 0.12 },
+    { x: 0.50, y: 0.10 }, // high back neck
+    { x: 0.70, y: 0.12 },
+    { x: 0.76, y: 0.20 },
+    { x: 0.74, y: 0.30 },
+    { x: 0.72, y: 0.40 },
+    { x: 0.75, y: 0.55 },
+    { x: 0.80, y: 0.72 },
+    { x: 0.82, y: 0.82 },
+    { x: 0.50, y: 0.86 },
+    { x: 0.18, y: 0.82 },
+    { x: 0.20, y: 0.72 },
+    { x: 0.25, y: 0.55 },
+    { x: 0.28, y: 0.40 },
+    { x: 0.26, y: 0.30 },
+    { x: 0.24, y: 0.20 },
+  ];
+}
+
+function skirtPath() {
+  // Wide flared skirt panel — big easy curves
+  return [
+    { x: 0.32, y: 0.28 },
+    { x: 0.50, y: 0.26 },
+    { x: 0.68, y: 0.28 },
+    { x: 0.78, y: 0.42 },
+    { x: 0.86, y: 0.62 },
+    { x: 0.88, y: 0.80 },
+    { x: 0.70, y: 0.88 },
+    { x: 0.50, y: 0.90 },
+    { x: 0.30, y: 0.88 },
+    { x: 0.12, y: 0.80 },
+    { x: 0.14, y: 0.62 },
+    { x: 0.22, y: 0.42 },
+  ];
+}
+
+const LEVEL_1 = {
+  id: 1,
+  name: "Sunny Shift",
+  subtitle: "Sleeveless day dress",
+  pieces: [
+    {
+      id: "front",
+      label: "Front",
+      hint: "Trace the front panel",
+      path: frontBodicePath(),
+      closed: true,
+      assemble: { x: 0.5, y: 0.42, scale: 0.92, layer: 2 },
+    },
+    {
+      id: "back",
+      label: "Back",
+      hint: "Trace the back panel",
+      path: backBodicePath(),
+      closed: true,
+      assemble: { x: 0.5, y: 0.42, scale: 0.9, layer: 1 },
+    },
+    {
+      id: "skirt",
+      label: "Skirt",
+      hint: "Cut the flared skirt",
+      path: skirtPath(),
+      closed: true,
+      assemble: { x: 0.5, y: 0.68, scale: 1.05, layer: 3 },
+    },
+  ],
+};
+
+/** Future levels stubbed lightly so progression unlock feels real */
+const LEVELS = [LEVEL_1];
+
+function getUnlockMessage(stars) {
+  if (stars >= 3) return "Unlocked: Rose Petal fabric!";
+  if (stars >= 2) return "Unlocked: Soft linen weave!";
+  if (stars >= 1) return "Keep practicing for new fabrics!";
+  return "Try again for a cleaner cut.";
+}
+
+
+/** Path geometry helpers for cutting accuracy */
+
+function dist(a, b) {
+  const dx = a.x - b.x;
+  const dy = a.y - b.y;
+  return Math.hypot(dx, dy);
+}
+
+function lerp(a, b, t) {
+  return a + (b - a) * t;
+}
+
+function lerpPoint(a, b, t) {
+  return { x: lerp(a.x, b.x, t), y: lerp(a.y, b.y, t) };
+}
+
+/** Densify a closed/open path into evenly spaced samples (in fabric-local px) */
+function densifyPath(points, closed, spacing = 6) {
+  if (!points.length) return [];
+  const pts = points.slice();
+  if (closed) pts.push(points[0]);
+
+  const samples = [];
+  let carry = 0;
+  for (let i = 0; i < pts.length - 1; i++) {
+    const a = pts[i];
+    const b = pts[i + 1];
+    const len = dist(a, b);
+    if (len < 0.001) continue;
+    let d = carry;
+    while (d <= len) {
+      const t = d / len;
+      samples.push(lerpPoint(a, b, t));
+      d += spacing;
+    }
+    carry = d - len;
+  }
+  if (!samples.length) samples.push({ ...points[0] });
+  return samples;
+}
+
+function pathLength(points, closed) {
+  const pts = points.slice();
+  if (closed && pts.length) pts.push(pts[0]);
+  let total = 0;
+  for (let i = 0; i < pts.length - 1; i++) total += dist(pts[i], pts[i + 1]);
+  return total;
+}
+
+/** Nearest point on polyline + segment index + distance */
+function nearestOnPath(samples, point) {
+  let best = { index: 0, dist: Infinity, point: samples[0] };
+  for (let i = 0; i < samples.length; i++) {
+    const d = dist(samples[i], point);
+    if (d < best.dist) {
+      best = { index: i, dist: d, point: samples[i] };
+    }
+  }
+  return best;
+}
+
+/** Convert normalized path → fabric pixel coords */
+function toFabricSpace(normPoints, fabric) {
+  return normPoints.map((p) => ({
+    x: fabric.x + p.x * fabric.w,
+    y: fabric.y + p.y * fabric.h,
+  }));
+}
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function gradeFromAccuracy(acc) {
+  if (acc >= 0.92) return { key: "perfect", label: "Perfect Cut!", stars: 3 };
+  if (acc >= 0.78) return { key: "good", label: "Good Cut!", stars: 2 };
+  if (acc >= 0.55) return { key: "messy", label: "Messy Cut", stars: 1 };
+  return { key: "rough", label: "Rough Cut", stars: 0 };
+}
+
+function easeOutCubic(t) {
+  return 1 - Math.pow(1 - t, 3);
+}
+
+function easeInOutCubic(t) {
+  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+}
+
+
+/** Tiny Web Audio feedback — no assets required */
+
+let ctx = null;
+let muted = false;
+
+function ac() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === "suspended") ctx.resume();
+  return ctx;
+}
+
+function setMuted(v) {
+  muted = v;
+}
+
+function isMuted() {
+  return muted;
+}
+
+function beep({ freq = 440, dur = 0.08, type = "sine", gain = 0.05, slide = 0 }) {
+  if (muted) return;
+  try {
+    const c = ac();
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, c.currentTime);
+    if (slide) o.frequency.linearRampToValueAtTime(freq + slide, c.currentTime + dur);
+    g.gain.setValueAtTime(gain, c.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, c.currentTime + dur);
+    o.connect(g);
+    g.connect(c.destination);
+    o.start();
+    o.stop(c.currentTime + dur);
+  } catch {
+    /* ignore */
+  }
+}
+
+function snipSound() {
+  beep({ freq: 820, dur: 0.05, type: "triangle", gain: 0.035, slide: -120 });
+}
+
+function perfectSound() {
+  beep({ freq: 520, dur: 0.1, type: "sine", gain: 0.05, slide: 180 });
+  setTimeout(() => beep({ freq: 780, dur: 0.12, type: "sine", gain: 0.04 }), 70);
+}
+
+function sewSound() {
+  beep({ freq: 360, dur: 0.06, type: "square", gain: 0.02, slide: 40 });
+}
+
+function revealSound() {
+  [440, 554, 659, 880].forEach((f, i) => {
+    setTimeout(() => beep({ freq: f, dur: 0.14, type: "sine", gain: 0.045 }), i * 90);
+  });
+}
+
+function tapSound() {
+  beep({ freq: 600, dur: 0.04, type: "triangle", gain: 0.03 });
+}
+
+
+/** Fabric patterns, dress drawing, particles */
+
+function paintFabricPattern(ctx, fabric, x, y, w, h, def) {
+  ctx.save();
+  ctx.beginPath();
+  roundedRect(ctx, x, y, w, h, 18);
+  ctx.clip();
+
+  // Base cloth
+  const g = ctx.createLinearGradient(x, y, x + w, y + h);
+  g.addColorStop(0, tint(def.base, 1.08));
+  g.addColorStop(0.5, def.base);
+  g.addColorStop(1, tint(def.base, 0.88));
+  ctx.fillStyle = g;
+  ctx.fillRect(x, y, w, h);
+
+  // Soft weave noise
+  ctx.globalAlpha = 0.12;
+  for (let i = 0; i < 90; i++) {
+    const px = x + Math.random() * w;
+    const py = y + Math.random() * h;
+    ctx.fillStyle = Math.random() > 0.5 ? "#fff" : "#000";
+    ctx.fillRect(px, py, 1.5, 1.5);
+  }
+  ctx.globalAlpha = 1;
+
+  if (def.pattern === "dots") {
+    ctx.fillStyle = def.secondary;
+    const step = 22;
+    for (let row = 0; row < h / step + 1; row++) {
+      for (let col = 0; col < w / step + 1; col++) {
+        const ox = x + col * step + (row % 2 ? step / 2 : 0);
+        const oy = y + row * step;
+        ctx.beginPath();
+        ctx.arc(ox, oy, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = def.accent;
+        ctx.beginPath();
+        ctx.arc(ox - 1, oy - 1, 1.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = def.secondary;
+      }
+    }
+  } else if (def.pattern === "stripes") {
+    ctx.strokeStyle = def.secondary;
+    ctx.lineWidth = 10;
+    ctx.globalAlpha = 0.85;
+    for (let i = -h; i < w + h; i += 22) {
+      ctx.beginPath();
+      ctx.moveTo(x + i, y);
+      ctx.lineTo(x + i + h * 0.35, y + h);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.35;
+    ctx.strokeStyle = def.accent;
+    ctx.lineWidth = 2;
+    for (let i = -h; i < w + h; i += 22) {
+      ctx.beginPath();
+      ctx.moveTo(x + i + 8, y);
+      ctx.lineTo(x + i + 8 + h * 0.35, y + h);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  } else if (def.pattern === "gingham") {
+    const cell = 18;
+    for (let row = 0; row < h / cell + 1; row++) {
+      for (let col = 0; col < w / cell + 1; col++) {
+        const on = (row + col) % 2 === 0;
+        ctx.fillStyle = on ? def.secondary : def.base;
+        ctx.globalAlpha = on ? 0.75 : 0.35;
+        ctx.fillRect(x + col * cell, y + row * cell, cell, cell);
+      }
+    }
+    ctx.globalAlpha = 0.25;
+    ctx.strokeStyle = def.accent;
+    ctx.lineWidth = 1;
+    for (let i = 0; i < w; i += cell) {
+      ctx.beginPath();
+      ctx.moveTo(x + i, y);
+      ctx.lineTo(x + i, y + h);
+      ctx.stroke();
+    }
+    for (let i = 0; i < h; i += cell) {
+      ctx.beginPath();
+      ctx.moveTo(x, y + i);
+      ctx.lineTo(x + w, y + i);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  // Soft fold shadows
+  ctx.globalAlpha = 0.18;
+  const fold = ctx.createLinearGradient(x, y, x + w * 0.4, y + h);
+  fold.addColorStop(0, "transparent");
+  fold.addColorStop(0.45, "#000");
+  fold.addColorStop(1, "transparent");
+  ctx.fillStyle = fold;
+  ctx.fillRect(x, y, w, h);
+  ctx.globalAlpha = 0.12;
+  const fold2 = ctx.createRadialGradient(
+    x + w * 0.7,
+    y + h * 0.3,
+    10,
+    x + w * 0.7,
+    y + h * 0.3,
+    w * 0.5
+  );
+  fold2.addColorStop(0, "#fff");
+  fold2.addColorStop(1, "transparent");
+  ctx.fillStyle = fold2;
+  ctx.fillRect(x, y, w, h);
+  ctx.globalAlpha = 1;
+
+  // Cloth edge stitch
+  ctx.strokeStyle = "rgba(255,255,255,0.35)";
+  ctx.setLineDash([4, 6]);
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  roundedRect(ctx, x + 6, y + 6, w - 12, h - 12, 14);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  ctx.restore();
+
+  // Drop shadow under fabric
+  ctx.save();
+  ctx.shadowColor = "rgba(20,56,54,0.28)";
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetY = 10;
+  ctx.strokeStyle = "rgba(0,0,0,0.01)";
+  ctx.beginPath();
+  roundedRect(ctx, x, y, w, h, 18);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function roundedRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+function tint(hex, factor) {
+  const { r, g, b } = hexToRgb(hex);
+  const t = (c) => Math.max(0, Math.min(255, Math.round(c * factor)));
+  return `rgb(${t(r)},${t(g)},${t(b)})`;
+}
+
+function hexToRgb(hex) {
+  const h = hex.replace("#", "");
+  return {
+    r: parseInt(h.slice(0, 2), 16),
+    g: parseInt(h.slice(2, 4), 16),
+    b: parseInt(h.slice(4, 6), 16),
+  };
+}
+
+function drawGuidePath(ctx, samples, progress, dashOffset) {
+  if (samples.length < 2) return;
+
+  // Soft glow under guide
+  ctx.save();
+  ctx.strokeStyle = "rgba(255,255,255,0.55)";
+  ctx.lineWidth = 10;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(samples[0].x, samples[0].y);
+  for (let i = 1; i < samples.length; i++) ctx.lineTo(samples[i].x, samples[i].y);
+  ctx.closePath();
+  ctx.stroke();
+
+  // Stitched cutting line
+  ctx.strokeStyle = "#143836";
+  ctx.lineWidth = 2.4;
+  ctx.setLineDash([5, 7]);
+  ctx.lineDashOffset = -dashOffset;
+  ctx.beginPath();
+  ctx.moveTo(samples[0].x, samples[0].y);
+  for (let i = 1; i < samples.length; i++) ctx.lineTo(samples[i].x, samples[i].y);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Covered portion in coral
+  const covered = Math.floor(samples.length * progress);
+  if (covered > 1) {
+    ctx.strokeStyle = "#ff6b6b";
+    ctx.lineWidth = 3.2;
+    ctx.shadowColor = "rgba(255,107,107,0.45)";
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(samples[0].x, samples[0].y);
+    for (let i = 1; i <= covered && i < samples.length; i++) {
+      ctx.lineTo(samples[i].x, samples[i].y);
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+
+  // Start marker
+  const s = samples[0];
+  ctx.fillStyle = "#ff6b6b";
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, 7, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = "#fff";
+  ctx.beginPath();
+  ctx.arc(s.x, s.y, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function drawPlayerCut(ctx, trail) {
+  if (trail.length < 2) return;
+  ctx.save();
+  ctx.strokeStyle = "rgba(20, 56, 54, 0.55)";
+  ctx.lineWidth = 2;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.beginPath();
+  ctx.moveTo(trail[0].x, trail[0].y);
+  for (let i = 1; i < trail.length; i++) ctx.lineTo(trail[i].x, trail[i].y);
+  ctx.stroke();
+
+  // Tiny white “snip” highlight
+  ctx.strokeStyle = "rgba(255,255,255,0.65)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(trail[0].x, trail[0].y);
+  for (let i = 1; i < trail.length; i++) ctx.lineTo(trail[i].x, trail[i].y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawCutPiece(ctx, samples, fabricDef, alpha = 1, ox = 0, oy = 0, scale = 1) {
+  if (samples.length < 3) return;
+  let cx = 0;
+  let cy = 0;
+  samples.forEach((p) => {
+    cx += p.x;
+    cy += p.y;
+  });
+  cx /= samples.length;
+  cy /= samples.length;
+
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(cx + ox, cy + oy);
+  ctx.scale(scale, scale);
+  ctx.translate(-cx, -cy);
+
+  ctx.beginPath();
+  ctx.moveTo(samples[0].x, samples[0].y);
+  for (let i = 1; i < samples.length; i++) ctx.lineTo(samples[i].x, samples[i].y);
+  ctx.closePath();
+  ctx.clip();
+
+  const bounds = boundsOf(samples);
+  paintFabricPattern(
+    ctx,
+    null,
+    bounds.minX - 20,
+    bounds.minY - 20,
+    bounds.maxX - bounds.minX + 40,
+    bounds.maxY - bounds.minY + 40,
+    fabricDef
+  );
+
+  ctx.restore();
+
+  // Outline
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(ox, oy);
+  ctx.strokeStyle = "rgba(20,56,54,0.35)";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(samples[0].x, samples[0].y);
+  for (let i = 1; i < samples.length; i++) ctx.lineTo(samples[i].x, samples[i].y);
+  ctx.closePath();
+  ctx.stroke();
+  ctx.restore();
+}
+
+function boundsOf(samples) {
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (const p of samples) {
+    minX = Math.min(minX, p.x);
+    minY = Math.min(minY, p.y);
+    maxX = Math.max(maxX, p.x);
+    maxY = Math.max(maxY, p.y);
+  }
+  return { minX, minY, maxX, maxY };
+}
+
+/** Draw finished dress on a soft mannequin */
+function drawDress(ctx, w, h, fabricDef, quality = 1, assembleT = 1, stitchT = 0) {
+  ctx.clearRect(0, 0, w, h);
+
+  // Soft room
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, "#eef8f5");
+  bg.addColorStop(1, "#d8eee7");
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+
+  const cx = w * 0.5;
+  const top = h * 0.12;
+  const wobble = (1 - quality) * 6;
+
+  // Mannequin stand
+  ctx.strokeStyle = "rgba(20,56,54,0.25)";
+  ctx.lineWidth = 3;
+  ctx.beginPath();
+  ctx.moveTo(cx, h * 0.82);
+  ctx.lineTo(cx, h * 0.94);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(cx, h * 0.95, 28, 6, 0, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // Mannequin torso hint
+  ctx.fillStyle = "rgba(20,56,54,0.08)";
+  ctx.beginPath();
+  ctx.ellipse(cx, top + 18, 16, 12, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const dressAlpha = Math.min(1, assembleT * 1.2);
+  ctx.save();
+  ctx.globalAlpha = dressAlpha;
+  ctx.translate(cx, top + h * 0.35);
+  ctx.scale(0.92 + assembleT * 0.08, 0.92 + assembleT * 0.08);
+  ctx.translate(-cx, -(top + h * 0.35));
+
+  // Dress silhouette
+  ctx.beginPath();
+  ctx.moveTo(cx - 34 + wobble * 0.3, top + 28);
+  ctx.quadraticCurveTo(cx - 22, top + 8, cx - 14, top + 22); // left neck
+  ctx.quadraticCurveTo(cx, top + 34, cx + 14, top + 22);
+  ctx.quadraticCurveTo(cx + 22, top + 8, cx + 34 - wobble * 0.3, top + 28);
+  ctx.quadraticCurveTo(cx + 42, top + 55, cx + 36, top + 78); // right side
+  ctx.quadraticCurveTo(cx + 48 + wobble, top + 130, cx + 58 + wobble, top + 190);
+  ctx.quadraticCurveTo(cx + 20, top + 205, cx, top + 208);
+  ctx.quadraticCurveTo(cx - 20, top + 205, cx - 58 - wobble, top + 190);
+  ctx.quadraticCurveTo(cx - 48 - wobble, top + 130, cx - 36, top + 78);
+  ctx.quadraticCurveTo(cx - 42, top + 55, cx - 34 + wobble * 0.3, top + 28);
+  ctx.closePath();
+
+  ctx.save();
+  ctx.clip();
+  paintFabricPattern(ctx, null, cx - 70, top, 140, 220, fabricDef);
+
+  // Waist dart / seam lines
+  ctx.strokeStyle = "rgba(20,56,54,0.2)";
+  ctx.lineWidth = 1.2;
+  ctx.beginPath();
+  ctx.moveTo(cx, top + 40);
+  ctx.lineTo(cx, top + 100);
+  ctx.stroke();
+  ctx.restore();
+
+  // Outline
+  ctx.strokeStyle = "rgba(20,56,54,0.35)";
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  // Stitching animation
+  if (stitchT > 0) {
+    ctx.setLineDash([4, 6]);
+    ctx.lineDashOffset = -stitchT * 40;
+    ctx.strokeStyle = "rgba(255,255,255,0.75)";
+    ctx.lineWidth = 1.6;
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Buttons
+  if (quality > 0.6 && assembleT > 0.85) {
+    ctx.fillStyle = "#fff8e8";
+    for (let i = 0; i < 3; i++) {
+      const by = top + 52 + i * 18;
+      ctx.beginPath();
+      ctx.arc(cx, by, 3.2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = "rgba(20,56,54,0.25)";
+      ctx.stroke();
+    }
+  }
+
+  ctx.restore();
+}
+
+function spawnFibers(layer, x, y, color) {
+  for (let i = 0; i < 4; i++) {
+    const el = document.createElement("div");
+    el.className = "fiber";
+    const dx = (Math.random() - 0.5) * 40;
+    const dy = -8 - Math.random() * 28;
+    const rot = `${(Math.random() - 0.5) * 120}deg`;
+    el.style.left = `${x}px`;
+    el.style.top = `${y}px`;
+    el.style.background = color;
+    el.style.setProperty("--dx", `${dx}px`);
+    el.style.setProperty("--dy", `${dy}px`);
+    el.style.setProperty("--rot", rot);
+    layer.appendChild(el);
+    setTimeout(() => el.remove(), 560);
+  }
+}
+
+
+const STATE = {
+  CUT: "cut",
+  SEPARATE: "separate",
+  ASSEMBLE: "assemble",
+  RESULT: "result",
+};
+
+class Game {
+  constructor(root) {
+    this.root = root;
+    this.canvas = root.querySelector("#gameCanvas");
+    this.ctx = this.canvas.getContext("2d");
+    this.targetCanvas = root.querySelector("#targetCanvas");
+    this.targetCtx = this.targetCanvas.getContext("2d");
+    this.resultCanvas = root.querySelector("#resultCanvas");
+    this.resultCtx = this.resultCanvas.getContext("2d");
+
+    this.fxLayer = root.querySelector("#fxLayer");
+    this.scissors = root.querySelector("#scissors");
+    this.cutHud = root.querySelector("#cutHud");
+    this.accuracyRing = root.querySelector("#accuracyRing");
+    this.accuracyPct = root.querySelector("#accuracyPct");
+    this.cutProgressFill = root.querySelector("#cutProgressFill");
+    this.gradeToast = root.querySelector("#gradeToast");
+    this.stageHint = root.querySelector("#stageHint");
+    this.targetTitle = root.querySelector("#targetTitle");
+    this.targetPiece = root.querySelector("#targetPiece");
+    this.pieceDots = root.querySelector("#pieceDots");
+    this.resultOverlay = root.querySelector("#resultOverlay");
+    this.soundBtn = root.querySelector("#soundBtn");
+    this.demoContinue = root.querySelector("#demoContinue");
+
+    this.level = LEVEL_1;
+    this.fabric = FABRICS[0];
+    this.pieceIndex = 0;
+    this.state = STATE.CUT;
+    this.pieceScores = [];
+
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.fabricRect = { x: 0, y: 0, w: 0, h: 0 };
+    this.samples = [];
+    this.covered = [];
+    this.trail = [];
+    this.cutting = false;
+    this.liveAccuracy = 1;
+    this.progress = 0;
+    this.errorAccum = 0;
+    this.errorSamples = 0;
+    this.dashOffset = 0;
+    this.lastSnip = 0;
+    this.cutPieces = [];
+    this.anim = null;
+    this.lastFrame = 0;
+    this.cssW = 0;
+    this.cssH = 0;
+
+    this.demo = {
+      index: 0,
+      pauseUntil: 0,
+      fabricCycle: 0,
+      loopTimer: null,
+    };
+
+    this._onResize = () => this.resize();
+    this._loop = (t) => this.frame(t);
+
+    this.soundBtn.addEventListener("click", () => {
+      setMuted(!isMuted());
+      this.soundBtn.textContent = isMuted() ? "🔇" : "♪";
+    });
+    window.addEventListener("resize", this._onResize);
+
+    this.targetTitle.textContent = this.level.name;
+    this.resize();
+    requestAnimationFrame(this._loop);
+    // Start demo immediately
+    requestAnimationFrame(() => this.startDemo());
+  }
+
+  clearDemoLoop() {
+    if (this.demo.loopTimer) {
+      clearTimeout(this.demo.loopTimer);
+      this.demo.loopTimer = null;
+    }
+  }
+
+  startDemo({ sameFabric = false } = {}) {
+    this.clearDemoLoop();
+    this.resultOverlay.hidden = true;
+    this.root.classList.add("demo-mode", "playing");
+
+    if (!sameFabric) {
+      this.fabric = FABRICS[this.demo.fabricCycle % FABRICS.length];
+      this.demo.fabricCycle += 1;
+    }
+
+    this.pieceIndex = 0;
+    this.pieceScores = [];
+    this.cutPieces = [];
+    this.trail = [];
+    this.anim = null;
+    this.cutting = false;
+    this.demo.index = 0;
+    this.demo.pauseUntil = performance.now() + 400;
+
+    this.cutHud.hidden = false;
+    this.drawTargetPreview();
+    this.buildPieceDots();
+    this.startPiece(0);
+    this.resize();
+  }
+
+  buildPieceDots() {
+    this.pieceDots.innerHTML = "";
+    this.level.pieces.forEach((_, i) => {
+      const d = document.createElement("span");
+      d.className = "piece-dot";
+      if (i < this.pieceIndex) d.classList.add("done");
+      if (i === this.pieceIndex && this.state === STATE.CUT) d.classList.add("active");
+      this.pieceDots.appendChild(d);
+    });
+  }
+
+  startPiece(index) {
+    this.pieceIndex = index;
+    this.state = STATE.CUT;
+    this.trail = [];
+    this.cutting = false;
+    this.progress = 0;
+    this.liveAccuracy = 1;
+    this.errorAccum = 0;
+    this.errorSamples = 0;
+    this.anim = null;
+    this.demo.index = 0;
+    this.demo.pauseUntil = performance.now() + 380;
+    this.cutHud.hidden = false;
+
+    const piece = this.level.pieces[index];
+    this.targetPiece.textContent = `${this.fabric.name} · ${piece.label}`;
+    this.stageHint.textContent = `Cutting ${piece.label.toLowerCase()}…`;
+    this.stageHint.classList.remove("dim");
+    this.buildPieceDots();
+    this.layoutPath();
+    this.updateCutHud();
+  }
+
+  layoutPath() {
+    const piece = this.level.pieces[this.pieceIndex];
+    const px = toFabricSpace(piece.path, this.fabricRect);
+    this.samples = densifyPath(px, piece.closed, 5);
+    this.covered = new Array(this.samples.length).fill(false);
+  }
+
+  resize() {
+    const stage = this.root.querySelector(".stage");
+    const rect = stage.getBoundingClientRect();
+    const w = Math.max(1, Math.floor(rect.width));
+    const h = Math.max(1, Math.floor(rect.height));
+    this.canvas.width = Math.floor(w * this.dpr);
+    this.canvas.height = Math.floor(h * this.dpr);
+    this.canvas.style.width = `${w}px`;
+    this.canvas.style.height = `${h}px`;
+    this.ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    this.cssW = w;
+    this.cssH = h;
+
+    const padX = w * 0.07;
+    const padTop = h * 0.08;
+    const padBot = h * 0.14;
+    this.fabricRect = {
+      x: padX,
+      y: padTop,
+      w: w - padX * 2,
+      h: h - padTop - padBot,
+    };
+
+    if (this.state === STATE.CUT || this.state === STATE.SEPARATE) {
+      this.layoutPath();
+    }
+    this.drawTargetPreview();
+  }
+
+  updateDemo(now, dt) {
+    if (this.state !== STATE.CUT) return;
+    if (now < this.demo.pauseUntil) return;
+    if (!this.samples.length) return;
+
+    this.cutting = true;
+    this.scissors.hidden = false;
+    this.stageHint.classList.add("dim");
+
+    const speed = 100;
+    this.demo.index = Math.min(
+      this.samples.length - 1,
+      this.demo.index + (speed * dt) / 1000
+    );
+
+    const i = Math.floor(this.demo.index);
+    const a = this.samples[i];
+    const b = this.samples[Math.min(this.samples.length - 1, i + 1)];
+    const t = this.demo.index - i;
+
+    const wobble = Math.sin(now / 90) * 1.2 + Math.sin(now / 140) * 0.8;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const len = Math.hypot(dx, dy) || 1;
+    const nx = -dy / len;
+    const ny = dx / len;
+
+    const p = {
+      x: a.x + (b.x - a.x) * t + nx * wobble,
+      y: a.y + (b.y - a.y) * t + ny * wobble,
+    };
+
+    this.trail.push(p);
+    if (this.trail.length > 400) this.trail.shift();
+    this.moveScissors(p.x, p.y, true);
+    this.processCutPoint(p);
+  }
+
+  moveScissors(x, y, cutting) {
+    this.scissors.style.transform = `translate(${x}px, ${y}px) rotate(${cutting ? -40 : -25}deg)`;
+    this.scissors.classList.toggle("cutting", !!cutting);
+  }
+
+  processCutPoint(p) {
+    const near = nearestOnPath(this.samples, p);
+    const goodRadius = Math.min(this.fabricRect.w, this.fabricRect.h) * 0.055;
+    const okRadius = goodRadius * 1.85;
+
+    if (near.dist < okRadius * 1.6) {
+      const closeness = clamp(1 - near.dist / okRadius, 0, 1);
+      this.errorAccum += closeness;
+      this.errorSamples += 1;
+      this.liveAccuracy = this.errorSamples
+        ? this.errorAccum / this.errorSamples
+        : 1;
+    }
+
+    if (near.dist <= okRadius) {
+      const window = 4;
+      for (
+        let i = Math.max(0, near.index - window);
+        i <= Math.min(this.samples.length - 1, near.index + window);
+        i++
+      ) {
+        if (dist(this.samples[i], p) <= okRadius) this.covered[i] = true;
+      }
+
+      const now = performance.now();
+      if (now - this.lastSnip > 55) {
+        snipSound();
+        spawnFibers(this.fxLayer, p.x, p.y, this.fabric.secondary || "#fff");
+        this.lastSnip = now;
+        this.canvas.classList.remove("shake");
+        void this.canvas.offsetWidth;
+        this.canvas.classList.add("shake");
+      }
+    }
+
+    this.progress = this.covered.filter(Boolean).length / this.samples.length;
+    this.updateCutHud();
+
+    if (this.progress >= 0.92) this.completePiece();
+  }
+
+  updateCutHud() {
+    const pct = Math.round(this.liveAccuracy * 100);
+    this.accuracyPct.textContent = String(pct);
+    const circ = 163.36;
+    this.accuracyRing.style.strokeDashoffset = String(circ * (1 - this.liveAccuracy));
+    if (this.liveAccuracy >= 0.92) this.accuracyRing.style.stroke = "#2a9b8f";
+    else if (this.liveAccuracy >= 0.78) this.accuracyRing.style.stroke = "#f4c15d";
+    else this.accuracyRing.style.stroke = "#ff6b6b";
+    this.cutProgressFill.style.width = `${Math.round(this.progress * 100)}%`;
+  }
+
+  completePiece() {
+    if (this.state !== STATE.CUT) return;
+    this.cutting = false;
+    this.state = STATE.SEPARATE;
+
+    const acc = this.liveAccuracy;
+    const grade = gradeFromAccuracy(acc);
+    this.pieceScores.push({ accuracy: acc, grade });
+    this.showGrade(grade.label);
+
+    if (grade.key === "perfect") perfectSound();
+    else snipSound();
+
+    const piece = this.level.pieces[this.pieceIndex];
+    this.cutPieces.push({
+      id: piece.id,
+      samples: this.samples.map((p) => ({ ...p })),
+      assemble: piece.assemble,
+      score: acc,
+    });
+
+    this.anim = {
+      type: "separate",
+      t0: performance.now(),
+      dur: 780,
+      samples: this.samples.map((p) => ({ ...p })),
+    };
+    this.scissors.hidden = true;
+  }
+
+  showGrade(label) {
+    this.gradeToast.hidden = false;
+    this.gradeToast.textContent = label;
+    this.gradeToast.classList.remove("show");
+    void this.gradeToast.offsetWidth;
+    this.gradeToast.classList.add("show");
+  }
+
+  advanceAfterSeparate() {
+    const next = this.pieceIndex + 1;
+    if (next < this.level.pieces.length) this.startPiece(next);
+    else this.beginAssemble();
+  }
+
+  beginAssemble() {
+    this.state = STATE.ASSEMBLE;
+    this.cutHud.hidden = true;
+    this.stageHint.textContent = "Sewing the dress…";
+    this.stageHint.classList.remove("dim");
+    this.anim = { type: "assemble", t0: performance.now(), dur: 2200 };
+    let sewTicks = 0;
+    this._sewInterval = setInterval(() => {
+      sewSound();
+      sewTicks += 1;
+      if (sewTicks > 10) clearInterval(this._sewInterval);
+    }, 140);
+  }
+
+  finishAssemble() {
+    if (this._sewInterval) clearInterval(this._sewInterval);
+    this.state = STATE.RESULT;
+    this.showResults();
+  }
+
+  showResults() {
+    const cutting =
+      this.pieceScores.reduce((s, p) => s + p.accuracy, 0) /
+      Math.max(1, this.pieceScores.length);
+    const pattern = clamp(0.85 + cutting * 0.15, 0, 1);
+    const quality = cutting * 0.65 + pattern * 0.35;
+    const stars = gradeFromAccuracy(quality).stars;
+
+    const titles = ["Keep practicing!", "Nice dress!", "Beautiful!", "Perfect Cut!"];
+    this.root.querySelector("#resultTitle").textContent = titles[stars];
+    this.root.querySelector("#scoreCutting").textContent = `${Math.round(cutting * 100)}%`;
+    this.root.querySelector("#scorePattern").textContent = `${Math.round(pattern * 100)}%`;
+    this.root.querySelector("#scoreQuality").textContent = `${Math.round(quality * 100)}%`;
+
+    const starsEl = this.root.querySelector("#resultStars");
+    starsEl.innerHTML = "";
+    for (let i = 0; i < 3; i++) {
+      const s = document.createElement("span");
+      s.className = "star";
+      s.textContent = "★";
+      starsEl.appendChild(s);
+      if (i < stars) setTimeout(() => s.classList.add("lit"), 220 + i * 180);
+      else {
+        s.style.opacity = "1";
+        s.style.transform = "scale(1)";
+      }
+    }
+
+    const note = this.root.querySelector("#unlockNote");
+    note.hidden = false;
+    note.textContent = getUnlockMessage(stars);
+
+    const nextFabric = FABRICS[this.demo.fabricCycle % FABRICS.length];
+    if (this.demoContinue) {
+      this.demoContinue.textContent = `Next up: ${nextFabric.name}…`;
+    }
+
+    this.resultOverlay.hidden = false;
+    this.resultQuality = quality;
+    this.drawResultDress(1, 1);
+    revealSound();
+    this.stageHint.textContent = "Dress complete!";
+
+    this.clearDemoLoop();
+    this.demo.loopTimer = setTimeout(() => {
+      this.resultOverlay.hidden = true;
+      this.startDemo();
+    }, 3800);
+  }
+
+  drawTargetPreview() {
+    drawDress(
+      this.targetCtx,
+      this.targetCanvas.width,
+      this.targetCanvas.height,
+      this.fabric || FABRICS[0],
+      1,
+      1,
+      0.5
+    );
+  }
+
+  drawResultDress(assembleT, stitchT) {
+    drawDress(
+      this.resultCtx,
+      this.resultCanvas.width,
+      this.resultCanvas.height,
+      this.fabric || FABRICS[0],
+      this.resultQuality ?? 1,
+      assembleT,
+      stitchT
+    );
+  }
+
+  frame(now) {
+    const dt = this.lastFrame ? Math.min(50, now - this.lastFrame) : 16;
+    this.lastFrame = now;
+    this.dashOffset = (this.dashOffset + 0.6) % 40;
+    this.updateDemo(now, dt);
+    this.draw(now);
+    requestAnimationFrame(this._loop);
+  }
+
+  draw(now) {
+    const ctx = this.ctx;
+    const w = this.cssW;
+    const h = this.cssH;
+    if (!w || !h) return;
+
+    ctx.clearRect(0, 0, w, h);
+    const table = ctx.createLinearGradient(0, 0, 0, h);
+    table.addColorStop(0, "#f7fcfa");
+    table.addColorStop(1, "#e4f3ed");
+    ctx.fillStyle = table;
+    ctx.fillRect(0, 0, w, h);
+    this.drawTableProps(ctx, w, h);
+
+    const fr = this.fabricRect;
+    const fabric = this.fabric || FABRICS[0];
+
+    this.drawFabricWithHoles(ctx, fr, fabric);
+
+    if (this.state === STATE.CUT) {
+      drawGuidePath(ctx, this.samples, this.progress, this.dashOffset);
+      drawPlayerCut(ctx, this.trail);
+      ctx.fillStyle = "rgba(20,56,54,0.7)";
+      ctx.font = `800 13px Nunito, sans-serif`;
+      ctx.textAlign = "left";
+      const piece = this.level.pieces[this.pieceIndex];
+      ctx.fillText(piece.label.toUpperCase(), fr.x + 12, fr.y + 22);
+    }
+
+    if (this.state === STATE.SEPARATE && this.anim) {
+      const t = clamp((now - this.anim.t0) / this.anim.dur, 0, 1);
+      const e = easeOutCubic(t);
+      drawGuidePath(ctx, this.anim.samples, 1, this.dashOffset);
+      drawCutPiece(ctx, this.anim.samples, fabric, 1 - e * 0.15, 0, -e * 90, 1 + e * 0.08);
+      if (t >= 1) {
+        this.anim = null;
+        this.advanceAfterSeparate();
+      }
+    }
+
+    if (this.state === STATE.ASSEMBLE && this.anim) {
+      const t = clamp((now - this.anim.t0) / this.anim.dur, 0, 1);
+      this.drawAssembly(ctx, w, h, fabric, t);
+      drawDress(
+        this.targetCtx,
+        this.targetCanvas.width,
+        this.targetCanvas.height,
+        fabric,
+        this.avgAccuracy(),
+        easeInOutCubic(t),
+        t
+      );
+      if (t >= 1) {
+        this.anim = null;
+        this.finishAssemble();
+      }
+    }
+
+    if (this.state === STATE.RESULT) {
+      this.drawAssembly(ctx, w, h, fabric, 1);
+    }
+  }
+
+  avgAccuracy() {
+    if (!this.pieceScores.length) return 1;
+    return (
+      this.pieceScores.reduce((s, p) => s + p.accuracy, 0) / this.pieceScores.length
+    );
+  }
+
+  drawFabricWithHoles(ctx, fr, fabric) {
+    ctx.save();
+    ctx.beginPath();
+    roundedPath(ctx, fr.x, fr.y, fr.w, fr.h, 18);
+    const holes =
+      this.state === STATE.SEPARATE ? this.cutPieces.slice(0, -1) : this.cutPieces;
+    for (const piece of holes) pathFromSamples(ctx, piece.samples, true);
+    ctx.clip("evenodd");
+    paintFabricPattern(ctx, null, fr.x, fr.y, fr.w, fr.h, fabric);
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = "rgba(20,56,54,0.12)";
+    ctx.setLineDash([3, 5]);
+    ctx.lineWidth = 1.5;
+    for (const piece of holes) {
+      ctx.beginPath();
+      pathFromSamples(ctx, piece.samples, false);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  drawAssembly(ctx, w, h, fabric, t) {
+    const fr = this.fabricRect;
+    ctx.save();
+    ctx.beginPath();
+    roundedPath(ctx, fr.x, fr.y, fr.w, fr.h, 18);
+    ctx.clip();
+    const g = ctx.createLinearGradient(fr.x, fr.y, fr.x, fr.y + fr.h);
+    g.addColorStop(0, "#eef8f5");
+    g.addColorStop(1, "#d5ebe4");
+    ctx.fillStyle = g;
+    ctx.fillRect(fr.x, fr.y, fr.w, fr.h);
+
+    const quality = this.avgAccuracy();
+    const localT = easeInOutCubic(t);
+    const sorted = [...this.cutPieces].sort(
+      (a, b) => (a.assemble.layer || 0) - (b.assemble.layer || 0)
+    );
+
+    sorted.forEach((piece, i) => {
+      const start = i / sorted.length;
+      const pt = clamp((localT - start) / (1 - start + 0.001), 0, 1);
+      const e = easeOutCubic(pt);
+      const targetX = fr.x + piece.assemble.x * fr.w;
+      const targetY = fr.y + piece.assemble.y * fr.h;
+      let cx = 0;
+      let cy = 0;
+      piece.samples.forEach((p) => {
+        cx += p.x;
+        cy += p.y;
+      });
+      cx /= piece.samples.length;
+      cy /= piece.samples.length;
+      const ox = (targetX - cx) * e;
+      const oy = (targetY - cy) * e - (1 - e) * 40;
+      const sc = lerp(1, piece.assemble.scale || 1, e);
+      drawCutPiece(ctx, piece.samples, fabric, 0.35 + e * 0.65, ox, oy, sc);
+    });
+
+    if (localT > 0.55) {
+      const dressT = (localT - 0.55) / 0.45;
+      const offscreen = document.createElement("canvas");
+      offscreen.width = Math.floor(fr.w);
+      offscreen.height = Math.floor(fr.h);
+      const octx = offscreen.getContext("2d");
+      drawDress(octx, offscreen.width, offscreen.height, fabric, quality, dressT, localT);
+      ctx.globalAlpha = dressT;
+      ctx.drawImage(offscreen, fr.x, fr.y, fr.w, fr.h);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  drawTableProps(ctx, w, h) {
+    ctx.save();
+    ctx.translate(w - 36, 28);
+    ctx.rotate(0.3);
+    ctx.fillStyle = "#f4c15d";
+    ctx.fillRect(-28, -5, 56, 10);
+    ctx.fillStyle = "rgba(20,56,54,0.25)";
+    for (let i = -24; i < 24; i += 6) ctx.fillRect(i, -5, 1.5, 4);
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(28, h - 36);
+    ctx.fillStyle = "#ff6b6b";
+    ctx.beginPath();
+    ctx.arc(0, 0, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = "rgba(20,56,54,0.45)";
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 4);
+    ctx.lineTo(0, 16);
+    ctx.stroke();
+    ctx.restore();
+  }
+}
+
+
+function roundedPath(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
+}
+
+function pathFromSamples(ctx, samples) {
+  if (!samples.length) return;
+  ctx.moveTo(samples[0].x, samples[0].y);
+  for (let i = 1; i < samples.length; i++) ctx.lineTo(samples[i].x, samples[i].y);
+  ctx.closePath();
+}
+
+
+const app = document.getElementById("app");
+new Game(app);
+document.addEventListener("touchmove", (e) => {
+  if (e.target.closest && e.target.closest("#gameCanvas, .stage")) e.preventDefault();
+}, { passive: false });
+</script>
+</body>
+</html>
