@@ -173,6 +173,16 @@ const Icon = {
       <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 1 0 20.354 15.354Z" />
     </svg>
   ),
+  paperclip: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+    </svg>
+  ),
+  file: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+    </svg>
+  ),
 }
 
 // ─── Brand mark ───────────────────────────────────────────────────────────────
@@ -1257,6 +1267,54 @@ function GameIframeCard({
 
 const QUICK_PILLS = ['Bolder', 'Simpler', 'Add leaderboard', 'Stronger CTA']
 
+// ─── Chat attachments ───────────────────────────────────────────────────────
+
+interface Attachment {
+  id: string
+  name: string
+  size: number
+  type: string
+  url: string
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+// Attachment thumbnails rendered inside a sent/received message bubble —
+// images get a compact photo grid, everything else gets a file chip.
+function AttachmentPreviewGroup({ attachments, align }: { attachments: Attachment[]; align: 'start' | 'end' }) {
+  const images = attachments.filter(a => a.type.startsWith('image/'))
+  const files = attachments.filter(a => !a.type.startsWith('image/'))
+  return (
+    <div className={`flex flex-col gap-2 ${align === 'end' ? 'items-end' : 'items-start'}`}>
+      {images.length > 0 && (
+        <div className={`flex flex-wrap gap-2 ${align === 'end' ? 'justify-end' : 'justify-start'}`}>
+          {images.map(a => (
+            <img
+              key={a.id}
+              src={a.url}
+              alt={a.name}
+              className="w-28 h-28 object-cover rounded-xl border border-border"
+            />
+          ))}
+        </div>
+      )}
+      {files.map(a => (
+        <div key={a.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card max-w-[240px]">
+          <span className="text-muted-foreground flex-shrink-0">{Icon.file('w-4 h-4')}</span>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-foreground truncate">{a.name}</p>
+            <p className="text-[10px] text-muted-foreground">{formatFileSize(a.size)}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 // Completed-step marker, left behind once an in-progress animation finishes
 function StepDone({ label }: { label: string }) {
   return (
@@ -1315,16 +1373,33 @@ function ReasoningBlock({ text }: { text: string }) {
   )
 }
 
-function TextBubble({ role, text, reasoning }: { role: 'assistant' | 'user'; text: string; reasoning?: string }) {
+function TextBubble({
+  role,
+  text,
+  reasoning,
+  attachments,
+}: {
+  role: 'assistant' | 'user'
+  text: string
+  reasoning?: string
+  attachments?: Attachment[]
+}) {
   return (
     <Bubble role={role}>
       {role === 'assistant' && reasoning && <ReasoningBlock text={reasoning} />}
-      <div className={`text-sm px-4 py-2 rounded-2xl ${
-        role === 'assistant'
-          ? 'bg-secondary text-foreground rounded-tl-sm '
-          : 'bg-primary text-white rounded-tr-sm'
-      }`}>
-        {text}
+      <div className={`flex flex-col gap-2 ${role === 'user' ? 'items-end' : 'items-start'}`}>
+        {attachments && attachments.length > 0 && (
+          <AttachmentPreviewGroup attachments={attachments} align={role === 'user' ? 'end' : 'start'} />
+        )}
+        {text && (
+          <div className={`text-sm px-4 py-2 rounded-2xl ${
+            role === 'assistant'
+              ? 'bg-secondary text-foreground rounded-tl-sm '
+              : 'bg-primary text-white rounded-tr-sm'
+          }`}>
+            {text}
+          </div>
+        )}
       </div>
     </Bubble>
   )
@@ -1332,7 +1407,7 @@ function TextBubble({ role, text, reasoning }: { role: 'assistant' | 'user'; tex
 
 function ChatScreen() {
   const [stage, setStage] = useState<FlowStage>('idle')
-  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; reasoning?: string }>>([])
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; reasoning?: string; attachments?: Attachment[] }>>([])
   const [input, setInput] = useState('')
   const [inputBusy, setInputBusy] = useState(false)
   const [selectedAge, setSelectedAge] = useState<string | null>(null)
@@ -1340,8 +1415,10 @@ function ChatScreen() {
   const [selectedStyles, setSelectedStyles] = useState<Record<string, string>>({})
   const [playingGameFile, setPlayingGameFile] = useState<string | null>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const atConcepts = stage === 'concepts' || stage === 'finalizing' || stage === 'done'
   const atDone = stage === 'done'
@@ -1367,14 +1444,37 @@ function ChatScreen() {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`
   }, [input])
 
-  function addMsg(role: 'assistant' | 'user', text: string, reasoning?: string) {
-    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, reasoning }])
+  function addMsg(role: 'assistant' | 'user', text: string, reasoning?: string, msgAttachments?: Attachment[]) {
+    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, reasoning, attachments: msgAttachments }])
+  }
+
+  function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    const next: Attachment[] = files.map(file => ({
+      id: `${Date.now()}-${Math.random()}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+    }))
+    setAttachments(prev => [...prev, ...next])
+    e.target.value = ''
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments(prev => {
+      const target = prev.find(a => a.id === id)
+      if (target) URL.revokeObjectURL(target.url)
+      return prev.filter(a => a.id !== id)
+    })
   }
 
   async function handleBriefSend(text: string) {
-    if (!text.trim() || inputBusy) return
-    addMsg('user', text)
+    if ((!text.trim() && attachments.length === 0) || inputBusy) return
+    addMsg('user', text, undefined, attachments.length > 0 ? attachments : undefined)
     setInput('')
+    setAttachments([])
     setInputBusy(true)
     setStage('cooking')
     await new Promise(r => setTimeout(r, 2600))
@@ -1436,6 +1536,8 @@ function ChatScreen() {
     setCustomAge('')
     setSelectedStyles({})
     setInputBusy(false)
+    attachments.forEach(a => URL.revokeObjectURL(a.url))
+    setAttachments([])
   }
 
   return (
@@ -1495,7 +1597,7 @@ function ChatScreen() {
         {messages.length > 0 && (
           <div className="max-w-[1075px] mx-auto space-y-5">
             {messages.map(m => (
-              <TextBubble key={m.id} role={m.role} text={m.text} reasoning={m.reasoning} />
+              <TextBubble key={m.id} role={m.role} text={m.text} reasoning={m.reasoning} attachments={m.attachments} />
             ))}
 
             {/* ── Cooking animation ── */}
@@ -1672,7 +1774,47 @@ function ChatScreen() {
             ))}
           </div>
         )}
+        {attachments.length > 0 && (
+          <div className="max-w-[640px] mx-auto flex gap-2 flex-wrap mb-3 pointer-events-auto">
+            {attachments.map(a => (
+              <div key={a.id} className="relative flex items-center gap-2 pl-2 pr-6 py-1.5 rounded-xl border border-border bg-card shadow-sm">
+                {a.type.startsWith('image/') ? (
+                  <img src={a.url} alt={a.name} className="w-8 h-8 object-cover rounded-lg flex-shrink-0" />
+                ) : (
+                  <span className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
+                    {Icon.file('w-3.5 h-3.5')}
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{a.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatFileSize(a.size)}</p>
+                </div>
+                <button
+                  onClick={() => removeAttachment(a.id)}
+                  title="Remove"
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full bg-muted hover:bg-secondary flex items-center justify-center text-muted-foreground"
+                >
+                  {Icon.close('w-2.5 h-2.5')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
         <div className="max-w-[640px] mx-auto flex gap-2.5 items-end pointer-events-auto">
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFilesSelected}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Attach file"
+            className="w-[46px] h-[46px] rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors flex-shrink-0"
+          >
+            {Icon.paperclip('w-4 h-4')}
+          </button>
           <textarea
             ref={textareaRef}
             value={input}
@@ -1684,7 +1826,7 @@ function ChatScreen() {
           />
           <button
             onClick={() => handleBriefSend(input)}
-            disabled={!input.trim()}
+            disabled={!input.trim() && attachments.length === 0}
             className="w-[46px] h-[46px] btn-neon disabled:opacity-40 disabled:shadow-none text-white rounded-full flex items-center justify-center transition-opacity hover:opacity-90 flex-shrink-0"
           >
             {inputBusy ? (
