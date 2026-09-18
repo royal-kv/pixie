@@ -169,27 +169,26 @@
   --font-sans: 'Nunito', ui-sans-serif, system-ui, sans-serif;
   --font-heading: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
 
-  /* Type scale — 70% smaller than the previous 32px-base pass (now ~9.6px
-     base), ~1.25 modular ratio. Headings (xl and up) get a tighter
-     line-height (~1.1–1.4); body copy (lg and below) gets a looser one
-     (~1.5–1.6). */
-  --text-xs: 0.95rem;    /* ~15.2px */
+  /* Type scale — Tailwind's standard scale. Headings (xl and up) get a
+     tighter line-height (~1.1–1.4); body copy (lg and below) gets a looser
+     one (~1.5–1.6). */
+  --text-xs: 0.75rem;    /* 12px */
   --text-xs--line-height: 1.5;
-  --text-sm: 1.1rem;     /* ~17.6px */
+  --text-sm: 0.875rem;   /* 14px */
   --text-sm--line-height: 1.5;
-  --text-base: 1.26rem;  /* ~20.2px */
+  --text-base: 1rem;     /* 16px */
   --text-base--line-height: 1.6;
-  --text-lg: 1.42rem;    /* ~22.7px */
+  --text-lg: 1.125rem;   /* 18px */
   --text-lg--line-height: 1.6;
-  --text-xl: 1.57rem;    /* ~25.1px */
+  --text-xl: 1.25rem;    /* 20px */
   --text-xl--line-height: 1.4;
-  --text-2xl: 1.89rem;   /* ~30.2px */
+  --text-2xl: 1.5rem;    /* 24px */
   --text-2xl--line-height: 1.3;
-  --text-3xl: 2.36rem;   /* ~37.8px */
+  --text-3xl: 1.875rem;  /* 30px */
   --text-3xl--line-height: 1.25;
-  --text-4xl: 2.83rem;   /* ~45.3px */
+  --text-4xl: 2.25rem;   /* 36px */
   --text-4xl--line-height: 1.2;
-  --text-5xl: 3.78rem;   /* ~60.5px */
+  --text-5xl: 3rem;      /* 48px */
   --text-5xl--line-height: 1.1;
 
   /* Font weights — 400 body, 500/600 subheadings & labels, 700 headings.

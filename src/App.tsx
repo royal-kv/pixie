@@ -212,9 +212,9 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   const [password, setPassword] = useState('')
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-ink flex items-center justify-center p-6">
+    <div className="min-h-screen relative overflow-y-auto overflow-x-hidden bg-ink flex p-6">
       {/* Drifting photo wall backdrop */}
-      <div className="absolute inset-0">
+      <div className="fixed inset-0">
         <DriftWall
           items={LANDING_WALL_ITEMS}
           columns={7}
@@ -232,12 +232,12 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
       </div>
       {/* Scrim for text legibility */}
       <div
-        className="absolute inset-0 pointer-events-none"
+        className="fixed inset-0 pointer-events-none"
         style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(6,7,14,0.92) 0%, rgba(6,7,14,0.55) 55%, rgba(6,7,14,0.25) 100%)' }}
       />
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md text-center">
+      <div className="relative z-10 w-full max-w-md text-center m-auto">
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-white mb-5 shadow-lg shadow-blue-500/25">
           <PixieMark className="w-7 h-7" />
         </div>
@@ -345,39 +345,39 @@ function Sidebar({
     <aside
       className={`
         fixed lg:static inset-y-0 left-0 z-40 flex flex-col
-        w-[360px] bg-sidebar text-sidebar-foreground border-r border-sidebar-border
+        w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border
         transition-transform duration-200
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-6 border-b border-border">
-        <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center flex-shrink-0">
-          <PixieMark className="w-4 h-4" />
+      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-border">
+        <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center flex-shrink-0">
+          <PixieMark className="w-3.5 h-3.5" />
         </div>
-        <span className="text-lg font-bold text-foreground">Pixie</span>
-        <span className="ml-auto text-xs font-semibold tracking-widest text-blue-400 uppercase bg-primary/10 px-3 py-1.5 rounded-full">Beta</span>
+        <span className="text-sm font-bold text-foreground">Pixie</span>
+        <span className="ml-auto text-[10px] font-semibold tracking-widest text-blue-400 uppercase bg-primary/10 px-2 py-1 rounded-full">Beta</span>
       </div>
 
       {/* Search */}
-      <div className="px-5 py-4">
-        <div className="flex items-center gap-2 bg-muted rounded-full px-4 py-3">
+      <div className="px-3 py-3">
+        <div className="flex items-center gap-2 bg-muted rounded-full px-3 py-2">
           {Icon.search('w-3.5 h-3.5 text-gray-400 flex-shrink-0')}
           <input
             placeholder="Search campaigns…"
-            className="bg-transparent text-sm outline-none text-foreground placeholder:text-muted-foreground w-full"
+            className="bg-transparent text-xs outline-none text-foreground placeholder:text-muted-foreground w-full"
           />
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="px-4 space-y-2">
+      <nav className="px-3 space-y-1">
         <GlareHover
           width="100%"
           height="auto"
           background="transparent"
           borderColor="transparent"
-          borderRadius="0.75rem"
+          borderRadius="0.5rem"
           glareColor="#5865F2"
           glareOpacity={0.35}
           glareAngle={-30}
@@ -389,14 +389,14 @@ function Sidebar({
           onClick={() => onNav('home')}
           onMouseEnter={() => setHoveredNav('home')}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors animate-rise-in hover-lift ${
             nav === 'home'
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
           style={{ '--rise-delay': '0s' } as React.CSSProperties}
         >
-          {Icon.home('w-5 h-5')}
+          {Icon.home('w-4 h-4')}
           Home
         </button>
         </GlareHover>
@@ -405,7 +405,7 @@ function Sidebar({
           height="auto"
           background="transparent"
           borderColor="transparent"
-          borderRadius="0.75rem"
+          borderRadius="0.5rem"
           glareColor="#5865F2"
           glareOpacity={0.35}
           glareAngle={-30}
@@ -417,14 +417,14 @@ function Sidebar({
           onClick={() => onNav('create')}
           onMouseEnter={() => setHoveredNav('create')}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors animate-rise-in hover-lift ${
             nav === 'create'
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
           style={{ '--rise-delay': '0.05s' } as React.CSSProperties}
         >
-          {Icon.sparkles('w-5 h-5')}
+          {Icon.sparkles('w-4 h-4')}
           Create game
         </button>
         </GlareHover>
@@ -433,7 +433,7 @@ function Sidebar({
           height="auto"
           background="transparent"
           borderColor="transparent"
-          borderRadius="0.75rem"
+          borderRadius="0.5rem"
           glareColor="#5865F2"
           glareOpacity={0.35}
           glareAngle={-30}
@@ -445,50 +445,50 @@ function Sidebar({
           onClick={() => onNav('games')}
           onMouseEnter={() => setHoveredNav('games')}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors animate-rise-in hover-lift ${
             nav === 'games'
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
           style={{ '--rise-delay': '0.1s' } as React.CSSProperties}
         >
-          {Icon.gamepad('w-5 h-5')}
+          {Icon.gamepad('w-4 h-4')}
           Created games
         </button>
         </GlareHover>
       </nav>
 
       {/* Recent campaigns */}
-      <div className="mt-6 px-5 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3 px-1">Recent campaigns</p>
-        <div className="space-y-2">
+      <div className="mt-4 px-3 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">Recent campaigns</p>
+        <div className="space-y-1">
           {campaigns.map((c, i) => (
             <button
               key={c.id}
               onClick={() => onCampaignClick(c.id)}
               style={{ '--rise-delay': `${0.15 + i * 0.05}s` } as React.CSSProperties}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-muted transition-colors group animate-rise-in hover-lift"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors group animate-rise-in hover-lift"
             >
               <p className="text-sm font-medium text-foreground group-hover:text-foreground truncate">{c.name}</p>
-              <p className="text-xs text-muted-foreground mt-1">{c.games} game{c.games !== 1 ? 's' : ''} · {c.updatedAt}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{c.games} game{c.games !== 1 ? 's' : ''} · {c.updatedAt}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="p-5 border-t border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+      <div className="p-3 border-t border-border">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
             JD
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">jamie@brandco.io</p>
+            <p className="text-xs font-medium text-foreground truncate">jamie@brandco.io</p>
           </div>
           <button
             onClick={onSignOut}
             title="Sign out"
-            className="p-2.5 rounded-lg text-gray-400 hover:text-muted-foreground hover:bg-secondary transition-colors"
+            className="p-2 rounded-lg text-gray-400 hover:text-muted-foreground hover:bg-secondary transition-colors"
           >
             {Icon.logout('w-3.5 h-3.5')}
           </button>
@@ -1143,12 +1143,8 @@ function GameIframeCard({
   onPlay: () => void
 }) {
   return (
-    <div className="flex-shrink-0 w-[307px] bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-      <div className="h-6 bg-blue-400 flex items-center px-3 gap-2">
-        <span className="text-white text-xs font-bold tracking-wide">{game.genre}</span>
-        <span className="ml-auto text-white/60 text-xs">LIVE PREVIEW</span>
-      </div>
-      <div className="relative bg-muted" style={{ height: 432 }}>
+    <div className="flex-shrink-0 w-[264px] min-[1400px]:w-[307px] bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="relative bg-muted aspect-[307/432]">
         <iframe
           src={game.file}
           className="w-full h-full border-0 pointer-events-none"
@@ -1178,6 +1174,12 @@ function GameIframeCard({
             </label>
           ))}
         </div>
+        <button
+          onClick={onPlay}
+          className="mt-3 w-full py-2 rounded-full text-xs font-semibold bg-primary text-white hover:bg-primary/90 transition-colors"
+        >
+          Try this
+        </button>
       </div>
     </div>
   )
@@ -1530,6 +1532,14 @@ function ChatScreen() {
                   <StepDone label="Generated 3 game variants" />
                 )}
               </Bubble>
+            )}
+
+            {/* ── Selection guidance ── */}
+            {atConcepts && (
+              <TextBubble
+                role="assistant"
+                text="Pick the game that's ready to go, or customize a new one — for each variant, choose an Aesthetic, Concept, and Pace to remix it into something new."
+              />
             )}
 
             {/* ── 3 game iframes, each with its own style options ── */}
