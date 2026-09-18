@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <title>Lead Catcher 🧺</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --gd: #1A3D28; --gm: #3D9B5F; --gl: #A8D5B8; --gp: #D4F0E4;
+      --gold: #FFB830; --red: #E85A5A; --gray: #8F9B8F;
+    }
+    * { margin:0; padding:0; box-sizing:border-box;
+        -webkit-tap-highlight-color:transparent; user-select:none; touch-action:manipulation; }
+
+    html, body {
+      width:100%; height:100%; height:100dvh; overflow:hidden;
+      background: linear-gradient(155deg, #F0F9E8 0%, #D4F0E4 55%, #C2EAD8 100%);
+      font-family: 'Press Start 2P', 'Courier New', monospace;
+    }
+    body::before {
+      content:''; position:fixed; inset:0; pointer-events:none; z-index:0;
+      background-image:
+        linear-gradient(rgba(61,155,95,.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(61,155,95,.05) 1px, transparent 1px);
+      background-size: 24px 24px;
+    }
+
+    #app {
+      width:100%; height:100%; height:100dvh;
+      position:relative; overflow:hidden; max-width:480px; margin:0 auto; z-index:1;
+    }
+
+    .screen {
+      position:absolute; inset:0; display:flex;
+      flex-direction:column; align-items:center; justify-content:center;
+      gap:20px; text-align:center; padding:28px;
+    }
+    .hidden { display:none !important; }
+
+    /* ── Splash ─────────────────────────── */
+    .s-title {
+      font-size:clamp(24px,8vw,36px); color:var(--gd); line-height:1.3;
+      text-shadow: 4px 4px 0 var(--gl), 7px 7px 0 rgba(0,0,0,.07);
+    }
+    .s-title em { color:var(--gm); font-style:normal; }
+
+    .s-rules {
+      background:rgba(255,255,255,.7); border:3px solid var(--gl);
+      padding:14px 18px; width:100%; max-width:300px;
+      display:flex; flex-direction:column; gap:10px;
+    }
+    .s-rule { display:flex; align-items:center; gap:10px; font-size:6px; color:var(--gray); }
+    .s-dot  { width:20px; height:20px; flex-shrink:0; border:2px solid rgba(0,0,0,.1); }
+
+    .btn {
+      font-family:'Press Start 2P',monospace; font-size:10px; border:none;
+      cursor:pointer; letter-spacing:1px; transition:transform .05s; padding:14px 32px;
+    }
+    .btn:active { transform:translate(2px,2px); }
+    .btn-green {
+      background:var(--gm); color:white;
+      box-shadow:4px 4px 0 var(--gd); width:100%; max-width:260px;
+    }
+    .btn-green:active { box-shadow:2px 2px 0 var(--gd); }
+    .btn-ghost {
+      background:transparent; color:var(--gray); font-size:7px;
+      padding:8px 14px; border:2px solid var(--gl); cursor:pointer;
+    }
+    .btn-ghost:active { background:var(--gp); }
+
+    .blink { font-size:8px; color:var(--gm); animation:blink .8s step-end infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    /* ── Game HUD ───────────────────────── */
+    #hud {
+      position:absolute; top:0; left:0; right:0; z-index:20;
+      background:var(--gd); color:white; pointer-events:none;
+      padding:10px 18px; display:flex; align-items:center;
+      justify-content:space-between; flex-shrink:0;
+    }
+    #hud .h-score { font-size:9px; line-height:1.9; }
+    #hud .h-score span { color:var(--gold); font-size:14px; }
+    #hud .h-lives  { font-size:13px; letter-spacing:3px; }
+
+    /* ── Game Over ──────────────────────── */
+    #gameover .go-score {
+      font-size:9px; color:var(--gd); line-height:2;
+    }
+    #gameover .go-score span { color:var(--gold); font-size:18px; }
+
+    .go-cta {
+      background:linear-gradient(135deg,#F0F9E8,#D4F0E4);
+      border:3px solid var(--gm); padding:16px 20px;
+      display:flex; flex-direction:column; gap:8px; align-items:center;
+      width:100%; max-width:300px; text-align:center;
+    }
+    .go-cta-msg { font-size:clamp(8px,2.5vw,10px); color:var(--gd); line-height:2; }
+    .go-cta-msg em { color:var(--gm); font-style:normal; }
+    .go-cta-sub { font-size:6px; color:var(--gm); }
+    .go-cta-link {
+      font-family:'Press Start 2P',monospace; font-size:8px;
+      background:var(--gm); color:white; padding:10px 18px;
+      text-decoration:none; box-shadow:3px 3px 0 var(--gd);
+      display:inline-block;
+    }
+    .go-cta-link:active { transform:translate(2px,2px); box-shadow:1px 1px 0 var(--gd); }
+
+    /* ── Score popup ────────────────────── */
+    .spop {
+      position:absolute; pointer-events:none; z-index:30;
+      font-family:'Press Start 2P',monospace; font-size:11px;
+      animation:popfl .85s ease-out forwards;
+    }
+    @keyframes popfl {
+      0%  { opacity:1; transform:translateY(0) scale(1); }
+      100%{ opacity:0; transform:translateY(-55px) scale(.8); }
+    }
+
+    /* ── Canvas ─────────────────────────── */
+    #gameCanvas {
+      position:absolute; inset:0; width:100%; height:100%;
+      image-rendering:pixelated; display:block;
+    }
+  </style>
+</head>
+<body>
+<div id="app">
+
+  <!-- ══ SPLASH ══ -->
+  <div id="splash" class="screen">
+    <div class="s-title">LEAD<br><em>CATCHER</em></div>
+
+    <div class="s-rules">
+      <div class="s-rule">
+        <div class="s-dot" style="background:#3D9B5F"></div>
+        Catch GREEN leads — they're gold!
+      </div>
+      <div class="s-rule">
+        <div class="s-dot" style="background:#C83030"></div>
+        Dodge RED leads — they cost you!
+      </div>
+      <div class="s-rule">
+        <div class="s-dot" style="background:#8F9B8F"></div>
+        Miss a green one — lose a life!
+      </div>
+    </div>
+
+    <button class="btn btn-green" id="startBtn">▶ START</button>
+    <div class="blink">DRAG TO MOVE BASKET</div>
+  </div>
+
+  <!-- ══ GAME ══ -->
+  <div id="game" class="screen hidden" style="padding:0;">
+    <canvas id="gameCanvas"></canvas>
+    <div id="hud">
+      <div class="h-score">SCORE<br><span id="scoreDisp">0</span></div>
+      <div class="h-lives" id="livesDisp">♥♥♥</div>
+    </div>
+    <!-- popups injected here -->
+  </div>
+
+  <!-- ══ GAME OVER ══ -->
+  <div id="gameover" class="screen hidden">
+    <div class="s-title" style="font-size:clamp(20px,7vw,28px)">GAME<br><em style="color:var(--red)">OVER!</em></div>
+
+    <div class="go-score">YOUR SCORE<br><span id="finalScore">0</span></div>
+
+    <div class="go-cta">
+      <div class="go-cta-msg">Managing your leads<br>doesn't have to be this <em>tough.</em></div>
+      <div class="go-cta-sub">Try CoFee LMS — smart leads, zero chaos.</div>
+      <a class="go-cta-link" href="https://www.cofee.life" target="_blank">Visit CoFee →</a>
+    </div>
+
+    <button class="btn btn-green" id="restartBtn">↺ PLAY AGAIN</button>
+  </div>
+
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   LEAD CATCHER — Canvas arcade game
+   Same CoFee aesthetic as Lead Rush
+   ═══════════════════════════════════════════════ */
+
+const $ = id => document.getElementById(id);
+const canvas  = $('gameCanvas');
+const ctx     = canvas.getContext('2d');
+ctx.imageSmoothingEnabled = false;
+
+// ── Palette ──────────────────────────────────────
+const PAL = {
+  face:'#FFDBA4', eye:'#1A1A2E', cheek:'#FFB090', mouth:'#C07060',
+  leg:'#2C3E50', shoe:'#1A2838', greenMid:'#3D9B5F', greenDark:'#1A3D28',
+  greenLight:'#A8D5B8', gold:'#FFB830', red:'#E85A5A',
+};
+const GOOD_B = ['#3D9B5F','#2AACAC','#7CB820','#3A90A0'];
+const GOOD_D = ['#1E5030','#107060','#487010','#1A6070'];
+const BAD_B  = ['#C83030','#A02080','#C05010','#8A2040'];
+const BAD_D  = ['#801010','#601050','#803010','#501020'];
+const HAIRS  = ['#3D1800','#5C3A1E','#1A1040','#8B4513'];
+
+// ── Character pixel drawing ───────────────────────
+const S = 3; // scale: 1 logical px = 3 canvas px
+const CW = 10 * S; // char width  = 30px
+const CH = 15 * S; // char height = 45px
+
+function drawChar(cx, cy, isGood, v = 0) {
+  const B = isGood ? GOOD_B[v] : BAD_B[v];
+  const D = isGood ? GOOD_D[v] : BAD_D[v];
+  const H = HAIRS[v];
+  const p = (x, y, w, h, c) => {
+    ctx.fillStyle = c;
+    ctx.fillRect(cx + x*S, cy + y*S, w*S, h*S);
+  };
+
+  // body + limbs (back)
+  for (let y=8; y<=11; y++) p(1,y,8,1,B);
+  p(0,9,1,2,D); p(9,9,1,2,D);              // arms
+  p(2,12,2,2,PAL.leg); p(6,12,2,2,PAL.leg);// legs
+  p(1,14,3,1,PAL.shoe); p(5,14,3,1,PAL.shoe);// shoes
+
+  // head
+  for (let y=1; y<=7; y++) p(1,y,8,1,PAL.face);
+
+  // hair (on top of head)
+  p(3,0,4,1,H); p(2,1,6,1,H);
+
+  // angry brows (bad)
+  if (!isGood) {
+    p(2,3,2,1,PAL.eye); p(6,3,2,1,PAL.eye);
+    p(3,2,1,1,PAL.eye); p(6,2,1,1,PAL.eye);
+  }
+
+  // eyes
+  p(2,4,2,1,PAL.eye); p(6,4,2,1,PAL.eye);
+  if (isGood) { p(2,4,1,1,'#fff'); p(6,4,1,1,'#fff'); } // glint
+
+  // cheeks
+  p(1,5,1,1,PAL.cheek); p(8,5,1,1,PAL.cheek);
+
+  // mouth
+  if (isGood) {
+    p(3,6,1,1,PAL.mouth); p(6,6,1,1,PAL.mouth);
+    p(4,7,2,1,PAL.mouth);
+  } else {
+    p(3,6,4,1,PAL.mouth);
+    p(3,7,1,1,PAL.mouth); p(6,7,1,1,PAL.mouth);
+  }
+
+  // hands
+  p(0,11,1,1,PAL.face); p(9,11,1,1,PAL.face);
+}
+
+// ── Basket ────────────────────────────────────────
+const BH = 28; // basket height
+let BW  = 88;  // basket width (set on resize)
+const GROUND = 14;
+
+function drawBasket(bx, by) {
+  const x = bx - BW/2;
+  // shadow
+  ctx.fillStyle = 'rgba(26,61,40,.18)';
+  ctx.fillRect(x+4, by+BH+2, BW, 5);
+  // main body
+  ctx.fillStyle = '#A0724A';
+  ctx.fillRect(x, by, BW, BH);
+  // weave horizontal lines
+  ctx.fillStyle = '#6B3E1C';
+  for (let j=0; j<BH; j+=8) ctx.fillRect(x, by+j, BW, 3);
+  // weave vertical lines
+  for (let i=0; i<BW; i+=10) ctx.fillRect(x+i, by, 3, BH);
+  // dark inner shadow
+  ctx.fillStyle = 'rgba(0,0,0,.12)';
+  ctx.fillRect(x+4, by+4, BW-8, BH-6);
+  // rim top highlight
+  ctx.fillStyle = '#C09060';
+  ctx.fillRect(x-2, by, BW+4, 5);
+  // rim bottom
+  ctx.fillStyle = '#6B3E1C';
+  ctx.fillRect(x-2, by+BH-3, BW+4, 3);
+}
+
+// ── Background ────────────────────────────────────
+function drawBackground() {
+  // gradient fill
+  const g = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+  g.addColorStop(0,   '#F0F9E8');
+  g.addColorStop(0.5, '#D4F0E4');
+  g.addColorStop(1,   '#C2EAD8');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // pixel grid
+  ctx.strokeStyle = 'rgba(61,155,95,.07)';
+  ctx.lineWidth = 1;
+  for (let x=0; x<canvas.width; x+=24) {
+    ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,canvas.height); ctx.stroke();
+  }
+  for (let y=0; y<canvas.height; y+=24) {
+    ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(canvas.width,y); ctx.stroke();
+  }
+  // grass ground
+  ctx.fillStyle = '#3D9B5F';
+  ctx.fillRect(0, canvas.height - GROUND, canvas.width, GROUND);
+  ctx.fillStyle = '#7CB820';
+  ctx.fillRect(0, canvas.height - GROUND, canvas.width, 5);
+  // pixel grass tufts
+  ctx.fillStyle = '#5AB030';
+  for (let x=8; x<canvas.width; x+=18) {
+    ctx.fillRect(x, canvas.height - GROUND - 3, 3, 3);
+    ctx.fillRect(x+5, canvas.height - GROUND - 5, 3, 5);
+    ctx.fillRect(x+10, canvas.height - GROUND - 2, 3, 2);
+  }
+}
+
+// ── Game state ────────────────────────────────────
+// ── Demo / Auto-play mode ────────────────────────────
+// Set to true to have the game play itself (useful for arcade display)
+const DEMO_MODE = true;
+
+let gs       = {};
+let leads    = [];
+let ptcls    = [];
+let basketX  = 0;
+let tgtX     = 0;
+let spawnT   = 0;
+let lastT    = 0;
+let raf      = null;
+let flashClr = null;
+let flashA   = 0;
+const HUD_H  = 48;
+
+// ── Spawn a lead ──────────────────────────────────
+function spawnLead() {
+  if (leads.length >= 7) return;
+  const isGood = gs.badOn ? Math.random() < 0.65 : true;
+  const v      = Math.floor(Math.random() * 4);
+  const margin = CW;
+  const bx     = margin + Math.random() * (canvas.width - margin*2);
+  leads.push({
+    isGood, v,
+    baseX: bx, x: bx, y: HUD_H - CH,
+    speed: 70 + gs.lvl * 22 + Math.random() * 30,
+    wobble: Math.random() * Math.PI * 2,
+    wAmp: 6 + Math.random() * 8,
+    done: false,
+  });
+}
+
+// ── Particles ─────────────────────────────────────
+function burst(x, y, color, n=16) {
+  for (let i=0; i<n; i++) {
+    const a = (Math.PI*2*i)/n;
+    const s = 3 + Math.random()*6;
+    ptcls.push({ x, y, vx:Math.cos(a)*s, vy:Math.sin(a)*s-2,
+                 size:4+Math.random()*5, color, life:1, decay:.022+Math.random()*.02 });
+  }
+}
+
+// ── Score popup ───────────────────────────────────
+function scorePop(text, x, y, color) {
+  const el = document.createElement('div');
+  el.className = 'spop';
+  el.textContent = text;
+  el.style.cssText = `left:${x-28}px;top:${y}px;color:${color};`;
+  $('game').appendChild(el);
+  setTimeout(() => el.remove(), 900);
+}
+
+// ── HUD update ────────────────────────────────────
+function updHUD() {
+  $('scoreDisp').textContent = gs.score.toLocaleString();
+  const h = $('livesDisp');
+  h.textContent = '♥'.repeat(gs.lives) + '♡'.repeat(Math.max(0, 3-gs.lives));
+  h.style.color = gs.lives <= 1 ? PAL.red : PAL.gold;
+}
+
+// ── Sound ─────────────────────────────────────────
+let AC = null;
+function snd(type) {
+  if (window !== window.top) return; // muted when embedded in iframe
+  try {
+    if (!AC) AC = new (window.AudioContext || window.webkitAudioContext)();
+    const o = AC.createOscillator(), g = AC.createGain();
+    o.connect(g); g.connect(AC.destination);
+    const t = AC.currentTime;
+    if (type === 'good') {
+      o.type = 'square';
+      o.frequency.setValueAtTime(440,t); o.frequency.setValueAtTime(660,t+.06);
+      g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.2);
+      o.start(t); o.stop(t+.2);
+    } else if (type === 'bad') {
+      o.type = 'sawtooth';
+      o.frequency.setValueAtTime(200,t); o.frequency.setValueAtTime(120,t+.1);
+      g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.2);
+      o.start(t); o.stop(t+.2);
+    } else {
+      o.type = 'triangle';
+      o.frequency.setValueAtTime(280,t); o.frequency.setValueAtTime(180,t+.12);
+      g.gain.setValueAtTime(.06,t); g.gain.exponentialRampToValueAtTime(.001,t+.22);
+      o.start(t); o.stop(t+.22);
+    }
+  } catch(e) {}
+}
+
+// ── Main loop ─────────────────────────────────────
+function loop(now) {
+  if (!gs.running) return;
+  raf = requestAnimationFrame(loop);
+
+  const dt = Math.min((now - lastT) / 1000, 0.05);
+  lastT = now;
+  gs.elapsed += dt;
+
+  // Difficulty ramp
+  gs.lvl  = Math.floor(gs.elapsed / 9);
+  gs.badOn = gs.elapsed > 8;
+  const interval = Math.max(700, 2100 - gs.lvl * 160);
+
+  // Spawn
+  spawnT -= dt * 1000;
+  if (spawnT <= 0) { spawnLead(); spawnT = interval; }
+
+  // Demo AI: steer basket toward nearest good lead, away from bad ones
+  if (DEMO_MODE) {
+    const basketY = canvas.height - GROUND - BH;
+    let bestTarget = null, bestScore = -Infinity;
+    for (const l of leads) {
+      if (l.done) continue;
+      const distY = basketY - l.y; // positive = lead above basket
+      if (distY < 0) continue;     // already passed
+      const proximity = 1 / (distY + 1);
+      const score = l.isGood ? proximity : -proximity * 2;
+      if (score > bestScore) { bestScore = score; bestTarget = l; }
+    }
+    if (bestTarget) {
+      tgtX = bestTarget.isGood
+        ? bestTarget.x                          // intercept good lead
+        : (bestTarget.x < canvas.width / 2     // dodge bad lead
+            ? canvas.width * 0.75
+            : canvas.width * 0.25);
+    }
+    tgtX = Math.max(BW / 2, Math.min(canvas.width - BW / 2, tgtX));
+  }
+
+  // Smooth basket
+  basketX += (tgtX - basketX) * 0.16;
+
+  const basketY = canvas.height - GROUND - BH;
+
+  // Update leads
+  for (const l of leads) {
+    if (l.done) continue;
+    l.y      += l.speed * dt;
+    l.wobble += 2.8 * dt;
+    l.x       = l.baseX + Math.sin(l.wobble) * l.wAmp;
+
+    // Catch check — when character bottom enters basket zone
+    const bottom = l.y + CH;
+    if (bottom >= basketY && bottom <= basketY + BH + 10) {
+      if (l.x >= basketX - BW/2 && l.x <= basketX + BW/2) {
+        l.done = true;
+        if (l.isGood) {
+          const pts = 10 + gs.lvl * 3;
+          gs.score += pts;
+          burst(l.x, basketY, PAL.greenMid);
+          scorePop('+'+pts, l.x, basketY - 20, PAL.greenMid);
+          flashClr = PAL.greenMid; flashA = 0.22;
+          snd('good');
+        } else {
+          gs.lives--;
+          burst(l.x, basketY, PAL.red);
+          scorePop('-1 ♥', l.x, basketY - 20, PAL.red);
+          flashClr = PAL.red; flashA = 0.3;
+          snd('bad');
+          if (gs.lives <= 0) { gs.running = false; setTimeout(endGame, 450); }
+        }
+        updHUD();
+        continue;
+      }
+    }
+
+    // Miss check
+    if (l.y > canvas.height + 20) {
+      l.done = true;
+      if (l.isGood) {
+        gs.lives--;
+        flashClr = PAL.red; flashA = 0.2;
+        snd('miss');
+        scorePop('MISSED!', l.x, canvas.height - GROUND - 30, PAL.red);
+        if (gs.lives <= 0) { gs.running = false; setTimeout(endGame, 450); }
+        updHUD();
+      }
+    }
+  }
+  leads  = leads.filter(l => !l.done);
+
+  // Update particles
+  ptcls.forEach(p => { p.x+=p.vx; p.y+=p.vy; p.vy+=0.28; p.life-=p.decay; });
+  ptcls = ptcls.filter(p => p.life > 0);
+
+  // ── Draw ──────────────────────────────
+  drawBackground();
+
+  // Lead shadows on ground
+  for (const l of leads) {
+    const prog = Math.max(0, Math.min(1, (l.y - HUD_H) / (basketY - HUD_H)));
+    const sw = 6 + prog * 14;
+    const sa = 0.07 + prog * 0.18;
+    ctx.fillStyle = `rgba(0,0,0,${sa})`;
+    ctx.fillRect(l.x - sw/2, basketY + BH - 2, sw, 3);
+  }
+
+  // Draw leads
+  for (const l of leads) {
+    drawChar(l.x - CW/2, l.y, l.isGood, l.v);
+  }
+
+  // Basket
+  drawBasket(basketX, basketY);
+
+  // Particles
+  ptcls.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle   = p.color;
+    ctx.fillRect(Math.round(p.x), Math.round(p.y), Math.ceil(p.size), Math.ceil(p.size));
+  });
+  ctx.globalAlpha = 1;
+
+  // Flash
+  if (flashA > 0) {
+    ctx.fillStyle   = flashClr;
+    ctx.globalAlpha = flashA;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1;
+    flashA -= 0.03;
+  }
+}
+
+// ── Screens ───────────────────────────────────────
+function show(name) {
+  ['splash','game','gameover'].forEach(id => $(id).classList.add('hidden'));
+  $(name).classList.remove('hidden');
+}
+
+function resize() {
+  canvas.width  = canvas.offsetWidth;
+  canvas.height = canvas.offsetHeight;
+  BW = Math.min(110, canvas.width * 0.26);
+  if (!basketX) { basketX = canvas.width/2; tgtX = basketX; }
+}
+
+// ── Start ─────────────────────────────────────────
+function startGame() {
+  leads = []; ptcls = [];
+  spawnT = 600; flashA = 0;
+  basketX = canvas.width/2; tgtX = basketX;
+  gs = { score:0, lives:3, lvl:0, elapsed:0, running:true, badOn:false };
+  updHUD();
+  show('game');
+  resize();
+  lastT = performance.now();
+  raf = requestAnimationFrame(loop);
+}
+
+function endGame() {
+  cancelAnimationFrame(raf);
+  const hs = parseInt(localStorage.getItem('lcHS')||'0');
+  if (gs.score > hs) localStorage.setItem('lcHS', gs.score);
+  $('finalScore').textContent = gs.score.toLocaleString();
+  show('gameover');
+  if (DEMO_MODE) setTimeout(startGame, 3000);
+}
+
+// ── Input — touch ─────────────────────────────────
+let touching = false;
+document.addEventListener('touchstart', e => {
+  if (!gs.running) return;
+  touching = true;
+  tgtX = Math.max(BW/2, Math.min(canvas.width-BW/2, e.touches[0].clientX));
+}, { passive:true });
+document.addEventListener('touchmove', e => {
+  if (!gs.running || !touching) return;
+  e.preventDefault();
+  tgtX = Math.max(BW/2, Math.min(canvas.width-BW/2, e.touches[0].clientX));
+}, { passive:false });
+document.addEventListener('touchend', () => { touching = false; });
+
+// ── Input — mouse ─────────────────────────────────
+document.addEventListener('mousemove', e => {
+  if (!gs.running) return;
+  const r = canvas.getBoundingClientRect();
+  tgtX = Math.max(BW/2, Math.min(canvas.width-BW/2, e.clientX - r.left));
+});
+
+// ── Input — keyboard ──────────────────────────────
+const keys = {};
+document.addEventListener('keydown', e => keys[e.key] = true);
+document.addEventListener('keyup',   e => keys[e.key] = false);
+setInterval(() => {
+  if (!gs || !gs.running) return;
+  const spd = 9;
+  if (keys['ArrowLeft'])  tgtX = Math.max(BW/2, tgtX - spd);
+  if (keys['ArrowRight']) tgtX = Math.min(canvas.width-BW/2, tgtX + spd);
+}, 16);
+
+// ── Buttons ───────────────────────────────────────
+$('startBtn').addEventListener('click',   startGame);
+$('restartBtn').addEventListener('click', startGame);
+
+// ── Init ──────────────────────────────────────────
+resize();
+window.addEventListener('resize', () => { if (gs && gs.running) resize(); });
+
+// Demo mode: auto-start on load, auto-restart is handled in endGame
+if (DEMO_MODE) setTimeout(startGame, 1200);
+</script>
+</body>
+</html>

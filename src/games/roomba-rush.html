@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<title>Roomba Rush</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none;touch-action:none;}
+html,body{width:100%;height:100%;overflow:hidden;background:#f4f4f0;font-family:"Noto Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:#111;}
+
+#game-container{position:fixed;inset:0;}
+
+/* ── Header ── */
+header{
+  position:absolute;top:0;left:0;width:100%;
+  padding:calc(12px + env(safe-area-inset-top,0px)) 16px 12px;
+  display:flex;justify-content:space-between;align-items:center;
+  background:rgba(255,255,255,0.92);backdrop-filter:blur(8px);
+  z-index:10;border-bottom:2px solid #e8e5e0;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.brand-logo{
+  background:#00897B;color:#fff;
+  font-weight:900;font-size:16px;padding:5px 12px;
+  border-radius:6px;letter-spacing:1px;flex-shrink:0;
+}
+.auto-badge{
+  background:#FFD600;color:#111;
+  font-weight:800;font-size:10px;padding:3px 8px;
+  border-radius:5px;margin-left:8px;
+  display:none;
+}
+.auto-badge.show{display:inline-block;}
+.header-right{display:flex;align-items:center;gap:14px;}
+.stats-container{display:flex;gap:14px;}
+.stat-box{display:flex;flex-direction:column;align-items:flex-end;}
+.stat-label{font-size:9px;text-transform:uppercase;color:#888;font-weight:700;letter-spacing:.5px;}
+.stat-value{font-size:18px;font-weight:900;color:#111;line-height:1.1;}
+#quit-btn{
+  width:32px;height:32px;border-radius:50%;border:1.5px solid #ccc;
+  background:#fff;color:#555;cursor:pointer;
+  display:none;align-items:center;justify-content:center;font-size:14px;font-weight:700;
+}
+#game-container.playing #quit-btn{display:flex;}
+#game-container:not(.playing) .stats-container{visibility:hidden;}
+
+/* ── Canvas ── */
+#webgl-canvas{position:absolute;inset:0;width:100%;height:100%;display:block;}
+
+/* ── Bottom label ── */
+#bottom-label{
+  position:absolute;bottom:calc(16px + env(safe-area-inset-bottom,0px));
+  left:18px;right:18px;
+  display:flex;justify-content:space-between;align-items:flex-end;
+  pointer-events:none;z-index:10;
+}
+.game-title{font-size:13px;font-weight:700;color:rgba(255,255,255,.75);text-shadow:0 1px 4px rgba(0,0,0,.3);letter-spacing:1px;text-transform:uppercase;}
+.game-sub{font-size:10px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:1px;text-transform:uppercase;}
+
+/* ── D-Pad ── */
+#dpad{
+  position:absolute;
+  bottom:calc(70px + env(safe-area-inset-bottom,0px));
+  right:16px;
+  display:grid;grid-template-columns:repeat(3,46px);grid-template-rows:repeat(3,46px);gap:4px;
+  z-index:10;
+}
+.dp{
+  background:rgba(255,255,255,.88);border:1.5px solid rgba(0,0,0,.1);
+  border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:16px;cursor:pointer;backdrop-filter:blur(4px);
+  transition:background .1s;
+}
+.dp:active{background:rgba(0,137,123,.18);}
+.dp-c{background:rgba(0,137,123,.1);}
+.dp-empty{background:transparent;border:none;pointer-events:none;}
+
+/* ── Flash ── */
+#flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:15;transition:opacity .3s;}
+
+/* ── Overlays ── */
+.overlay{
+  position:absolute;inset:0;
+  background:rgba(0,0,0,.55);backdrop-filter:blur(6px);
+  display:flex;justify-content:center;align-items:center;
+  z-index:100;transition:opacity .3s;
+}
+.overlay.hidden{opacity:0;pointer-events:none;}
+.card{
+  background:#fff;padding:28px 28px 24px;border-radius:14px;text-align:center;
+  max-width:88%;width:340px;box-shadow:0 20px 40px rgba(0,0,0,.18);
+  border:3px solid #00897B;
+}
+.card h1{color:#00897B;font-size:22px;font-weight:900;margin-bottom:6px;text-transform:uppercase;}
+.card p{color:#555;font-size:13px;margin-bottom:20px;line-height:1.5;}
+.card .big{font-size:42px;font-weight:900;color:#111;margin:8px 0 4px;}
+.card .sub{font-size:12px;color:#999;margin-bottom:20px;}
+.btn{
+  background:#00897B;color:#fff;border:none;padding:13px 22px;
+  font-size:15px;font-weight:800;border-radius:30px;cursor:pointer;
+  width:100%;box-shadow:0 4px 12px rgba(0,137,123,.35);margin-bottom:8px;
+  display:flex;justify-content:center;align-items:center;gap:8px;
+}
+.btn:active{transform:scale(.96);}
+.btn-sec{background:#f4f4f0;color:#111;box-shadow:none;border:1.5px solid #ddd;}
+</style>
+</head>
+<body>
+<div id="game-container">
+  <canvas id="webgl-canvas"></canvas>
+
+  <header>
+    <div style="display:flex;align-items:center">
+      <div class="brand-logo">ROOMBA</div>
+      <div class="auto-badge" id="auto-badge">AUTO</div>
+    </div>
+    <div class="header-right">
+      <div class="stats-container">
+        <div class="stat-box">
+          <span class="stat-label">PROGRESS</span>
+          <span class="stat-value" id="stat-progress">0 / 0</span>
+        </div>
+        <div class="stat-box">
+          <span class="stat-label">TIME LEFT</span>
+          <span class="stat-value" id="stat-time">60s</span>
+        </div>
+      </div>
+      <div id="quit-btn" onclick="quitGame()">✕</div>
+    </div>
+  </header>
+
+  <!-- D-Pad -->
+  <div id="dpad">
+    <div class="dp-empty"></div>
+    <div class="dp" id="dp-up">&#9650;</div>
+    <div class="dp-empty"></div>
+    <div class="dp" id="dp-left">&#9664;</div>
+    <div class="dp dp-c"></div>
+    <div class="dp" id="dp-right">&#9654;</div>
+    <div class="dp-empty"></div>
+    <div class="dp" id="dp-down">&#9660;</div>
+    <div class="dp-empty"></div>
+  </div>
+
+  <!-- Bottom label -->
+  <div id="bottom-label">
+    <span class="game-title">Roomba Rush</span>
+    <span class="game-sub">Clean Sweep</span>
+  </div>
+
+  <!-- Flash -->
+  <div id="flash"></div>
+
+  <!-- Start overlay -->
+  <div class="overlay" id="ov-start">
+    <div class="card">
+      <h1>Roomba Rush</h1>
+      <p>Guide the Roomba to clean all the dirt before time runs out!</p>
+      <button class="btn" id="btn-start">START</button>
+    </div>
+  </div>
+
+  <!-- End overlay -->
+  <div class="overlay hidden" id="ov-end">
+    <div class="card">
+      <h1 id="end-title">Complete!</h1>
+      <div class="big" id="end-pct">100%</div>
+      <div class="sub" id="end-sub">dirt cleaned</div>
+      <button class="btn" id="btn-restart">&#8635; &nbsp;PLAY AGAIN</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════
+   ROOMBA RUSH — Clean Sweep  |  Three.js isometric 3D game
+   ══════════════════════════════════════════════════════════ */
+
+// ── Demo / Auto-play mode ─────────────────────────────────
+const DEMO_MODE = true;
+
+// ── Config ────────────────────────────────────────────────
+const GRID      = 7;       // 7×7 cells
+const CELL      = 1.0;     // world units per cell
+const DIRT_N    = 18;      // dirt spots per round
+const TIME_LIMIT = 60;     // seconds
+const MOVE_MS   = 320;     // ms per Roomba step (demo)
+const DEMO_DELAY = 180;    // ms between AI decisions
+
+// ── Cell → world coords ───────────────────────────────────
+const half = (GRID - 1) / 2; // 3
+function cellX(c) { return (c - half) * CELL; }
+function cellZ(r) { return (r - half) * CELL; }
+
+// ── Three.js setup ────────────────────────────────────────
+const canvas   = document.getElementById('webgl-canvas');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type    = THREE.PCFSoftShadowMap;
+renderer.toneMapping       = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.outputEncoding    = THREE.sRGBEncoding;
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xDDD8CE);
+scene.fog = new THREE.FogExp2(0xDDD8CE, 0.045);
+
+// Orthographic isometric camera
+const CAM_H = 7;
+let asp = window.innerWidth / window.innerHeight;
+const camera = new THREE.OrthographicCamera(
+  -CAM_H * asp, CAM_H * asp, CAM_H, -CAM_H, 0.1, 80
+);
+camera.position.set(9, 9, 9);
+camera.lookAt(0, 0, 0);
+
+// ── Lights ───────────────────────────────────────────────
+scene.add(new THREE.AmbientLight(0xFFF8F0, 0.65));
+
+const sun = new THREE.DirectionalLight(0xFFF5E8, 1.3);
+sun.position.set(7, 12, 5);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+Object.assign(sun.shadow.camera, { left:-8, right:8, top:8, bottom:-8, far:40 });
+sun.shadow.bias = -0.001;
+scene.add(sun);
+
+const fill = new THREE.DirectionalLight(0xD0E8FF, 0.45);
+fill.position.set(-5, 6, -4);
+scene.add(fill);
+
+// ── Marble texture ────────────────────────────────────────
+function makeMarble() {
+  const S = 512, c = document.createElement('canvas');
+  c.width = c.height = S;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#F2EFE9';
+  ctx.fillRect(0, 0, S, S);
+  // Subtle veins
+  for (let i = 0; i < 14; i++) {
+    const pts = Array.from({length:4}, () => [Math.random()*S, Math.random()*S]);
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0], pts[0][1]);
+    ctx.bezierCurveTo(pts[1][0],pts[1][1], pts[2][0],pts[2][1], pts[3][0],pts[3][1]);
+    ctx.strokeStyle = `rgba(170,162,150,${.04+Math.random()*.09})`;
+    ctx.lineWidth = .6 + Math.random() * 1.8;
+    ctx.stroke();
+    // Hairline echo
+    ctx.beginPath();
+    ctx.moveTo(pts[0][0]+2, pts[0][1]+2);
+    ctx.bezierCurveTo(pts[1][0]+3,pts[1][1]+2, pts[2][0]+2,pts[2][1]+3, pts[3][0]+2,pts[3][1]+2);
+    ctx.strokeStyle = `rgba(200,195,185,${.02+Math.random()*.04})`;
+    ctx.lineWidth = .4;
+    ctx.stroke();
+  }
+  const tex = new THREE.CanvasTexture(c);
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  tex.repeat.set(GRID, GRID);
+  return tex;
+}
+
+// ── Build floor + grout lines ─────────────────────────────
+const marbleTex = makeMarble();
+const floorMesh = new THREE.Mesh(
+  new THREE.PlaneGeometry(GRID * CELL, GRID * CELL),
+  new THREE.MeshStandardMaterial({ color: 0xF5F2EC, map: marbleTex, roughness:.12, metalness:.06 })
+);
+floorMesh.rotation.x = -Math.PI / 2;
+floorMesh.receiveShadow = true;
+scene.add(floorMesh);
+
+// Grout lines
+const groutMat = new THREE.LineBasicMaterial({ color: 0xC4BFB5, transparent:true, opacity:.55 });
+for (let i = 0; i <= GRID; i++) {
+  const v = i * CELL - GRID / 2;
+  [[v,0.002,-GRID/2, v,0.002,GRID/2],[-GRID/2,0.002,v, GRID/2,0.002,v]].forEach(([x1,y1,z1,x2,y2,z2]) => {
+    scene.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x1,y1,z1),new THREE.Vector3(x2,y2,z2)]),
+      groutMat
+    ));
+  });
+}
+
+// Low skirting walls
+const wallMat = new THREE.MeshStandardMaterial({ color:0xEAE6E0, roughness:.6 });
+const wallH = 0.12, wallThick = 0.06;
+[
+  [0, -GRID/2 - wallThick/2, GRID + wallThick*2, wallThick],
+  [0,  GRID/2 + wallThick/2, GRID + wallThick*2, wallThick],
+  [-GRID/2 - wallThick/2, 0, wallThick, GRID],
+  [ GRID/2 + wallThick/2, 0, wallThick, GRID],
+].forEach(([x,z,w,d]) => {
+  const m = new THREE.Mesh(new THREE.BoxGeometry(w, wallH, d), wallMat);
+  m.position.set(x, wallH/2, z);
+  m.castShadow = true; m.receiveShadow = true;
+  scene.add(m);
+});
+
+// ── Dirt system ───────────────────────────────────────────
+const dirtMeshes = new Map(); // key → THREE.Group
+const dirtCells  = new Set(); // "r,c" of remaining dirt
+
+function makeDirt(r, c) {
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color:0x5A4530, roughness:.95 });
+
+  // Main blob
+  const blob = new THREE.Mesh(new THREE.CylinderGeometry(.16,.18,.006,20), mat);
+  g.add(blob);
+
+  // Satellite crumbs
+  const crumbPts = [[.12,.06,-.05],[-.1,-.04,.09],[.04,.09,.12],[-.13,.07,-.1]];
+  crumbPts.forEach(([x,,z],i) => {
+    const r2 = .03 + i*.01;
+    const c2 = new THREE.Mesh(new THREE.CylinderGeometry(r2,r2,.005,10), mat);
+    c2.position.set(x, 0, z);
+    g.add(c2);
+  });
+
+  g.position.set(cellX(c), .004, cellZ(r));
+  g.scale.set(0,0,0);
+  scene.add(g);
+  return g;
+}
+
+function spawnDirt(r, c) {
+  const key = `${r},${c}`;
+  if (dirtCells.has(key)) return;
+  dirtCells.add(key);
+  const g = makeDirt(r, c);
+  // Pop-in animation
+  const start = performance.now();
+  const anim = () => {
+    const t = Math.min((performance.now()-start)/180, 1);
+    const s = t < .7 ? t/.7*1.15 : 1.15-(t-.7)/.3*.15;
+    g.scale.setScalar(s);
+    if (t < 1) requestAnimationFrame(anim);
+  };
+  requestAnimationFrame(anim);
+  dirtMeshes.set(key, g);
+}
+
+function cleanDirt(r, c) {
+  const key = `${r},${c}`;
+  if (!dirtCells.has(key)) return false;
+  dirtCells.delete(key);
+  const g = dirtMeshes.get(key);
+  dirtMeshes.delete(key);
+  if (!g) return true;
+  // Pop-out + dust puff
+  spawnPuff(cellX(c), cellZ(r));
+  const start = performance.now();
+  const anim = () => {
+    const t = Math.min((performance.now()-start)/200, 1);
+    g.scale.setScalar(1 - t);
+    g.position.y = t * .08;
+    if (t < 1) requestAnimationFrame(anim);
+    else scene.remove(g);
+  };
+  requestAnimationFrame(anim);
+  return true;
+}
+
+// ── Dust puff particles ───────────────────────────────────
+const puffGeo = new THREE.SphereGeometry(.04, 6, 6);
+const puffMat = new THREE.MeshBasicMaterial({ color:0xD4CBBF, transparent:true });
+let puffs = [];
+
+function spawnPuff(x, z) {
+  for (let i = 0; i < 8; i++) {
+    const m = new THREE.Mesh(puffGeo, puffMat.clone());
+    const angle = Math.random() * Math.PI * 2;
+    const spd   = .8 + Math.random() * 1.2;
+    m.position.set(x, .04, z);
+    scene.add(m);
+    puffs.push({
+      mesh: m,
+      vx: Math.cos(angle)*spd, vy: 1.2+Math.random()*.8, vz: Math.sin(angle)*spd,
+      life: 1, decay: .04+Math.random()*.03
+    });
+  }
+}
+
+function updatePuffs(dt) {
+  puffs = puffs.filter(p => {
+    p.life -= p.decay;
+    if (p.life <= 0) { scene.remove(p.mesh); return false; }
+    p.vx *= .88; p.vz *= .88; p.vy -= 3 * dt;
+    p.mesh.position.x += p.vx * dt;
+    p.mesh.position.y += p.vy * dt;
+    p.mesh.position.z += p.vz * dt;
+    p.mesh.material.opacity = p.life;
+    const s = p.life * 1.6;
+    p.mesh.scale.setScalar(s);
+    return true;
+  });
+}
+
+// ── Roomba ────────────────────────────────────────────────
+const roombaGroup = new THREE.Group();
+
+// Body disc
+const bodyMat = new THREE.MeshStandardMaterial({ color:0x1C1C1E, roughness:.35, metalness:.3 });
+const body = new THREE.Mesh(new THREE.CylinderGeometry(.40,.42,.09,40), bodyMat);
+body.castShadow = true;
+roombaGroup.add(body);
+
+// Top panel
+const topMat = new THREE.MeshStandardMaterial({ color:0x282828, roughness:.4 });
+const topPanel = new THREE.Mesh(new THREE.CylinderGeometry(.38,.38,.012,40), topMat);
+topPanel.position.y = .051;
+roombaGroup.add(topPanel);
+
+// Bumper arc (front-facing lighter strip)
+const bumperMat = new THREE.MeshStandardMaterial({ color:0x3C3C3C, roughness:.5 });
+const bumper = new THREE.Mesh(new THREE.CylinderGeometry(.42,.42,.04,40,1,true,-.8,1.6), bumperMat);
+bumper.position.set(0,.02,.0);
+bumper.rotation.y = Math.PI;
+roombaGroup.add(bumper);
+
+// Status LED
+const ledMat = new THREE.MeshStandardMaterial({ color:0x00E676, emissive:0x00E676, emissiveIntensity:3 });
+const led = new THREE.Mesh(new THREE.SphereGeometry(.024,8,8), ledMat);
+led.position.set(.12,.065,.2);
+roombaGroup.add(led);
+
+// Centre button
+const btnMat = new THREE.MeshStandardMaterial({ color:0x444, roughness:.5 });
+const btn = new THREE.Mesh(new THREE.CylinderGeometry(.07,.07,.025,20), btnMat);
+btn.position.set(0,.065,0);
+roombaGroup.add(btn);
+
+// Spinning brush ring (under body)
+const brushGroup = new THREE.Group();
+const brushRing = new THREE.Mesh(
+  new THREE.TorusGeometry(.28,.018,6,32),
+  new THREE.MeshStandardMaterial({ color:0x555, roughness:.7 })
+);
+brushRing.rotation.x = Math.PI/2;
+brushGroup.add(brushRing);
+// Brush bristles
+for (let i = 0; i < 12; i++) {
+  const angle = (i/12)*Math.PI*2;
+  const bristle = new THREE.Mesh(
+    new THREE.BoxGeometry(.025,.004,.06),
+    new THREE.MeshStandardMaterial({ color:0x888 })
+  );
+  bristle.position.set(Math.cos(angle)*.28, 0, Math.sin(angle)*.28);
+  bristle.rotation.y = -angle;
+  brushGroup.add(bristle);
+}
+brushGroup.position.y = -.044;
+roombaGroup.add(brushGroup);
+
+// Roomba shadow disc (fake soft shadow on floor)
+const shadowMesh = new THREE.Mesh(
+  new THREE.CircleGeometry(.42, 32),
+  new THREE.MeshBasicMaterial({ color:0x000, transparent:true, opacity:.18, depthWrite:false })
+);
+shadowMesh.rotation.x = -Math.PI/2;
+shadowMesh.position.y = .001;
+scene.add(shadowMesh);
+
+roombaGroup.position.set(cellX(3), .06, cellZ(3));
+roombaGroup.castShadow = true;
+scene.add(roombaGroup);
+
+// ── Game state ────────────────────────────────────────────
+let state      = 'idle';    // idle | playing | win | lose
+let roombaR    = 3, roombaC = 3;
+let targetR    = 3, targetC = 3;
+let moving     = false;
+let cleanedN   = 0, totalDirt = 0;
+let timeLeft   = TIME_LIMIT;
+let lastTick   = 0;
+let demoTimer  = 0;
+let brushRot   = 0;
+let autoRestartTimer = 0;
+
+// UI refs
+const statProgress = document.getElementById('stat-progress');
+const statTime     = document.getElementById('stat-time');
+const autoBadge    = document.getElementById('auto-badge');
+const ovStart      = document.getElementById('ov-start');
+const ovEnd        = document.getElementById('ov-end');
+const endPct       = document.getElementById('end-pct');
+const endTitle     = document.getElementById('end-title');
+const endSub       = document.getElementById('end-sub');
+const flashEl      = document.getElementById('flash');
+const gc           = document.getElementById('game-container');
+
+if (DEMO_MODE) autoBadge.classList.add('show');
+
+function updateHUD() {
+  statProgress.textContent = `${cleanedN} / ${totalDirt}`;
+  statTime.textContent     = `${Math.ceil(timeLeft)}s`;
+  statTime.style.color     = timeLeft < 10 ? '#D32F2F' : '#111';
+}
+
+function flashScreen(color) {
+  flashEl.style.background = color;
+  flashEl.style.opacity = '.7';
+  setTimeout(() => { flashEl.style.transition='opacity .35s'; flashEl.style.opacity='0'; }, 50);
+}
+
+// ── Start game ────────────────────────────────────────────
+function startGame() {
+  // Clear old dirt
+  dirtMeshes.forEach(g => scene.remove(g));
+  dirtMeshes.clear(); dirtCells.clear();
+  puffs.forEach(p => scene.remove(p.mesh)); puffs = [];
+
+  // Reset roomba
+  roombaR = 3; roombaC = 3; moving = false;
+  roombaGroup.position.set(cellX(3), .06, cellZ(3));
+  roombaGroup.rotation.y = 0;
+  led.material.color.setHex(0x00E676);
+  led.material.emissive.setHex(0x00E676);
+
+  // Scatter dirt (not on start cell)
+  const candidates = [];
+  for (let r = 0; r < GRID; r++)
+    for (let c = 0; c < GRID; c++)
+      if (!(r === 3 && c === 3)) candidates.push([r,c]);
+  // Fisher-Yates shuffle
+  for (let i = candidates.length-1; i > 0; i--) {
+    const j = Math.floor(Math.random()*(i+1));
+    [candidates[i],candidates[j]] = [candidates[j],candidates[i]];
+  }
+  candidates.slice(0, DIRT_N).forEach(([r,c]) => spawnDirt(r,c));
+
+  cleanedN  = 0;
+  totalDirt = DIRT_N;
+  timeLeft  = TIME_LIMIT;
+  demoTimer = 0;
+  autoRestartTimer = 0;
+  state     = 'playing';
+  lastTick  = performance.now();
+
+  ovStart.classList.add('hidden');
+  ovEnd.classList.add('hidden');
+  gc.classList.add('playing');
+  updateHUD();
+}
+
+function quitGame() {
+  state = 'idle';
+  gc.classList.remove('playing');
+  ovStart.classList.remove('hidden');
+}
+
+function endGame(won) {
+  state = won ? 'win' : 'lose';
+  gc.classList.remove('playing');
+  led.material.color.setHex(won ? 0x00E676 : 0xFF1744);
+  led.material.emissive.setHex(won ? 0x00E676 : 0xFF1744);
+
+  const pct = Math.round((cleanedN / totalDirt) * 100);
+  endTitle.textContent = won ? 'All Clean!' : "Time's Up!";
+  endPct.textContent   = pct + '%';
+  endSub.textContent   = won ? 'Perfect clean!' : `${cleanedN} of ${totalDirt} spots cleaned`;
+  ovEnd.classList.remove('hidden');
+
+  flashScreen(won ? 'rgba(0,200,120,.3)' : 'rgba(200,30,30,.2)');
+  if (DEMO_MODE) autoRestartTimer = 3000;
+}
+
+// ── Movement ──────────────────────────────────────────────
+function tryMove(dr, dc) {
+  if (state !== 'playing' || moving) return;
+  const nr = roombaR + dr, nc = roombaC + dc;
+  if (nr < 0 || nr >= GRID || nc < 0 || nc >= GRID) return;
+
+  moving = true;
+  targetR = nr; targetC = nc;
+
+  // Face direction
+  if (dc !== 0 || dr !== 0) {
+    const angle = Math.atan2(dc, dr) + Math.PI/4; // isometric offset
+    roombaGroup.rotation.y = Math.atan2(dc, dr);
+  }
+}
+
+// ── Demo BFS AI ───────────────────────────────────────────
+function bfsStep(sr, sc) {
+  if (dirtCells.size === 0) return null;
+  const visited = new Set([`${sr},${sc}`]);
+  const queue   = [[sr, sc, null]];
+  while (queue.length) {
+    const [r, c, first] = queue.shift();
+    if (dirtCells.has(`${r},${c}`) && !(r===sr && c===sc)) return first;
+    for (const [dr,dc] of [[-1,0],[1,0],[0,-1],[0,1]]) {
+      const nr = r+dr, nc = c+dc;
+      if (nr<0||nr>=GRID||nc<0||nc>=GRID) continue;
+      const k = `${nr},${nc}`;
+      if (visited.has(k)) continue;
+      visited.add(k);
+      queue.push([nr, nc, first || [dr, dc]]);
+    }
+  }
+  return null;
+}
+
+// ── Animation loop ────────────────────────────────────────
+const clock = new THREE.Clock();
+
+function animate() {
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), .05);
+
+  // Brush spin
+  brushRot += (state === 'playing' ? 4 : .5) * dt;
+  brushGroup.rotation.y = brushRot;
+
+  // LED pulse
+  const pulse = .5 + .5 * Math.sin(performance.now() * .004);
+  led.material.emissiveIntensity = 1.5 + pulse * 2;
+
+  // Smooth movement
+  if (moving) {
+    const tx = cellX(targetC), tz = cellZ(targetR);
+    roombaGroup.position.x += (tx - roombaGroup.position.x) * .18;
+    roombaGroup.position.z += (tz - roombaGroup.position.z) * .18;
+    shadowMesh.position.x = roombaGroup.position.x;
+    shadowMesh.position.z = roombaGroup.position.z;
+
+    const dist = Math.abs(roombaGroup.position.x - tx) + Math.abs(roombaGroup.position.z - tz);
+    if (dist < .015) {
+      roombaGroup.position.set(tx, .06, tz);
+      shadowMesh.position.set(tx, .001, tz);
+      roombaR = targetR; roombaC = targetC;
+      moving = false;
+      // Clean dirt on arrival
+      if (cleanDirt(roombaR, roombaC)) {
+        cleanedN++;
+        updateHUD();
+        if (dirtCells.size === 0) { endGame(true); return; }
+      }
+    }
+  }
+
+  // Timer
+  if (state === 'playing') {
+    const now = performance.now();
+    const elapsed = (now - lastTick) / 1000;
+    lastTick = now;
+    timeLeft -= elapsed;
+    updateHUD();
+    if (timeLeft <= 0) { timeLeft = 0; updateHUD(); endGame(false); return; }
+
+    // Demo AI
+    if (DEMO_MODE && !moving) {
+      demoTimer -= elapsed * 1000;
+      if (demoTimer <= 0) {
+        demoTimer = DEMO_DELAY + Math.random() * 80;
+        const step = bfsStep(roombaR, roombaC);
+        if (step) tryMove(step[0], step[1]);
+      }
+    }
+  }
+
+  // Auto-restart for demo
+  if (DEMO_MODE && autoRestartTimer > 0) {
+    autoRestartTimer -= dt * 1000;
+    if (autoRestartTimer <= 0) startGame();
+  }
+
+  updatePuffs(dt);
+  renderer.render(scene, camera);
+}
+
+// ── Resize ────────────────────────────────────────────────
+function onResize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h, false);
+  asp = w / h;
+  camera.left   = -CAM_H * asp;
+  camera.right  =  CAM_H * asp;
+  camera.top    =  CAM_H;
+  camera.bottom = -CAM_H;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', onResize);
+onResize(); // size renderer before first frame
+
+// ── Keyboard input ────────────────────────────────────────
+window.addEventListener('keydown', e => {
+  if (state !== 'playing') return;
+  const map = {
+    ArrowUp:[-1,0], ArrowDown:[1,0], ArrowLeft:[0,-1], ArrowRight:[0,1],
+    w:[-1,0], s:[1,0], a:[0,-1], d:[0,1],
+    W:[-1,0], S:[1,0], A:[0,-1], D:[0,1],
+  };
+  const m = map[e.key];
+  if (m) { e.preventDefault(); tryMove(m[0], m[1]); }
+});
+
+// ── D-Pad buttons ─────────────────────────────────────────
+document.getElementById('dp-up').addEventListener('click',    () => tryMove(-1, 0));
+document.getElementById('dp-down').addEventListener('click',  () => tryMove( 1, 0));
+document.getElementById('dp-left').addEventListener('click',  () => tryMove( 0,-1));
+document.getElementById('dp-right').addEventListener('click', () => tryMove( 0, 1));
+['dp-up','dp-down','dp-left','dp-right'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('touchstart', e => {
+    e.preventDefault();
+    const map={
+      'dp-up':[-1,0],'dp-down':[1,0],'dp-left':[0,-1],'dp-right':[0,1]
+    };
+    tryMove(...map[id]);
+  }, { passive:false });
+});
+
+// ── Swipe input ───────────────────────────────────────────
+let swX = 0, swY = 0;
+document.addEventListener('touchstart', e => { swX=e.touches[0].clientX; swY=e.touches[0].clientY; }, {passive:true});
+document.addEventListener('touchend', e => {
+  if (state !== 'playing') return;
+  const dx = e.changedTouches[0].clientX - swX;
+  const dy = e.changedTouches[0].clientY - swY;
+  if (Math.max(Math.abs(dx), Math.abs(dy)) < 30) return;
+  if (Math.abs(dx) > Math.abs(dy)) tryMove(0, dx > 0 ? 1 : -1);
+  else tryMove(dy > 0 ? 1 : -1, 0);
+});
+
+// ── Buttons ───────────────────────────────────────────────
+document.getElementById('btn-start').addEventListener('click',   startGame);
+document.getElementById('btn-restart').addEventListener('click', startGame);
+
+// ── Initial render (idle) ─────────────────────────────────
+animate();
+
+// Demo auto-start
+if (DEMO_MODE) setTimeout(startGame, 1200);
+</script>
+</body>
+</html>

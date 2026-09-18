@@ -162,6 +162,27 @@ const Icon = {
       <path strokeLinecap="round" strokeLinejoin="round" d="m6.75 7.5 3 2.25-3 2.25m4.5 0h3m-9 8.25h13.5A2.25 2.25 0 0 0 21 18V6a2.25 2.25 0 0 0-2.25-2.25H5.25A2.25 2.25 0 0 0 3 6v12a2.25 2.25 0 0 0 2.25 2.25Z" />
     </svg>
   ),
+  sun: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="4.5" />
+      <path strokeLinecap="round" d="M12 2.5v2M12 19.5v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2.5 12h2M19.5 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+    </svg>
+  ),
+  moon: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M20.354 15.354A9 9 0 0 1 8.646 3.646 9.003 9.003 0 1 0 20.354 15.354Z" />
+    </svg>
+  ),
+  paperclip: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="m18.375 12.739-7.693 7.693a4.5 4.5 0 0 1-6.364-6.364l10.94-10.94A3 3 0 1 1 19.5 7.372L8.552 18.32m.009-.01-.01.01m5.699-9.941-7.81 7.81a1.5 1.5 0 0 0 2.112 2.13" />
+    </svg>
+  ),
+  file: (cls = 'w-4 h-4') => (
+    <svg className={cls} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+    </svg>
+  ),
 }
 
 // ─── Brand mark ───────────────────────────────────────────────────────────────
@@ -196,7 +217,7 @@ function StatusPill({ status }: { status: Campaign['status'] }) {
   const map: Record<Campaign['status'], string> = {
     Draft: 'bg-secondary text-muted-foreground',
     Active: 'bg-primary/10 text-primary',
-    Finalized: 'bg-green-50 text-green-700',
+    Finalized: 'bg-green-500/15 text-green-400',
   }
   return (
     <span className={`text-xs font-medium px-3 py-1 rounded-full ${map[status]}`}>
@@ -207,14 +228,15 @@ function StatusPill({ status }: { status: Campaign['status'] }) {
 
 // ─── Login Screen ─────────────────────────────────────────────────────────────
 
-function LoginScreen({ onLogin }: { onLogin: () => void }) {
+function LoginScreen({ onLogin, theme }: { onLogin: () => void; theme: 'dark' | 'light' }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const scrimRgb = theme === 'light' ? '250, 249, 252' : '6, 7, 14'
 
   return (
-    <div className="min-h-screen relative overflow-hidden bg-ink flex items-center justify-center p-6">
+    <div className="min-h-screen relative overflow-y-auto overflow-x-hidden bg-background flex p-6">
       {/* Drifting photo wall backdrop */}
-      <div className="absolute inset-0">
+      <div className="fixed inset-0">
         <DriftWall
           items={LANDING_WALL_ITEMS}
           columns={7}
@@ -227,18 +249,18 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
           parallax={0.4}
           dim={0.45}
           fade={0.7}
-          overlayColor="#06070e"
+          overlayColor={theme === 'light' ? '#f1ecfb' : '#06070e'}
         />
       </div>
       {/* Scrim for text legibility */}
       <div
-        className="absolute inset-0 pointer-events-none"
-        style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 50%, rgba(6,7,14,0.92) 0%, rgba(6,7,14,0.55) 55%, rgba(6,7,14,0.25) 100%)' }}
+        className="fixed inset-0 pointer-events-none"
+        style={{ background: `radial-gradient(ellipse 60% 55% at 50% 50%, rgba(${scrimRgb},0.92) 0%, rgba(${scrimRgb},0.55) 55%, rgba(${scrimRgb},0.25) 100%)` }}
       />
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md text-center">
-        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-white mb-5 shadow-lg shadow-blue-500/25">
+      <div className="relative z-10 w-full max-w-md text-center m-auto">
+        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary text-white mb-5 shadow-lg shadow-fuchsia-500/30">
           <PixieMark className="w-7 h-7" />
         </div>
         <p className="text-primary text-xs font-semibold tracking-[0.2em] uppercase mb-2">AI Game Studio</p>
@@ -252,63 +274,63 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
             weight={700}
             reveal="rise"
             trigger="mount"
-            className="text-white"
+            className="text-foreground"
           />
         </div>
 
-        <p className="text-gray-400 text-sm leading-relaxed mb-8 max-w-sm mx-auto">
+        <p className="text-muted-foreground text-sm leading-relaxed mb-8 max-w-sm mx-auto">
           Chat your way from brand brief to shipped mini-game — no dev required.
         </p>
 
         {/* Sign-in card */}
-        <div className="bg-card/10 backdrop-blur-md border border-white/15 rounded-2xl p-8 text-left shadow-xl animate-rise-in">
-          <h2 className="text-lg font-bold text-white mb-1">Sign in</h2>
-          <p className="text-gray-400 text-sm mb-5">Welcome back to your game studio.</p>
+        <div className="glass-panel border border-border rounded-2xl p-8 text-left shadow-xl animate-rise-in">
+          <h2 className="text-lg font-bold text-foreground mb-1">Sign in</h2>
+          <p className="text-muted-foreground text-sm mb-5">Welcome back to your game studio.</p>
 
           <form onSubmit={(e) => { e.preventDefault(); onLogin() }} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Email</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Email</label>
               <input
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 placeholder="you@brand.com"
-                className="w-full px-4 py-3 rounded-full border border-white/15 bg-card/5 text-white text-sm outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground"
+                className="w-full px-4 py-3 rounded-full border border-border bg-secondary text-foreground text-sm outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">Password</label>
+              <label className="block text-sm font-medium text-muted-foreground mb-2">Password</label>
               <input
                 type="password"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-4 py-3 rounded-full border border-white/15 bg-card/5 text-white text-sm outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground"
+                className="w-full px-4 py-3 rounded-full border border-border bg-secondary text-foreground text-sm outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground"
               />
             </div>
             <button
               type="submit"
-              className="w-full bg-primary hover:bg-primary/90 text-white font-semibold py-3 rounded-full text-sm transition-colors mt-1"
+              className="w-full btn-neon text-white font-semibold py-3 rounded-full text-sm transition-opacity hover:opacity-90 mt-1"
             >
               Sign in to Pixie
             </button>
           </form>
 
           <div className="flex items-center gap-3 my-4">
-            <div className="flex-1 h-px bg-card/10" />
+            <div className="flex-1 h-px bg-border" />
             <span className="text-xs text-muted-foreground">or continue with</span>
-            <div className="flex-1 h-px bg-card/10" />
+            <div className="flex-1 h-px bg-border" />
           </div>
 
           <button
             onClick={onLogin}
-            className="w-full flex items-center justify-center gap-2 bg-card hover:bg-secondary text-foreground font-semibold py-3 rounded-full text-sm transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-white hover:bg-gray-100 text-gray-900 font-semibold py-3 rounded-full text-sm transition-colors"
           >
             <GoogleIcon className="w-4 h-4" />
             Continue with Google
           </button>
 
-          <p className="mt-5 text-center text-sm text-gray-400">
+          <p className="mt-5 text-center text-sm text-muted-foreground">
             Don't have an account?{' '}
             <button className="text-primary font-medium hover:underline">Request access</button>
           </p>
@@ -331,6 +353,8 @@ function Sidebar({
   onSignOut,
   campaigns,
   onCampaignClick,
+  theme,
+  onToggleTheme,
 }: {
   open: boolean
   nav: NavItem
@@ -338,6 +362,8 @@ function Sidebar({
   onSignOut: () => void
   campaigns: Campaign[]
   onCampaignClick: (id: string) => void
+  theme: 'dark' | 'light'
+  onToggleTheme: () => void
 }) {
   const [hoveredNav, setHoveredNav] = useState<NavItem | null>(null)
 
@@ -345,40 +371,40 @@ function Sidebar({
     <aside
       className={`
         fixed lg:static inset-y-0 left-0 z-40 flex flex-col
-        w-[360px] bg-sidebar text-sidebar-foreground border-r border-sidebar-border
+        w-64 bg-sidebar/80 backdrop-blur-xl text-sidebar-foreground border-r border-sidebar-border
         transition-transform duration-200
         ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
       `}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 py-6 border-b border-border">
-        <div className="w-8 h-8 rounded-xl bg-primary text-white flex items-center justify-center flex-shrink-0">
-          <PixieMark className="w-4 h-4" />
+      <div className="flex items-center gap-2.5 px-4 py-4 border-b border-border">
+        <div className="w-7 h-7 rounded-lg bg-primary text-white flex items-center justify-center flex-shrink-0">
+          <PixieMark className="w-3.5 h-3.5" />
         </div>
-        <span className="text-lg font-bold text-foreground">Pixie</span>
-        <span className="ml-auto text-xs font-semibold tracking-widest text-blue-400 uppercase bg-primary/10 px-3 py-1.5 rounded-full">Beta</span>
+        <span className="text-sm font-bold text-foreground">Pixie</span>
+        <span className="ml-auto text-[10px] font-semibold tracking-widest text-primary uppercase bg-primary/10 px-2 py-1 rounded-full">Beta</span>
       </div>
 
       {/* Search */}
-      <div className="px-5 py-4">
-        <div className="flex items-center gap-2 bg-muted rounded-full px-4 py-3">
+      <div className="px-3 py-3">
+        <div className="flex items-center gap-2 bg-muted rounded-full px-3 py-2">
           {Icon.search('w-3.5 h-3.5 text-gray-400 flex-shrink-0')}
           <input
             placeholder="Search campaigns…"
-            className="bg-transparent text-sm outline-none text-foreground placeholder:text-muted-foreground w-full"
+            className="bg-transparent text-xs outline-none text-foreground placeholder:text-muted-foreground w-full"
           />
         </div>
       </div>
 
       {/* Nav */}
-      <nav className="px-4 space-y-2">
+      <nav className="px-3 space-y-1">
         <GlareHover
           width="100%"
           height="auto"
           background="transparent"
           borderColor="transparent"
-          borderRadius="0.75rem"
-          glareColor="#5865F2"
+          borderRadius="0.5rem"
+          glareColor="#c084fc"
           glareOpacity={0.35}
           glareAngle={-30}
           glareSize={300}
@@ -389,14 +415,14 @@ function Sidebar({
           onClick={() => onNav('home')}
           onMouseEnter={() => setHoveredNav('home')}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors animate-rise-in hover-lift ${
             nav === 'home'
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
           style={{ '--rise-delay': '0s' } as React.CSSProperties}
         >
-          {Icon.home('w-5 h-5')}
+          {Icon.home('w-4 h-4')}
           Home
         </button>
         </GlareHover>
@@ -405,8 +431,8 @@ function Sidebar({
           height="auto"
           background="transparent"
           borderColor="transparent"
-          borderRadius="0.75rem"
-          glareColor="#5865F2"
+          borderRadius="0.5rem"
+          glareColor="#c084fc"
           glareOpacity={0.35}
           glareAngle={-30}
           glareSize={300}
@@ -417,14 +443,14 @@ function Sidebar({
           onClick={() => onNav('create')}
           onMouseEnter={() => setHoveredNav('create')}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors animate-rise-in hover-lift ${
             nav === 'create'
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
           style={{ '--rise-delay': '0.05s' } as React.CSSProperties}
         >
-          {Icon.sparkles('w-5 h-5')}
+          {Icon.sparkles('w-4 h-4')}
           Create game
         </button>
         </GlareHover>
@@ -433,8 +459,8 @@ function Sidebar({
           height="auto"
           background="transparent"
           borderColor="transparent"
-          borderRadius="0.75rem"
-          glareColor="#5865F2"
+          borderRadius="0.5rem"
+          glareColor="#c084fc"
           glareOpacity={0.35}
           glareAngle={-30}
           glareSize={300}
@@ -445,50 +471,57 @@ function Sidebar({
           onClick={() => onNav('games')}
           onMouseEnter={() => setHoveredNav('games')}
           onMouseLeave={() => setHoveredNav(null)}
-          className={`w-full flex items-center gap-3 px-4 py-4 rounded-xl text-base font-medium transition-colors animate-rise-in hover-lift ${
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors animate-rise-in hover-lift ${
             nav === 'games'
               ? 'bg-primary/10 text-primary'
               : 'text-muted-foreground hover:bg-muted hover:text-foreground'
           }`}
           style={{ '--rise-delay': '0.1s' } as React.CSSProperties}
         >
-          {Icon.gamepad('w-5 h-5')}
+          {Icon.gamepad('w-4 h-4')}
           Created games
         </button>
         </GlareHover>
       </nav>
 
       {/* Recent campaigns */}
-      <div className="mt-6 px-5 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
-        <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-3 px-1">Recent campaigns</p>
-        <div className="space-y-2">
+      <div className="mt-4 px-3 flex-1 min-h-0 overflow-y-auto scrollbar-hide">
+        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest mb-2 px-1">Recent campaigns</p>
+        <div className="space-y-1">
           {campaigns.map((c, i) => (
             <button
               key={c.id}
               onClick={() => onCampaignClick(c.id)}
               style={{ '--rise-delay': `${0.15 + i * 0.05}s` } as React.CSSProperties}
-              className="w-full text-left px-4 py-3 rounded-xl hover:bg-muted transition-colors group animate-rise-in hover-lift"
+              className="w-full text-left px-3 py-2 rounded-lg hover:bg-muted transition-colors group animate-rise-in hover-lift"
             >
               <p className="text-sm font-medium text-foreground group-hover:text-foreground truncate">{c.name}</p>
-              <p className="text-xs text-muted-foreground mt-1">{c.games} game{c.games !== 1 ? 's' : ''} · {c.updatedAt}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{c.games} game{c.games !== 1 ? 's' : ''} · {c.updatedAt}</p>
             </button>
           ))}
         </div>
       </div>
 
       {/* Footer */}
-      <div className="p-5 border-t border-border">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
+      <div className="p-3 border-t border-border">
+        <div className="flex items-center gap-2.5">
+          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex-shrink-0 flex items-center justify-center text-white text-xs font-bold">
             JD
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-foreground truncate">jamie@brandco.io</p>
+            <p className="text-xs font-medium text-foreground truncate">jamie@brandco.io</p>
           </div>
+          <button
+            onClick={onToggleTheme}
+            title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+            className="p-2 rounded-lg text-gray-400 hover:text-muted-foreground hover:bg-secondary transition-colors"
+          >
+            {theme === 'dark' ? Icon.sun('w-3.5 h-3.5') : Icon.moon('w-3.5 h-3.5')}
+          </button>
           <button
             onClick={onSignOut}
             title="Sign out"
-            className="p-2.5 rounded-lg text-gray-400 hover:text-muted-foreground hover:bg-secondary transition-colors"
+            className="p-2 rounded-lg text-gray-400 hover:text-muted-foreground hover:bg-secondary transition-colors"
           >
             {Icon.logout('w-3.5 h-3.5')}
           </button>
@@ -510,18 +543,18 @@ interface TopBarInfo {
 
 function TopBar({ info, onMenuClick }: { info: TopBarInfo; onMenuClick: () => void }) {
   return (
-    <header className="flex items-center gap-3 px-6 py-4 border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-30">
+    <header className="flex items-center gap-3 px-6 py-2.75 border-b border-border bg-background/60 backdrop-blur-xl sticky top-0 z-30">
       <button
         onClick={onMenuClick}
         className="lg:hidden p-2 rounded-lg text-muted-foreground hover:bg-secondary transition-colors flex-shrink-0"
       >
         {Icon.menu('w-4 h-4')}
       </button>
-      <div className="hidden lg:block w-px h-4 bg-gray-200 flex-shrink-0" />
+      <div className="hidden lg:block w-px h-4 bg-border flex-shrink-0" />
       <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${info.iconBg}`}>
         {info.icon(`w-4 h-4 ${info.iconColor}`)}
       </div>
-      <div className="min-w-0">
+      <div className="min-w-0 flex flex-col gap-0">
         <SplitText
           key={info.title}
           text={info.title}
@@ -548,9 +581,9 @@ function TopBar({ info, onMenuClick }: { info: TopBarInfo; onMenuClick: () => vo
 function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame: () => void }) {
   const stats = [
     { icon: Icon.layers('w-6 h-6 text-primary'), value: campaigns.length, label: 'Campaigns', bg: 'bg-primary/10' },
-    { icon: Icon.gamepad('w-6 h-6 text-purple-500'), value: campaigns.reduce((a, c) => a + c.games, 0), label: 'Games built', bg: 'bg-purple-50' },
-    { icon: Icon.bolt('w-6 h-6 text-orange-500'), value: '1,284', label: 'Events logged', bg: 'bg-orange-50' },
-    { icon: Icon.trophy('w-6 h-6 text-green-600'), value: campaigns.filter(c => c.status === 'Finalized').length, label: 'Finalized', bg: 'bg-green-50' },
+    { icon: Icon.gamepad('w-6 h-6 text-purple-500'), value: campaigns.reduce((a, c) => a + c.games, 0), label: 'Games built', bg: 'bg-purple-500/15' },
+    { icon: Icon.bolt('w-6 h-6 text-orange-500'), value: '1,284', label: 'Events logged', bg: 'bg-orange-500/15' },
+    { icon: Icon.trophy('w-6 h-6 text-green-400'), value: campaigns.filter(c => c.status === 'Finalized').length, label: 'Finalized', bg: 'bg-green-500/15' },
   ]
 
   return (
@@ -560,7 +593,7 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
         <h1 className="text-xl font-bold text-foreground">Overview</h1>
         <button
           onClick={onNewGame}
-          className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white text-sm font-semibold px-6 py-3 rounded-full transition-colors"
+          className="flex items-center gap-2 btn-neon text-white text-sm font-semibold px-6 py-3 rounded-full transition-opacity hover:opacity-90"
         >
           {Icon.plus('w-3.5 h-3.5')}
           New game
@@ -574,8 +607,8 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
           {stats.map((s, i) => (
             <SpotlightCard
               key={i}
-              spotlightColor="rgba(59, 130, 246, 0.15)"
-              className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-rise-in hover-lift flex flex-col items-center text-center gap-1"
+              spotlightColor="rgba(168, 85, 247, 0.18)"
+              className="glass-panel bg-card/60 rounded-2xl border border-border p-6 shadow-sm animate-rise-in hover-lift flex flex-col items-center text-center gap-1"
               style={{ '--rise-delay': `${i * 0.06}s` } as React.CSSProperties}
             >
               <div className={`inline-flex items-center justify-center w-14 h-14 rounded-2xl ${s.bg} mb-3`}>
@@ -583,7 +616,6 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
               </div>
               <p className="text-3xl font-bold text-foreground tracking-tight">{s.value}</p>
               <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{s.label}</p>
-              <BorderBeam duration={8} size={100} />
             </SpotlightCard>
           ))}
         </div>
@@ -591,7 +623,7 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
 
       {/* Campaign list */}
       {campaigns.length === 0 ? (
-        <div className="bg-card border border-dashed border-border rounded-2xl p-12 text-center">
+        <div className="glass-panel bg-card/50 border border-dashed border-border rounded-2xl p-12 text-center">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-primary/10 mb-4">
             {Icon.sparkles('w-5 h-5 text-primary')}
           </div>
@@ -599,18 +631,18 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
           <p className="text-xs text-muted-foreground">Start your first game with the Create game flow.</p>
         </div>
       ) : (
-        <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+        <div className="glass-panel bg-card/60 border border-border rounded-2xl overflow-hidden shadow-sm">
           <div className="px-6 py-4 border-b border-border flex items-center">
             <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Campaigns</p>
           </div>
           {campaigns.map((c, i) => (
             <SpotlightCard
               key={c.id}
-              spotlightColor="rgba(59, 130, 246, 0.1)"
+              spotlightColor="rgba(168, 85, 247, 0.12)"
               className={`flex items-center gap-4 px-6 py-5 hover:bg-muted/80 cursor-pointer transition-colors animate-rise-in hover-lift ${i < campaigns.length - 1 ? 'border-b border-border' : ''}`}
               style={{ '--rise-delay': `${0.24 + i * 0.06}s` } as React.CSSProperties}
             >
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-blue-100 to-blue-200 flex-shrink-0 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-fuchsia-500/25 to-purple-500/25 flex-shrink-0 flex items-center justify-center">
                 <span className="text-xs font-bold text-primary">{c.brand.charAt(0)}</span>
               </div>
               <div className="flex-1 min-w-0">
@@ -618,7 +650,6 @@ function HomeScreen({ campaigns, onNewGame }: { campaigns: Campaign[]; onNewGame
                 <p className="text-xs text-muted-foreground mt-1">{c.games} game{c.games !== 1 ? 's' : ''} · Updated {c.updatedAt}</p>
               </div>
               <StatusPill status={c.status} />
-              <BorderBeam duration={8} size={80} />
             </SpotlightCard>
           ))}
         </div>
@@ -646,10 +677,10 @@ function GamesScreen() {
           <div
             key={g.id}
             onClick={() => setSelectedId(g.id)}
-            className="text-left w-[350px] flex-shrink-0 bg-card border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer animate-rise-in hover-lift"
+            className="glass-panel text-left w-[350px] flex-shrink-0 bg-card/60 border border-border rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow cursor-pointer animate-rise-in hover-lift"
             style={{ '--rise-delay': `${i * 0.06}s` } as React.CSSProperties}
           >
-            <div className="h-6 bg-blue-400 flex items-center px-3 gap-2">
+            <div className="h-6 bg-gradient-to-r from-fuchsia-600 to-purple-600 flex items-center px-3 gap-2">
               <span className="text-white text-xs font-bold tracking-wide">{g.genre}</span>
               <span className="ml-auto text-white/60 text-xs">LIVE PREVIEW</span>
             </div>
@@ -662,7 +693,7 @@ function GamesScreen() {
               />
               <button
                 onClick={e => { e.stopPropagation(); setPlayingId(g.id) }}
-                className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-card/90 hover:bg-card text-primary flex items-center justify-center shadow-md transition-colors"
+                className="absolute inset-0 m-auto w-12 h-12 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 border border-white/20 text-white flex items-center justify-center shadow-lg transition-colors"
                 title={`Play ${g.title}`}
               >
                 {Icon.play('w-5 h-5 ml-1')}
@@ -707,12 +738,12 @@ function GamePlayModal({
   onClose: () => void
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-6" onClick={onClose}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-6" onClick={onClose}>
       <div
-        className="bg-card rounded-2xl overflow-hidden shadow-xl w-full max-w-sm"
+        className="glass-panel bg-card/80 rounded-2xl overflow-hidden shadow-xl w-full max-w-sm border border-border"
         onClick={e => e.stopPropagation()}
       >
-        <div className="h-9 bg-blue-400 flex items-center px-4 gap-2">
+        <div className="h-9 bg-gradient-to-r from-fuchsia-600 to-purple-600 flex items-center px-4 gap-2">
           <span className="text-white text-xs font-bold tracking-wide">{game.title}</span>
           <span className="text-white/60 text-xs">{game.genre}</span>
           <button
@@ -741,7 +772,7 @@ function GamePlayModal({
 // heading above it names the series). 2px line, rounded caps, ~10%-opacity
 // area wash, hairline recessive gridlines, crosshair + tooltip on hover.
 
-const CHART_COLOR = '#5865F2' // matches --primary; validated via dataviz skill's contrast check
+const CHART_COLOR = '#c084fc' // matches --primary; validated via dataviz skill's contrast check
 
 function niceMax(value: number) {
   if (value <= 0) return 10
@@ -868,9 +899,9 @@ function EngagementChart({ data, gameId }: { data: number[]; gameId: string }) {
 
 function GameAnalytics({ game, onBack }: { game: CreatedGame; onBack: () => void }) {
   const stats = [
-    { icon: Icon.trophy('w-5 h-5 text-orange-500'), value: game.topScore.toLocaleString(), label: 'Top score', bg: 'bg-orange-50' },
+    { icon: Icon.trophy('w-5 h-5 text-orange-500'), value: game.topScore.toLocaleString(), label: 'Top score', bg: 'bg-orange-500/15' },
     { icon: Icon.bolt('w-5 h-5 text-primary'), value: game.peopleEngaged.toLocaleString(), label: 'People engaged', bg: 'bg-primary/10' },
-    { icon: Icon.gamepad('w-5 h-5 text-purple-500'), value: `${Math.floor(game.avgSessionSec / 60)}m ${game.avgSessionSec % 60}s`, label: 'Avg. session', bg: 'bg-purple-50' },
+    { icon: Icon.gamepad('w-5 h-5 text-purple-500'), value: `${Math.floor(game.avgSessionSec / 60)}m ${game.avgSessionSec % 60}s`, label: 'Avg. session', bg: 'bg-purple-500/15' },
   ]
 
   return (
@@ -884,7 +915,7 @@ function GameAnalytics({ game, onBack }: { game: CreatedGame; onBack: () => void
       </button>
 
       <div className="flex items-center gap-4 mb-8">
-        <div className="w-10 h-10 rounded-xl bg-blue-400 flex items-center justify-center flex-shrink-0">
+        <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-fuchsia-600 to-purple-600 flex items-center justify-center flex-shrink-0">
           {Icon.gamepad('w-5 h-5 text-white')}
         </div>
         <div>
@@ -897,7 +928,7 @@ function GameAnalytics({ game, onBack }: { game: CreatedGame; onBack: () => void
         {stats.map((s, i) => (
           <div
             key={i}
-            className="bg-card rounded-2xl border border-border p-6 shadow-sm animate-rise-in hover-lift"
+            className="glass-panel bg-card/60 rounded-2xl border border-border p-6 shadow-sm animate-rise-in hover-lift"
             style={{ '--rise-delay': `${i * 0.06}s` } as React.CSSProperties}
           >
             <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl ${s.bg} mb-4`}>
@@ -909,12 +940,12 @@ function GameAnalytics({ game, onBack }: { game: CreatedGame; onBack: () => void
         ))}
       </div>
 
-      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm mb-8 animate-rise-in" style={{ '--rise-delay': '0.15s' } as React.CSSProperties}>
+      <div className="glass-panel bg-card/60 border border-border rounded-2xl p-6 shadow-sm mb-8 animate-rise-in" style={{ '--rise-delay': '0.15s' } as React.CSSProperties}>
         <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-4">Plays — last 14 days</p>
         <EngagementChart data={game.dailyPlays} gameId={game.id} />
       </div>
 
-      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="glass-panel bg-card/60 border border-border rounded-2xl overflow-hidden shadow-sm">
         <div className="px-6 py-4 border-b border-border flex items-center">
           <p className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">Leaderboard</p>
         </div>
@@ -927,11 +958,11 @@ function GameAnalytics({ game, onBack }: { game: CreatedGame; onBack: () => void
             <span
               className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
                 entry.rank === 1
-                  ? 'bg-orange-100 text-orange-600'
+                  ? 'bg-orange-500/20 text-orange-300'
                   : entry.rank === 2
                   ? 'bg-secondary text-muted-foreground'
                   : entry.rank === 3
-                  ? 'bg-orange-50 text-orange-500'
+                  ? 'bg-orange-500/15 text-orange-500'
                   : 'bg-muted text-muted-foreground'
               }`}
             >
@@ -973,6 +1004,8 @@ const GAME_PREVIEWS = [
   { file: '/lead-dodger.html', title: 'Lead Dodger', genre: 'Dodger' },
   { file: '/lead-rush-cyber.html', title: 'Lead Rush Cyber', genre: 'Runner' },
 ]
+
+const FINAL_GAME = { file: '/lead-rush.html', title: 'Lead Rush', genre: 'Runner' }
 
 const CREATED_GAMES: CreatedGame[] = [
   {
@@ -1061,13 +1094,15 @@ const CREATED_GAMES: CreatedGame[] = [
 function CookingAnimation({ label }: { label: string }) {
   const sparks = ['✦', '✧', '⋆', '✦', '✧']
   return (
-    <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-100 rounded-2xl rounded-tl-sm p-5 max-w-xs">
+    <div
+      className="bg-[image:linear-gradient(to_bottom_right,var(--cooking-from),var(--cooking-to))] border border-[color:var(--cooking-border)] rounded-2xl rounded-tl-sm p-5 max-w-xs"
+    >
       <div className="flex items-center gap-2 mb-3">
         <div className="relative w-8 h-8">
           {sparks.map((s, i) => (
             <span
               key={i}
-              className="absolute text-blue-400 text-xs font-bold"
+              className="absolute text-fuchsia-300 text-xs font-bold"
               style={{
                 top: `${50 + 40 * Math.sin((i / sparks.length) * Math.PI * 2)}%`,
                 left: `${50 + 40 * Math.cos((i / sparks.length) * Math.PI * 2)}%`,
@@ -1080,13 +1115,13 @@ function CookingAnimation({ label }: { label: string }) {
           ))}
           <span className="absolute inset-0 flex items-center justify-center text-base">🍳</span>
         </div>
-        <span className="text-sm font-semibold text-blue-700">{label}</span>
+        <span className="text-sm font-semibold text-[color:var(--cooking-text)]">{label}</span>
       </div>
       <div className="flex gap-1 items-center">
         {[0, 1, 2, 3, 4].map(i => (
           <div
             key={i}
-            className="h-1 rounded-full bg-blue-300"
+            className="h-1 rounded-full bg-[color:var(--cooking-bar)]"
             style={{
               width: `${12 + i * 6}px`,
               animation: `cookBar 1.2s ${i * 0.18}s ease-in-out infinite alternate`,
@@ -1098,138 +1133,187 @@ function CookingAnimation({ label }: { label: string }) {
   )
 }
 
-// Hallucinating animation — shows a stream of fake code/tokens
-function HallucinatingAnimation() {
-  const lines = [
-    'analyzing brand brief…',
-    'generating game mechanics…',
-    'calibrating difficulty curve…',
-    'wiring lead-capture hooks…',
-    'testing engagement loops…',
-    'building 3 variants…',
-  ]
-  const [visible, setVisible] = React.useState(1)
-  useEffect(() => {
-    const t = setInterval(() => setVisible(v => Math.min(v + 1, lines.length)), 420)
-    return () => clearInterval(t)
-  }, [])
-  return (
-    <div className="bg-terminal-bg border border-terminal-accent/20 rounded-2xl rounded-tl-sm p-4 max-w-sm font-mono text-xs">
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-2 h-2 rounded-full bg-terminal-accent animate-pulse" />
-        <span className="text-terminal-accent text-xs tracking-widest uppercase">Pixie is hallucinating…</span>
-      </div>
-      {lines.slice(0, visible).map((l, i) => (
-        <div key={i} className="flex items-center gap-2 py-1 animate-fade-in-up">
-          <span className="text-terminal-dim">{'>'}</span>
-          <span className={i === visible - 1 ? 'text-terminal-accent' : 'text-terminal-dim'}>{l}</span>
-          {i === visible - 1 && <span className="text-terminal-accent animate-pulse">▊</span>}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-// Game iframe card
+// Game iframe card — while `generating`, the preview sits blurred behind an
+// AI-creating overlay; once generation finishes it defocuses back to sharp.
+// `final` swaps the style checkboxes for the finalized game's download/embed
+// actions — used for the winning concept, shown at the same size as the rest.
 function GameIframeCard({
   game,
+  generating = false,
+  final = false,
+  beamDelay = 0,
   selectedStyle,
   onSelectStyle,
   onPlay,
 }: {
-  game: typeof GAME_PREVIEWS[number]
+  game: { file: string; title: string; genre: string }
+  generating?: boolean
+  final?: boolean
+  beamDelay?: number
   selectedStyle: string | null
   onSelectStyle: (id: string) => void
   onPlay: () => void
 }) {
-  return (
-    <div className="flex-shrink-0 w-[307px] bg-card border border-border rounded-2xl overflow-hidden shadow-sm">
-      <div className="h-6 bg-blue-400 flex items-center px-3 gap-2">
-        <span className="text-white text-xs font-bold tracking-wide">{game.genre}</span>
-        <span className="ml-auto text-white/60 text-xs">LIVE PREVIEW</span>
-      </div>
-      <div className="relative bg-muted" style={{ height: 432 }}>
-        <iframe
-          src={game.file}
-          className="w-full h-full border-0 pointer-events-none"
-          title={game.title}
-          sandbox="allow-scripts allow-same-origin"
-        />
-        <button
-          onClick={onPlay}
-          className="absolute inset-0 m-auto w-11 h-11 rounded-full bg-card/90 hover:bg-card text-primary flex items-center justify-center shadow-md transition-colors"
-          title={`Play ${game.title}`}
-        >
-          {Icon.play('w-5 h-5 ml-1')}
-        </button>
-      </div>
-      <div className="px-4 py-3 border-t border-border">
-        <p className="text-xs font-semibold text-foreground mb-3">{game.title}</p>
-        <div className="space-y-2">
-          {STYLE_CARDS.map(s => (
-            <label key={s.id} className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={selectedStyle === s.id}
-                onChange={() => onSelectStyle(s.id)}
-                className="shrink-0"
-              />
-              <span className="text-xs text-muted-foreground">{s.label}</span>
-            </label>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// Final lead-rush card (full-width)
-function FinalGameCard({ onReset }: { onReset: () => void }) {
   const [copied, setCopied] = useState(false)
-  const embed = `<iframe src="${window.location.origin}/lead-rush.html" width="390" height="844" frameborder="0" allow="autoplay"></iframe>`
-  function copy() {
+  function copyEmbed() {
+    const embed = `<iframe src="${window.location.origin}${game.file}" width="390" height="844" frameborder="0" allow="autoplay"></iframe>`
     navigator.clipboard.writeText(embed).catch(() => {})
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }
   return (
-    <div className="w-full max-w-[351px] mx-auto">
-      <div className="bg-card border border-border rounded-2xl overflow-hidden shadow-sm mb-3">
-        <div className="h-8 bg-blue-400 flex items-center px-4 gap-2">
-          {Icon.trophy('w-3.5 h-3.5 text-white')}
-          <span className="text-white text-xs font-bold tracking-wide">YOUR GAME — LEAD RUSH</span>
-          <span className="ml-auto bg-card/20 text-white text-xs font-semibold px-2 py-1 rounded-full">FINALIZED</span>
+    <div className="glass-panel relative flex-shrink-0 w-[190px] min-[1400px]:w-[220px] bg-card/60 border border-border rounded-2xl overflow-hidden shadow-sm">
+      <div className="relative bg-muted aspect-[307/432] overflow-hidden">
+        <iframe
+          src={game.file}
+          className={`w-full h-full border-0 pointer-events-none transition-[filter,transform] duration-[1200ms] ease-out ${
+            generating ? 'blur-lg scale-110' : 'blur-0 scale-100'
+          }`}
+          title={game.title}
+          sandbox="allow-scripts allow-same-origin"
+        />
+
+        {/* AI-generating overlay — shimmer sweep over a dimmed backdrop while
+            the game "renders", the same visual language as ChatGPT/Gemini's
+            image-gen loaders. */}
+        <div
+          className={`absolute inset-0 flex flex-col items-center justify-center gap-2 transition-opacity duration-700 ease-out ${
+            generating ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          }`}
+        >
+          <div className="absolute inset-0 bg-background/85" />
+          <div className="absolute inset-0 bg-gradient-to-br from-transparent via-primary/40 to-transparent ai-scanline" />
+          <PixieMark className="w-5 h-5 text-white animate-pulse relative drop-shadow" />
+          <span className="text-[10px] font-semibold tracking-widest text-white/90 uppercase relative drop-shadow">
+            Generating…
+          </span>
         </div>
-        <div className="relative bg-muted" style={{ aspectRatio: '390 / 675' }}>
-          <iframe
-            src="/lead-rush.html"
-            className="w-full h-full border-0"
-            title="Lead Rush"
-            sandbox="allow-scripts allow-same-origin"
-          />
-        </div>
-        <div className="p-4 flex gap-2 flex-wrap border-t border-border">
-          <button className="flex items-center gap-2 text-xs font-semibold bg-primary hover:bg-primary/90 text-white px-3 py-2 rounded-full transition-colors">
-            {Icon.download('w-3.5 h-3.5')}
-            Download build
-          </button>
-          <button onClick={copy} className="flex items-center gap-2 text-xs font-semibold border border-border hover:bg-muted text-foreground px-3 py-2 rounded-full transition-colors">
-            {Icon.copy('w-3.5 h-3.5')}
-            {copied ? 'Copied!' : 'Copy embed'}
-          </button>
-        </div>
-      </div>
-      <div className="bg-primary/10 border border-primary/20 rounded-2xl p-4 flex items-center justify-between gap-3">
-        <p className="text-sm text-blue-700 font-medium">Ready to build another?</p>
-        <button onClick={onReset} className="text-xs font-semibold bg-primary hover:bg-primary/90 text-white px-3 py-2 rounded-full transition-colors flex-shrink-0">
-          Start new game
+
+        <button
+          onClick={onPlay}
+          className={`absolute inset-0 m-auto w-9 h-9 rounded-full bg-black/40 backdrop-blur-md hover:bg-black/60 border border-white/20 text-white flex items-center justify-center shadow-lg transition-opacity duration-500 ${
+            generating ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+          title={`Play ${game.title}`}
+        >
+          {Icon.play('w-4 h-4 ml-0.5')}
         </button>
       </div>
+      <div className="px-3 py-2.5 border-t border-border">
+        {generating ? (
+          <div className="space-y-2 animate-pulse">
+            <div className="h-2.5 w-2/3 rounded-full bg-muted" />
+            <div className="h-2 w-full rounded-full bg-muted" />
+            <div className="h-2 w-5/6 rounded-full bg-muted" />
+            <div className="h-2 w-4/6 rounded-full bg-muted" />
+          </div>
+        ) : final ? (
+          <div className="animate-fade-in-up">
+            <div className="flex items-center gap-1.5 mb-2">
+              <p className="text-xs font-semibold text-foreground">{game.title}</p>
+              <span className="text-[9px] font-semibold text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">FINAL</span>
+            </div>
+            <div className="flex gap-1.5">
+              <button className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold btn-neon text-white py-1.5 transition-opacity hover:opacity-90">
+                {Icon.download('w-3 h-3')}
+                Download
+              </button>
+              <button
+                onClick={copyEmbed}
+                className="flex-1 flex items-center justify-center gap-1 text-[10px] font-semibold border border-border text-foreground hover:bg-muted py-1.5 transition-colors"
+              >
+                {Icon.copy('w-3 h-3')}
+                {copied ? 'Copied' : 'Embed'}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="animate-fade-in-up">
+            <p className="text-xs font-semibold text-foreground mb-2">{game.title}</p>
+            <div className="space-y-1.5">
+              {STYLE_CARDS.map(s => {
+                const checked = selectedStyle === s.id
+                return (
+                  <label key={s.id} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => onSelectStyle(s.id)}
+                      className="sr-only"
+                    />
+                    <span
+                      className={`w-4 h-4 rounded-[5px] border flex items-center justify-center shrink-0 transition-colors ${
+                        checked ? 'bg-primary border-primary' : 'border-border bg-muted'
+                      }`}
+                    >
+                      {checked && (
+                        <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3}>
+                          <path d="M5 13l4 4L19 7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </span>
+                    <span className="text-xs text-muted-foreground">{s.label}</span>
+                  </label>
+                )
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+      {!generating && <BorderBeam duration={8} size={180} delay={beamDelay} />}
     </div>
   )
 }
 
 const QUICK_PILLS = ['Bolder', 'Simpler', 'Add leaderboard', 'Stronger CTA']
+
+// ─── Chat attachments ───────────────────────────────────────────────────────
+
+interface Attachment {
+  id: string
+  name: string
+  size: number
+  type: string
+  url: string
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+// Attachment thumbnails rendered inside a sent/received message bubble —
+// images get a compact photo grid, everything else gets a file chip.
+function AttachmentPreviewGroup({ attachments, align }: { attachments: Attachment[]; align: 'start' | 'end' }) {
+  const images = attachments.filter(a => a.type.startsWith('image/'))
+  const files = attachments.filter(a => !a.type.startsWith('image/'))
+  return (
+    <div className={`flex flex-col gap-2 ${align === 'end' ? 'items-end' : 'items-start'}`}>
+      {images.length > 0 && (
+        <div className={`flex flex-wrap gap-2 ${align === 'end' ? 'justify-end' : 'justify-start'}`}>
+          {images.map(a => (
+            <img
+              key={a.id}
+              src={a.url}
+              alt={a.name}
+              className="w-28 h-28 object-cover rounded-xl border border-border"
+            />
+          ))}
+        </div>
+      )}
+      {files.map(a => (
+        <div key={a.id} className="flex items-center gap-2 px-3 py-2 rounded-xl border border-border bg-card max-w-[240px]">
+          <span className="text-muted-foreground flex-shrink-0">{Icon.file('w-4 h-4')}</span>
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-foreground truncate">{a.name}</p>
+            <p className="text-[10px] text-muted-foreground">{formatFileSize(a.size)}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
 
 // Completed-step marker, left behind once an in-progress animation finishes
 function StepDone({ label }: { label: string }) {
@@ -1252,11 +1336,11 @@ function Bubble({ role, children }: { role: 'assistant' | 'user'; children: Reac
           <PixieMark className="w-3.5 h-3.5" />
         </div>
       )}
-      <div className={`max-w-[85%] ${role === 'user' ? 'order-first' : ''}`}>
+      <div className={`max-w-[50%] ${role === 'user' ? 'order-first' : ''}`}>
         {children}
       </div>
       {role === 'user' && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex-shrink-0 flex items-center justify-center mt-1">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-fuchsia-500 to-purple-600 flex-shrink-0 flex items-center justify-center mt-1">
           <span className="text-xs font-bold text-white">J</span>
         </div>
       )}
@@ -1289,16 +1373,33 @@ function ReasoningBlock({ text }: { text: string }) {
   )
 }
 
-function TextBubble({ role, text, reasoning }: { role: 'assistant' | 'user'; text: string; reasoning?: string }) {
+function TextBubble({
+  role,
+  text,
+  reasoning,
+  attachments,
+}: {
+  role: 'assistant' | 'user'
+  text: string
+  reasoning?: string
+  attachments?: Attachment[]
+}) {
   return (
     <Bubble role={role}>
       {role === 'assistant' && reasoning && <ReasoningBlock text={reasoning} />}
-      <div className={`text-sm px-5 py-4 rounded-2xl ${
-        role === 'assistant'
-          ? 'bg-secondary text-foreground rounded-tl-sm'
-          : 'bg-primary text-white rounded-tr-sm'
-      }`}>
-        {text}
+      <div className={`flex flex-col gap-2 ${role === 'user' ? 'items-end' : 'items-start'}`}>
+        {attachments && attachments.length > 0 && (
+          <AttachmentPreviewGroup attachments={attachments} align={role === 'user' ? 'end' : 'start'} />
+        )}
+        {text && (
+          <div className={`text-sm px-4 py-2 rounded-2xl ${
+            role === 'assistant'
+              ? 'bg-secondary text-foreground rounded-tl-sm '
+              : 'bg-primary text-white rounded-tr-sm'
+          }`}>
+            {text}
+          </div>
+        )}
       </div>
     </Bubble>
   )
@@ -1306,7 +1407,7 @@ function TextBubble({ role, text, reasoning }: { role: 'assistant' | 'user'; tex
 
 function ChatScreen() {
   const [stage, setStage] = useState<FlowStage>('idle')
-  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; reasoning?: string }>>([])
+  const [messages, setMessages] = useState<Array<{ id: string; role: 'assistant' | 'user'; text: string; reasoning?: string; attachments?: Attachment[] }>>([])
   const [input, setInput] = useState('')
   const [inputBusy, setInputBusy] = useState(false)
   const [selectedAge, setSelectedAge] = useState<string | null>(null)
@@ -1314,7 +1415,10 @@ function ChatScreen() {
   const [selectedStyles, setSelectedStyles] = useState<Record<string, string>>({})
   const [playingGameFile, setPlayingGameFile] = useState<string | null>(null)
   const [showScrollBtn, setShowScrollBtn] = useState(false)
+  const [attachments, setAttachments] = useState<Attachment[]>([])
   const scrollRef = useRef<HTMLDivElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const atConcepts = stage === 'concepts' || stage === 'finalizing' || stage === 'done'
   const atDone = stage === 'done'
@@ -1333,14 +1437,44 @@ function ChatScreen() {
     setShowScrollBtn(el.scrollHeight - el.scrollTop - el.clientHeight > 80)
   }
 
-  function addMsg(role: 'assistant' | 'user', text: string, reasoning?: string) {
-    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, reasoning }])
+  useEffect(() => {
+    const el = textareaRef.current
+    if (!el) return
+    el.style.height = 'auto'
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`
+  }, [input])
+
+  function addMsg(role: 'assistant' | 'user', text: string, reasoning?: string, msgAttachments?: Attachment[]) {
+    setMessages(prev => [...prev, { id: Date.now().toString() + Math.random(), role, text, reasoning, attachments: msgAttachments }])
+  }
+
+  function handleFilesSelected(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? [])
+    if (files.length === 0) return
+    const next: Attachment[] = files.map(file => ({
+      id: `${Date.now()}-${Math.random()}`,
+      name: file.name,
+      size: file.size,
+      type: file.type,
+      url: URL.createObjectURL(file),
+    }))
+    setAttachments(prev => [...prev, ...next])
+    e.target.value = ''
+  }
+
+  function removeAttachment(id: string) {
+    setAttachments(prev => {
+      const target = prev.find(a => a.id === id)
+      if (target) URL.revokeObjectURL(target.url)
+      return prev.filter(a => a.id !== id)
+    })
   }
 
   async function handleBriefSend(text: string) {
-    if (!text.trim() || inputBusy) return
-    addMsg('user', text)
+    if ((!text.trim() && attachments.length === 0) || inputBusy) return
+    addMsg('user', text, undefined, attachments.length > 0 ? attachments : undefined)
     setInput('')
+    setAttachments([])
     setInputBusy(true)
     setStage('cooking')
     await new Promise(r => setTimeout(r, 2600))
@@ -1389,7 +1523,7 @@ function ChatScreen() {
     await new Promise(r => setTimeout(r, 2600))
     addMsg(
       'assistant',
-      "Perfect. I've tuned Lead Rush to match your brand's voice and target audience. Here's your finalized game — ready to ship.",
+      "This concept has been remixed — I merged your style picks into Lead Rush, tuned to match your brand's voice and target audience. Here's your finalized game, ready to ship.",
       `With ${summary} as the style picks, I merged the strongest mechanic from the variants into Lead Rush and applied the chosen visual treatments, then re-tuned difficulty and pacing for the target audience before locking the final build.`
     )
     setStage('done')
@@ -1402,21 +1536,21 @@ function ChatScreen() {
     setCustomAge('')
     setSelectedStyles({})
     setInputBusy(false)
+    attachments.forEach(a => URL.revokeObjectURL(a.url))
+    setAttachments([])
   }
-
-  const composerDisabled = inputBusy || stage !== 'idle'
 
   return (
     <div className="flex-1 flex flex-col overflow-hidden relative">
       <div
         ref={scrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto scrollbar-hide px-6 md:px-10 py-8"
+        className="flex-1 overflow-y-auto scrollbar-hide px-6 md:px-10 pt-8 pb-40"
       >
         {/* ── Empty state ── */}
         {stage === 'idle' && messages.length === 0 && (
           <div className="flex flex-col items-center justify-center min-h-full py-16">
-            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center mb-8 shadow-lg shadow-blue-500/25">
+            <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-fuchsia-500 to-purple-600 flex items-center justify-center mb-8 shadow-lg shadow-fuchsia-500/30">
               <PixieMark className="w-10 h-10 text-white" />
             </div>
             <TextType
@@ -1426,7 +1560,7 @@ function ChatScreen() {
               initialDelay={200}
               loop={false}
               showCursor={false}
-              className="text-4xl font-bold mb-4 text-center bg-gradient-to-br from-blue-500 to-purple-500 bg-clip-text text-transparent"
+              className="text-4xl font-bold mb-4 text-center bg-gradient-to-br from-pink-500 to-purple-500 bg-clip-text text-transparent"
             />
             <TextType
               as="p"
@@ -1438,21 +1572,21 @@ function ChatScreen() {
               cursorClassName="text-primary"
               className="text-muted-foreground text-lg text-center mb-12 max-w-lg leading-relaxed"
             />
-            <div className="grid grid-cols-2 gap-5 w-full max-w-2xl">
+            <div className="grid grid-cols-2 gap-3 w-full max-w-lg">
               {[
-                { icon: Icon.palette('w-8 h-8'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20', prompt: "I need to make a game for my product in lead management. Our brand is modern, bold, and targets sales teams who love fast-paced workflows." },
-                { icon: Icon.layers('w-8 h-8'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-50', text: 'text-green-700', border: 'border-green-100', prompt: "Build three game concepts for a fintech app focused on expense tracking." },
-                { icon: Icon.sparkles('w-8 h-8'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-100', prompt: "Make the game feel more competitive with leaderboards and time pressure." },
-                { icon: Icon.ship('w-8 h-8'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-50', text: 'text-orange-600', border: 'border-orange-100', prompt: "I want to finalize the runner game and get the embed code for our landing page." },
+                { icon: Icon.palette('w-5 h-5'), title: 'Brand intake', desc: 'Share your brief and brand kit', bg: 'bg-primary/10', text: 'text-primary', border: 'border-primary/20' },
+                { icon: Icon.layers('w-5 h-5'), title: '3 concepts', desc: "Three playable variants generated", bg: 'bg-green-500/15', text: 'text-green-400', border: 'border-green-500/20' },
+                { icon: Icon.sparkles('w-5 h-5'), title: 'Remix', desc: 'Iterate with a single message', bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/20' },
+                { icon: Icon.ship('w-5 h-5'), title: 'Ship it', desc: 'Get embed code and download', bg: 'bg-orange-500/15', text: 'text-orange-300', border: 'border-orange-500/20' },
               ].map((t, i) => (
                 <button
                   key={i}
-                  onClick={() => handleBriefSend(t.prompt)}
-                  className={`${t.bg} border ${t.border} rounded-2xl p-6 text-left hover:opacity-80 transition-opacity`}
+                  onClick={() => textareaRef.current?.focus()}
+                  className={`${t.bg} border ${t.border} rounded-xl p-3.5 text-left hover:opacity-80 transition-opacity`}
                 >
                   <span className={t.text}>{t.icon}</span>
-                  <p className={`text-lg font-semibold ${t.text} mt-4 mb-2`}>{t.title}</p>
-                  <p className="text-sm text-muted-foreground">{t.desc}</p>
+                  <p className={`text-sm font-semibold ${t.text} mt-2 mb-0.5`}>{t.title}</p>
+                  <p className="text-xs text-muted-foreground">{t.desc}</p>
                 </button>
               ))}
             </div>
@@ -1463,7 +1597,7 @@ function ChatScreen() {
         {messages.length > 0 && (
           <div className="max-w-[1075px] mx-auto space-y-5">
             {messages.map(m => (
-              <TextBubble key={m.id} role={m.role} text={m.text} reasoning={m.reasoning} />
+              <TextBubble key={m.id} role={m.role} text={m.text} reasoning={m.reasoning} attachments={m.attachments} />
             ))}
 
             {/* ── Cooking animation ── */}
@@ -1489,7 +1623,7 @@ function ChatScreen() {
                       disabled={!!selectedAge}
                       className={`px-4 py-2 rounded-full text-sm font-semibold border transition-all ${
                         selectedAge === age
-                          ? 'bg-primary text-white border-primary shadow-sm shadow-blue-200'
+                          ? 'bg-primary text-white border-primary shadow-sm shadow-primary/20'
                           : selectedAge
                           ? 'bg-muted text-gray-400 border-border cursor-default'
                           : 'bg-card text-foreground border-border hover:border-primary/40 hover:text-primary'
@@ -1521,26 +1655,36 @@ function ChatScreen() {
               </div>
             )}
 
-            {/* ── Hallucinating animation ── */}
-            {(stage === 'hallucinating' || stagePassed('hallucinating')) && (
+            {/* ── Generation complete marker ── */}
+            {stagePassed('hallucinating') && (
               <Bubble role="assistant">
-                {stage === 'hallucinating' ? (
-                  <HallucinatingAnimation />
-                ) : (
-                  <StepDone label="Generated 3 game variants" />
-                )}
+                <StepDone label="Generated 3 game variants" />
               </Bubble>
             )}
 
-            {/* ── 3 game iframes, each with its own style options ── */}
+            {/* ── Selection guidance ── */}
             {atConcepts && (
+              <TextBubble
+                role="assistant"
+                text="Pick the game that's ready to go, or customize a new one — for each variant, choose an Aesthetic, Concept, and Pace to remix it into something new."
+              />
+            )}
+
+            {/* ── 3 game iframes — appear immediately and "generate" in place,
+                 then defocus from blurred to sharp once ready. This row is
+                 the historical record of what was picked — it freezes once
+                 remixed; the final game is a new card below, not a swap
+                 inside this row. ── */}
+            {(stage === 'hallucinating' || atConcepts) && (
               <div className="animate-rise-in space-y-4">
                 {/* Iframes */}
                 <div className="flex justify-[safe_center] gap-4 overflow-x-auto scrollbar-hide pb-2">
-                  {GAME_PREVIEWS.map(g => (
+                  {GAME_PREVIEWS.map((g, i) => (
                     <GameIframeCard
                       key={g.file}
                       game={g}
+                      generating={stage === 'hallucinating'}
+                      beamDelay={-i * 1.6}
                       selectedStyle={selectedStyles[g.file] ?? null}
                       onSelectStyle={styleId => handleStyleSelect(g.file, styleId)}
                       onPlay={() => setPlayingGameFile(g.file)}
@@ -1553,32 +1697,57 @@ function ChatScreen() {
                     <button
                       onClick={handleStyleContinue}
                       disabled={Object.keys(selectedStyles).length === 0}
-                      className={`px-5 py-2 rounded-full text-sm font-semibold transition-colors ${
+                      className={`px-5 py-2 text-sm font-semibold transition-colors ${
                         Object.keys(selectedStyles).length > 0
-                          ? 'bg-gray-900 text-white hover:bg-gray-800'
-                          : 'bg-secondary text-gray-400 cursor-not-allowed'
+                          ? 'btn-neon text-white'
+                          : 'bg-secondary text-muted-foreground cursor-not-allowed'
                       }`}
                     >
-                      Continue
+                      Remix
                     </button>
                   </div>
                 )}
               </div>
             )}
 
-            {/* ── Finalizing: generating/cooking animation ── */}
-            {(stage === 'finalizing' || stagePassed('finalizing')) && (
+            {/* ── Final game generated marker ── */}
+            {stagePassed('finalizing') && (
               <Bubble role="assistant">
-                {stage === 'finalizing' ? (
-                  <CookingAnimation label="Pixie is generating your final game…" />
-                ) : (
-                  <StepDone label="Final game generated" />
-                )}
+                <StepDone label="Final game generated" />
               </Bubble>
             )}
 
-            {/* ── Final lead-rush card ── */}
-            {atDone && <FinalGameCard onReset={handleReset} />}
+            {/* ── Remix confirmation ── */}
+            {atDone && (
+              <TextBubble
+                role="assistant"
+                text="This concept has been remixed into Lead Rush — take a look below."
+              />
+            )}
+
+            {/* ── Final game — a new message/card, same size as the concepts
+                 above, that generates in place then defocuses to sharp. ── */}
+            {(stage === 'finalizing' || atDone) && (
+              <div className="animate-rise-in space-y-4">
+                <div className="flex justify-[safe_center] gap-4">
+                  <GameIframeCard
+                    game={FINAL_GAME}
+                    generating={stage === 'finalizing'}
+                    final
+                    selectedStyle={null}
+                    onSelectStyle={() => {}}
+                    onPlay={() => setPlayingGameFile(FINAL_GAME.file)}
+                  />
+                </div>
+                {atDone && (
+                  <div className="flex justify-end">
+                    <button onClick={handleReset} className="px-5 py-2 text-sm font-semibold btn-neon text-white transition-opacity hover:opacity-90">
+                      Start new game
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -1587,36 +1756,78 @@ function ChatScreen() {
       {showScrollBtn && (
         <button
           onClick={() => scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })}
-          className="absolute bottom-24 right-6 w-8 h-8 bg-card border border-border rounded-full shadow-md flex items-center justify-center hover:bg-muted transition-colors"
+          className="glass-panel absolute bottom-24 right-6 w-8 h-8 bg-card/70 border border-border rounded-full shadow-md flex items-center justify-center hover:bg-muted transition-colors"
         >
           {Icon.arrowDown('w-3.5 h-3.5 text-muted-foreground')}
         </button>
       )}
 
-      {/* Composer */}
-      <div className="border-t border-border bg-card px-6 md:px-10 pt-6 pb-12">
+      {/* Composer — floats over the scrolled chat; the section itself has no
+          background, only the individual fields (pills, input, send) do. */}
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-6 md:px-8 pt-4 pb-5 pointer-events-none">
         {atConcepts && !atDone && (
-          <div className="max-w-[975px] mx-auto flex gap-2 flex-wrap mb-4">
+          <div className="max-w-[640px] mx-auto flex gap-2 flex-wrap mb-3 pointer-events-auto">
             {QUICK_PILLS.map(p => (
-              <button key={p} className="text-xs font-medium border border-border text-muted-foreground hover:border-primary/40 hover:text-primary px-4 py-2 rounded-full transition-colors">
+              <button key={p} className="text-xs font-medium border border-border text-muted-foreground hover:border-primary/40 hover:text-primary px-4 py-2 rounded-full transition-colors bg-card">
                 {p}
               </button>
             ))}
           </div>
         )}
-        <div className="max-w-[975px] mx-auto flex gap-3">
+        {attachments.length > 0 && (
+          <div className="max-w-[640px] mx-auto flex gap-2 flex-wrap mb-3 pointer-events-auto">
+            {attachments.map(a => (
+              <div key={a.id} className="relative flex items-center gap-2 pl-2 pr-6 py-1.5 rounded-xl border border-border bg-card shadow-sm">
+                {a.type.startsWith('image/') ? (
+                  <img src={a.url} alt={a.name} className="w-8 h-8 object-cover rounded-lg flex-shrink-0" />
+                ) : (
+                  <span className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
+                    {Icon.file('w-3.5 h-3.5')}
+                  </span>
+                )}
+                <div className="min-w-0">
+                  <p className="text-xs font-medium text-foreground truncate max-w-[120px]">{a.name}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatFileSize(a.size)}</p>
+                </div>
+                <button
+                  onClick={() => removeAttachment(a.id)}
+                  title="Remove"
+                  className="absolute top-1 right-1 w-4 h-4 rounded-full bg-muted hover:bg-secondary flex items-center justify-center text-muted-foreground"
+                >
+                  {Icon.close('w-2.5 h-2.5')}
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="max-w-[640px] mx-auto flex gap-2.5 items-end pointer-events-auto">
           <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            onChange={handleFilesSelected}
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            title="Attach file"
+            className="w-[46px] h-[46px] rounded-full border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-muted flex items-center justify-center transition-colors flex-shrink-0"
+          >
+            {Icon.paperclip('w-4 h-4')}
+          </button>
+          <textarea
+            ref={textareaRef}
             value={input}
             onChange={e => setInput(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleBriefSend(input)}
+            onKeyDown={e => e.key === 'Enter' && !e.shiftKey && (e.preventDefault(), handleBriefSend(input))}
             placeholder={stage === 'idle' ? 'Describe your product or campaign…' : 'Message Pixie…'}
-            disabled={composerDisabled}
-            className="flex-1 px-5 py-[21px] rounded-full border border-gray-300 bg-muted text-sm text-foreground outline-none focus:ring-2 focus:ring-ring focus:border-transparent focus:bg-card transition-all placeholder:text-muted-foreground disabled:opacity-40"
+            rows={1}
+            className="flex-1 px-4 py-3 rounded-3xl border border-border bg-card shadow-sm text-sm text-foreground outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all placeholder:text-muted-foreground disabled:opacity-40 resize-none overflow-y-auto max-h-40 leading-6"
           />
           <button
             onClick={() => handleBriefSend(input)}
-            disabled={composerDisabled || !input.trim()}
-            className="w-[58px] h-[58px] bg-primary hover:bg-primary/90 disabled:bg-primary/40 text-white rounded-full flex items-center justify-center transition-colors flex-shrink-0"
+            disabled={!input.trim() && attachments.length === 0}
+            className="w-[46px] h-[46px] btn-neon disabled:opacity-40 disabled:shadow-none text-white rounded-full flex items-center justify-center transition-opacity hover:opacity-90 flex-shrink-0"
           >
             {inputBusy ? (
               <svg className="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
@@ -1630,7 +1841,7 @@ function ChatScreen() {
 
       {playingGameFile && (
         <GamePlayModal
-          game={GAME_PREVIEWS.find(g => g.file === playingGameFile)!}
+          game={[...GAME_PREVIEWS, FINAL_GAME].find(g => g.file === playingGameFile)!}
           onClose={() => setPlayingGameFile(null)}
         />
       )}
@@ -1640,7 +1851,15 @@ function ChatScreen() {
 
 // ─── App Shell ────────────────────────────────────────────────────────────────
 
-function AppShell({ onSignOut }: { onSignOut: () => void }) {
+function AppShell({
+  onSignOut,
+  theme,
+  onToggleTheme,
+}: {
+  onSignOut: () => void
+  theme: 'dark' | 'light'
+  onToggleTheme: () => void
+}) {
   const [nav, setNav] = useState<NavItem>('home')
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [campaigns] = useState<Campaign[]>(CAMPAIGNS)
@@ -1657,20 +1876,20 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
       title: 'Create game',
       subtitle: 'Chat your way from brief to shipped mini-game',
       icon: Icon.sparkles,
-      iconBg: 'bg-purple-50',
+      iconBg: 'bg-purple-500/15',
       iconColor: 'text-purple-500',
     },
     games: {
       title: 'Created games',
       subtitle: 'Browse, play, and analyze what you’ve shipped',
       icon: Icon.gamepad,
-      iconBg: 'bg-orange-50',
+      iconBg: 'bg-orange-500/15',
       iconColor: 'text-orange-500',
     },
   }
 
   return (
-    <div className="flex h-screen overflow-hidden bg-muted">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar
         open={sidebarOpen}
         nav={nav}
@@ -1678,6 +1897,8 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
         onSignOut={onSignOut}
         campaigns={campaigns}
         onCampaignClick={() => setNav('create')}
+        theme={theme}
+        onToggleTheme={onToggleTheme}
       />
       {/* Overlay on mobile */}
       {sidebarOpen && (
@@ -1697,20 +1918,20 @@ function AppShell({ onSignOut }: { onSignOut: () => void }) {
 
 // ─── Splash ───────────────────────────────────────────────────────────────────
 
-function SplashScreen({ onDone }: { onDone: () => void }) {
+function SplashScreen({ onDone, theme }: { onDone: () => void; theme: 'dark' | 'light' }) {
   useEffect(() => {
     const t = setTimeout(onDone, 2200)
     return () => clearTimeout(t)
   }, [onDone])
 
   return (
-    <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-4">
-      <PixieMark className="w-12 h-12 text-white animate-rise-in" />
+    <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+      <PixieMark className="w-12 h-12 text-foreground animate-rise-in" />
       <ShinyText
         text="Pixie"
         speed={1.4}
-        color="#4b4b4b"
-        shineColor="#ffffff"
+        color={theme === 'light' ? '#d4d1dc' : '#4b4b4b'}
+        shineColor={theme === 'light' ? '#9333ea' : '#ffffff'}
         spread={120}
         className="text-7xl font-bold"
       />
@@ -1722,13 +1943,26 @@ function SplashScreen({ onDone }: { onDone: () => void }) {
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>('login')
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window === 'undefined') return 'dark'
+    return localStorage.getItem('pixie-theme') === 'light' ? 'light' : 'dark'
+  })
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+    localStorage.setItem('pixie-theme', theme)
+  }, [theme])
 
   return (
     <div>
-      {screen === 'login' && <LoginScreen onLogin={() => setScreen('splash')} />}
-      {screen === 'splash' && <SplashScreen onDone={() => setScreen('home')} />}
+      {screen === 'login' && <LoginScreen onLogin={() => setScreen('splash')} theme={theme} />}
+      {screen === 'splash' && <SplashScreen onDone={() => setScreen('home')} theme={theme} />}
       {(screen === 'home' || screen === 'create') && (
-        <AppShell onSignOut={() => setScreen('login')} />
+        <AppShell
+          onSignOut={() => setScreen('login')}
+          theme={theme}
+          onToggleTheme={() => setTheme(t => (t === 'dark' ? 'light' : 'dark'))}
+        />
       )}
     </div>
   )

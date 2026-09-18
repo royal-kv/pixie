@@ -1,0 +1,2305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#EE3A23" />
+  <title>Pizza Hut — Build Your Pizza</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+/* ============================================
+   Pizza Hut Catch Game — Cozy ad aesthetic
+   Tunable brand tokens live in :root
+   ============================================ */
+
+:root {
+  /* Pizza Hut brand */
+  --ph-red: #EE3A23;
+  --ph-red-dark: #C41E12;
+  --ph-red-deep: #9B150C;
+  --ph-red-soft: #FFE8E4;
+  --ph-cream: #FFFCFA;
+  --ph-cream-warm: #FFF5EE;
+  --ph-white: #FFFFFF;
+
+  /* Supporting food tones */
+  --wood: #C4783A;
+  --wood-dark: #8B5A2B;
+  --wood-light: #E8C9A0;
+  --cheese: #F5C84A;
+  --cheese-light: #FFE08A;
+  --crust: #E8A04A;
+  --crust-dark: #C4783A;
+  --ink: #2B1810;
+  --ink-soft: #6B4538;
+  --shadow: rgba(155, 21, 12, 0.14);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  --font: "Nunito", system-ui, sans-serif;
+  --radius: 22px;
+  --shell-max: 430px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;
+  font-family: var(--font);
+  color: var(--ink);
+  background: #2a1810;
+}
+
+body {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* —— Shell: phone frame on desktop —— */
+.game-shell {
+  position: relative;
+  width: 100%;
+  max-width: var(--shell-max);
+  height: 100%;
+  height: 100dvh;
+  margin: 0 auto;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 110% 50% at 50% -8%, rgba(238, 58, 35, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 40% at 80% 90%, rgba(196, 120, 58, 0.08) 0%, transparent 55%),
+    linear-gradient(180deg, #FFF9F4 0%, #FFF3EA 42%, #FCEBDF 100%);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.06);
+}
+
+.paper-texture {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  opacity: 0.28;
+  mix-blend-mode: multiply;
+  background-image:
+    url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+.bg-decor {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.bg-decor-svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* Red brand rails instead of wood shelves */
+.game-shell::before,
+.game-shell::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  pointer-events: none;
+  height: 8px;
+  background: linear-gradient(90deg, var(--ph-red-deep), var(--ph-red), #ff6b55, var(--ph-red), var(--ph-red-deep));
+  box-shadow: 0 2px 10px rgba(238, 58, 35, 0.28);
+}
+
+.game-shell::before {
+  top: 0;
+}
+
+.game-shell::after {
+  bottom: 0;
+  box-shadow: 0 -2px 10px rgba(238, 58, 35, 0.28);
+}
+
+/* —— Screens —— */
+.screen {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(28px + var(--safe-top)) 24px calc(28px + var(--safe-bottom));
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+
+.screen.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.screen[hidden] {
+  display: none !important;
+}
+
+/* —— Brand —— */
+.brand-header {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.brand-header.compact {
+  margin-bottom: 4px;
+}
+
+.ph-logo-svg {
+  width: min(196px, 58vw);
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(238, 58, 35, 0.28));
+}
+
+/* —— Start —— */
+.hero-pizza {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-height: 42vh;
+  animation: float-pizza 3.2s ease-in-out infinite;
+}
+
+.hero-pizza-svg {
+  width: min(240px, 68vw);
+  height: auto;
+  filter: drop-shadow(0 12px 20px rgba(139, 69, 19, 0.28));
+}
+
+@keyframes float-pizza {
+  0%, 100% { transform: translateY(0) rotate(-1.5deg); }
+  50% { transform: translateY(-10px) rotate(1.5deg); }
+}
+
+.start-copy {
+  text-align: center;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+.game-title {
+  font-size: clamp(1.55rem, 6.5vw, 1.9rem);
+  font-weight: 900;
+  color: var(--ph-red);
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 0 rgba(255, 255, 255, 0.8);
+  margin-bottom: 8px;
+}
+
+.tagline {
+  font-size: clamp(0.95rem, 3.8vw, 1.05rem);
+  font-weight: 700;
+  color: var(--ink-soft);
+  line-height: 1.35;
+  margin-bottom: 14px;
+}
+
+.hint-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.hint-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 6px 12px;
+  border-radius: 999px;
+  letter-spacing: 0.01em;
+}
+
+.hint-pill.good {
+  background: #e8f6e8;
+  color: #2d7a3a;
+  border: 2px solid #a8d9ae;
+}
+
+.hint-pill.bad {
+  background: #fdecea;
+  color: var(--ph-red-deep);
+  border: 2px solid #f5b8b0;
+}
+
+/* —— Buttons —— */
+.btn {
+  font-family: var(--font);
+  font-weight: 900;
+  border: none;
+  cursor: pointer;
+  border-radius: 999px;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  touch-action: manipulation;
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+.btn-lg {
+  width: min(280px, 86%);
+  padding: 18px 28px;
+  font-size: 1.25rem;
+  letter-spacing: 0.08em;
+}
+
+.btn-primary {
+  background: linear-gradient(180deg, #ff4d38 0%, var(--ph-red) 45%, var(--ph-red-dark) 100%);
+  color: var(--ph-white);
+  box-shadow:
+    0 4px 0 var(--ph-red-deep),
+    0 8px 18px rgba(238, 58, 35, 0.35);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(180deg, #ff5c48 0%, #f04430 45%, var(--ph-red) 100%);
+}
+
+/* —— Play —— */
+.screen-play {
+  padding: calc(10px + var(--safe-top)) 0 calc(6px + var(--safe-bottom));
+  background: transparent;
+}
+
+.play-chrome {
+  position: relative;
+  z-index: 5;
+  width: 100%;
+  padding: 0 12px 4px;
+}
+
+.play-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.hud-logo {
+  display: inline-block;
+  font-weight: 900;
+  font-size: 0.78rem;
+  color: var(--ph-white);
+  background: var(--ph-red);
+  padding: 6px 14px;
+  border-radius: 999px;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(238, 58, 35, 0.35);
+}
+
+.stat {
+  background: #fff;
+  border: 2px solid #ffc4bb;
+  border-radius: 12px;
+  padding: 4px 12px;
+  min-width: 56px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(238, 58, 35, 0.1);
+}
+
+.stat.compact {
+  padding: 3px 10px;
+  min-width: 52px;
+}
+
+.stat-label {
+  display: block;
+  font-size: 0.58rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ph-red-dark);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.15rem;
+  font-weight: 900;
+  color: var(--ph-red);
+  line-height: 1.1;
+}
+
+.goal-banner {
+  position: relative;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.goal-ribbon {
+  position: relative;
+  z-index: 2;
+  margin: 0 auto;
+  width: fit-content;
+  max-width: 92%;
+  padding: 8px 24px;
+  background: linear-gradient(180deg, #ff4d38 0%, var(--ph-red) 55%, var(--ph-red-dark) 100%);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow:
+    0 3px 0 var(--ph-red-deep),
+    0 6px 14px rgba(238, 58, 35, 0.25);
+}
+
+.goal-ribbon::before,
+.goal-ribbon::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  border-style: solid;
+  border-width: 6px 8px 0;
+}
+
+.goal-ribbon::before {
+  left: 4px;
+  border-color: var(--ph-red-deep) transparent transparent transparent;
+}
+
+.goal-ribbon::after {
+  right: 4px;
+  border-color: var(--ph-red-deep) transparent transparent transparent;
+}
+
+.goal-panel {
+  margin-top: -4px;
+  padding: 14px 12px 10px;
+  background: linear-gradient(180deg, #fff 0%, #FFF8F2 100%);
+  border: 2.5px solid var(--ph-red);
+  border-radius: 16px;
+  box-shadow:
+    0 8px 18px rgba(238, 58, 35, 0.14),
+    inset 0 1px 0 #fff;
+}
+
+.goal-items {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 0;
+}
+
+.goal-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  border-right: 1px solid #f0d0c8;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--ink);
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.goal-item:last-child {
+  border-right: none;
+}
+
+.goal-item .goal-emoji {
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.goal-item .goal-count {
+  font-variant-numeric: tabular-nums;
+  color: var(--ph-red);
+  font-weight: 900;
+}
+
+.goal-item.is-bump {
+  animation: goal-bump 0.35s ease;
+}
+
+.goal-item.is-done {
+  background: transparent;
+  border-color: transparent;
+  color: var(--ph-red);
+}
+
+.goal-item.is-done .goal-count {
+  color: var(--ph-red);
+}
+
+.goal-item.is-celebrate {
+  animation: goal-celebrate 0.55s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+@keyframes goal-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+@keyframes goal-celebrate {
+  0% { transform: scale(1); }
+  35% { transform: scale(1.18); }
+  70% { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+.goal-summary {
+  margin-top: 8px;
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+#game-canvas {
+  display: block;
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  touch-action: none;
+  cursor: grab;
+}
+
+#game-canvas:active {
+  cursor: grabbing;
+}
+
+.play-hint {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 0 8px;
+  transition: opacity 0.4s ease;
+}
+
+.play-hint.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.swipe-bar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-width: 160px;
+  padding: 8px 20px;
+  background: linear-gradient(180deg, #ff4d38, var(--ph-red));
+  border-radius: 999px;
+  box-shadow: 0 3px 0 var(--ph-red-deep);
+  color: #fff;
+  font-weight: 900;
+}
+
+.swipe-arrows {
+  letter-spacing: 0.15em;
+  font-size: 0.95rem;
+}
+
+.swipe-hand {
+  font-size: 1rem;
+}
+
+.swipe-label {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--ink-soft);
+}
+
+/* —— End —— */
+.screen-end {
+  justify-content: flex-start;
+  gap: 6px;
+  overflow-y: auto;
+  touch-action: pan-y;
+}
+
+.end-headline {
+  text-align: center;
+  font-size: clamp(1.15rem, 4.8vw, 1.4rem);
+  font-weight: 900;
+  color: var(--ph-red);
+  letter-spacing: -0.01em;
+  margin: 4px 0 2px;
+}
+
+.end-pizza-canvas {
+  display: block;
+  width: min(280px, 72vw);
+  height: auto;
+  aspect-ratio: 320 / 280;
+  margin: 6px auto 10px;
+  filter: drop-shadow(0 14px 22px rgba(139, 69, 19, 0.32));
+  animation: pop-in 0.5s cubic-bezier(0.34, 1.4, 0.64, 1) both;
+}
+
+@keyframes pop-in {
+  from { transform: scale(0.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.end-copy {
+  text-align: center;
+  width: 100%;
+}
+
+.end-message {
+  font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+  font-weight: 800;
+  color: var(--ink);
+  line-height: 1.35;
+  margin-top: 6px;
+}
+
+.final-score-label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-soft);
+}
+
+.final-score {
+  font-size: clamp(2.6rem, 12vw, 3.4rem);
+  font-weight: 900;
+  color: var(--ph-red);
+  line-height: 1;
+  text-shadow: 0 3px 0 rgba(255, 255, 255, 0.7);
+}
+
+.cta-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: 10px;
+  margin-top: auto;
+}
+
+.cta-text {
+  font-weight: 800;
+  color: var(--ink-soft);
+  margin: 4px 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 0.88rem;
+}
+
+.btn-secondary {
+  margin-top: 12px;
+  width: min(280px, 86%);
+  padding: 14px 24px;
+  font-size: 1rem;
+  background: var(--ph-white);
+  color: var(--ph-red);
+  border: 3px solid var(--ph-red);
+  box-shadow: 0 3px 0 #ffd5ce;
+}
+
+/* Score bump flash */
+.stat.score-stat.bump .stat-value {
+  animation: score-bump 0.35s ease;
+}
+
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.25); color: #2d7a3a; }
+  100% { transform: scale(1); }
+}
+
+.stat.score-stat.miss .stat-value {
+  animation: score-miss 0.35s ease;
+}
+
+@keyframes score-miss {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2); color: var(--ph-red-deep); }
+  100% { transform: scale(1); }
+}
+
+/* Short phones */
+@media (max-height: 640px) {
+  .hero-pizza {
+    max-height: 32vh;
+  }
+
+  .hero-pizza-svg {
+    width: min(180px, 55vw);
+  }
+
+  .btn-lg {
+    padding: 14px 24px;
+    font-size: 1.1rem;
+  }
+
+  .goal-banner {
+    /* keep compact */
+  }
+
+  .goal-ribbon {
+    font-size: 0.74rem;
+    padding: 6px 16px;
+  }
+
+  .goal-panel {
+    padding: 12px 10px 8px;
+  }
+
+  .end-pizza-canvas {
+    width: min(180px, 48vw);
+  }
+}
+
+@media (min-width: 480px) {
+  body {
+    padding: 12px 0;
+    background:
+      radial-gradient(ellipse at 50% 30%, #5a3020 0%, #2a1810 70%);
+  }
+
+  .game-shell {
+    border-radius: 28px;
+    max-height: min(920px, calc(100dvh - 24px));
+    height: min(920px, calc(100dvh - 24px));
+    box-shadow:
+      0 0 0 3px #1a0e08,
+      0 20px 50px rgba(0, 0, 0, 0.45);
+  }
+}
+
+  </style>
+</head>
+<body>
+  <div id="game-shell" class="game-shell">
+    <div class="paper-texture" aria-hidden="true"></div>
+    <div class="bg-decor" aria-hidden="true">
+      <svg class="bg-decor-svg" viewBox="0 0 390 780" preserveAspectRatio="xMidYMid slice">
+        <!-- Faint pizza boxes stack (left) -->
+        <g opacity="0.11" fill="none" stroke="#EE3A23" stroke-width="2.2" stroke-linejoin="round">
+          <rect x="28" y="210" width="72" height="48" rx="4"/>
+          <rect x="34" y="198" width="72" height="48" rx="4"/>
+          <rect x="40" y="186" width="72" height="48" rx="4"/>
+          <path d="M40 210 h72 M34 222 h72 M28 234 h72"/>
+          <circle cx="76" cy="208" r="10"/>
+          <text x="76" y="212" text-anchor="middle" font-size="8" fill="#EE3A23" stroke="none" font-family="Nunito,sans-serif" font-weight="800">PH</text>
+        </g>
+        <!-- Faint napkin / slogan sketch (right) -->
+        <g opacity="0.1" fill="none" stroke="#C41E12" stroke-width="1.8">
+          <path d="M290 240 q40 -18 70 8 q-8 48 -42 58 q-38 -12 -28 -66z"/>
+          <path d="M305 268 q18 2 28 14" stroke-linecap="round"/>
+          <path d="M302 282 q22 0 32 10" stroke-linecap="round"/>
+        </g>
+        <!-- Tiny ingredient sketches -->
+        <g opacity="0.09" fill="#EE3A23" stroke="none">
+          <circle cx="60" cy="420" r="9"/>
+          <circle cx="60" cy="420" r="3.5" fill="#FFF8F0"/>
+          <ellipse cx="320" cy="390" rx="12" ry="8"/>
+          <ellipse cx="318" cy="388" rx="4" ry="2.5" fill="#FFF8F0" opacity="0.5"/>
+          <path d="M330 520 q8 -14 18 -4 q-6 12 -18 10z"/>
+          <circle cx="55" cy="560" r="7"/>
+          <circle cx="55" cy="560" r="2.8" fill="#FFF8F0"/>
+        </g>
+        <!-- Soft brush dots -->
+        <g opacity="0.07" fill="#EE3A23">
+          <circle cx="100" cy="300" r="2"/><circle cx="280" cy="340" r="1.5"/>
+          <circle cx="150" cy="480" r="2"/><circle cx="250" cy="500" r="1.8"/>
+          <circle cx="180" cy="620" r="2"/><circle cx="310" cy="600" r="1.6"/>
+          <circle cx="90" cy="650" r="1.5"/><circle cx="200" cy="350" r="1.4"/>
+        </g>
+        <!-- Soft warm vignette wash via large ellipses -->
+        <ellipse cx="195" cy="100" rx="200" ry="90" fill="#EE3A23" opacity="0.045"/>
+        <ellipse cx="195" cy="720" rx="180" ry="80" fill="#C4783A" opacity="0.055"/>
+      </svg>
+    </div>
+
+    <!-- START SCREEN -->
+    <section id="screen-start" class="screen screen-start is-active" aria-label="Start">
+      <header class="brand-header">
+        <div class="ph-logo" aria-label="Pizza Hut">
+          <svg viewBox="0 0 200 72" class="ph-logo-svg" role="img">
+            <path d="M18 44 L100 6 L182 44 L170 44 L100 16 L30 44 Z" fill="#C41E12"/>
+            <path d="M26 44 L100 12 L174 44 L164 44 L100 20 L36 44 Z" fill="#EE3A23"/>
+            <rect x="28" y="40" width="144" height="28" rx="5" fill="#EE3A23"/>
+            <rect x="32" y="43" width="136" height="22" rx="3" fill="#fff"/>
+            <text x="100" y="59" text-anchor="middle" font-family="Nunito, sans-serif" font-weight="900" font-size="16" fill="#EE3A23" letter-spacing="0.6">Pizza Hut</text>
+          </svg>
+        </div>
+      </header>
+
+      <div class="hero-pizza" aria-hidden="true">
+        <svg class="hero-pizza-svg" viewBox="0 0 240 170">
+          <defs>
+            <radialGradient id="cheeseGrad" cx="45%" cy="32%" r="65%">
+              <stop offset="0%" stop-color="#FFF0A8"/>
+              <stop offset="45%" stop-color="#F5C84A"/>
+              <stop offset="100%" stop-color="#D49220"/>
+            </radialGradient>
+            <linearGradient id="crustFront" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#E8A84A"/>
+              <stop offset="100%" stop-color="#8B4A1A"/>
+            </linearGradient>
+            <filter id="softShadow" x="-25%" y="-25%" width="150%" height="160%">
+              <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#8B4513" flood-opacity="0.25"/>
+            </filter>
+          </defs>
+          <ellipse cx="120" cy="155" rx="78" ry="10" fill="#8B4513" opacity="0.16"/>
+          <!-- More tilted 3/4 pizza -->
+          <ellipse cx="120" cy="100" rx="86" ry="38" fill="#B86A28" filter="url(#softShadow)"/>
+          <ellipse cx="120" cy="96" rx="84" ry="36" fill="#E8A84A"/>
+          <path d="M36 96 A84 36 0 0 0 204 96 L200 106 A80 28 0 0 1 40 106 Z" fill="url(#crustFront)"/>
+          <ellipse cx="120" cy="93" rx="68" ry="28" fill="#D93A2C"/>
+          <ellipse cx="120" cy="91" rx="60" ry="24" fill="url(#cheeseGrad)"/>
+          <ellipse cx="92" cy="82" rx="11" ry="6" fill="#C0392B"/>
+          <ellipse cx="140" cy="78" rx="10" ry="5.5" fill="#C0392B"/>
+          <ellipse cx="150" cy="98" rx="11" ry="6" fill="#C0392B"/>
+          <ellipse cx="108" cy="100" rx="9" ry="5" fill="#C0392B"/>
+          <ellipse cx="100" cy="90" rx="7" ry="4" fill="#1A1A1A"/>
+          <ellipse cx="100" cy="90" rx="2.8" ry="1.6" fill="#F5C84A"/>
+          <ellipse cx="135" cy="92" rx="9" ry="5" fill="#C4A06A"/>
+          <ellipse cx="135" cy="95" rx="4" ry="3" fill="#E8C9A0"/>
+        </svg>
+      </div>
+
+      <div class="start-copy">
+        <h1 class="game-title">Build Your Pizza!</h1>
+        <p class="tagline">Catch your toppings. Avoid the weird stuff!</p>
+        <div class="hint-row" aria-hidden="true">
+          <span class="hint-pill good">✓ Hit the goal toppings</span>
+          <span class="hint-pill bad">✗ Skip pineapple &amp; fish</span>
+        </div>
+      </div>
+
+      <button type="button" id="btn-start" class="btn btn-primary btn-lg">START</button>
+    </section>
+
+    <!-- GAMEPLAY -->
+    <section id="screen-play" class="screen screen-play" aria-label="Gameplay" hidden>
+      <div class="play-chrome">
+        <div class="play-score-row">
+          <span class="hud-logo">Pizza Hut</span>
+          <div class="stat score-stat compact">
+            <span class="stat-label">Score</span>
+            <span id="score-value" class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="goal-banner" id="goal-banner" aria-live="polite">
+          <div class="goal-ribbon">BUILD YOUR PIZZA</div>
+          <div class="goal-panel">
+            <div class="goal-items" id="goal-items"></div>
+            <p class="goal-summary" id="goal-summary">0 / 0 toppings collected</p>
+          </div>
+        </div>
+      </div>
+
+      <canvas id="game-canvas" width="390" height="700" aria-label="Game area — drag the pizza left and right"></canvas>
+
+      <div class="play-hint" id="play-hint">
+        <span class="swipe-bar" aria-hidden="true">
+          <span class="swipe-arrows">← →</span>
+          <span class="swipe-hand">👆</span>
+        </span>
+        <span class="swipe-label">Swipe to move</span>
+      </div>
+    </section>
+
+    <!-- END SCREEN -->
+    <section id="screen-end" class="screen screen-end" aria-label="Results" hidden>
+      <header class="brand-header compact">
+        <div class="ph-logo">
+          <svg viewBox="0 0 200 72" class="ph-logo-svg" role="img" aria-label="Pizza Hut">
+            <path d="M18 44 L100 6 L182 44 L170 44 L100 16 L30 44 Z" fill="#C41E12"/>
+            <path d="M26 44 L100 12 L174 44 L164 44 L100 20 L36 44 Z" fill="#EE3A23"/>
+            <rect x="28" y="40" width="144" height="28" rx="5" fill="#EE3A23"/>
+            <rect x="32" y="43" width="136" height="22" rx="3" fill="#fff"/>
+            <text x="100" y="59" text-anchor="middle" font-family="Nunito, sans-serif" font-weight="900" font-size="16" fill="#EE3A23" letter-spacing="0.6">Pizza Hut</text>
+          </svg>
+        </div>
+      </header>
+
+      <p class="end-headline" id="end-headline">🍕 YOUR PIZZA IS READY!</p>
+
+      <canvas id="end-pizza-canvas" class="end-pizza-canvas" width="320" height="280" aria-hidden="true"></canvas>
+
+      <div class="end-copy">
+        <p class="final-score-label">Score</p>
+        <p id="final-score" class="final-score">0</p>
+        <p id="end-message" class="end-message">Perfect pizza! 🍕</p>
+      </div>
+
+      <div class="cta-block">
+        <p class="cta-text">Ready for the real thing?</p>
+        <button type="button" id="btn-order" class="btn btn-primary btn-lg">ORDER NOW</button>
+        <button type="button" id="btn-again" class="btn btn-secondary">PLAY AGAIN</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+/**
+ * Pizza Hut — Build Your Pizza
+ * Goal-based catch game (vanilla JS + Canvas)
+ *
+ * Tunable config lives in CONFIG below.
+ */
+
+(() => {
+  "use strict";
+
+  // ——— Tunable game parameters ———
+  const CONFIG = {
+    // Smaller, more tilted 3/4 pizza (matches reference proportions)
+    pizzaWidthRatio: 0.42,
+    pizzaMaxWidth: 178,
+    pizzaYFromBottom: 92,
+    pizzaSquash: 0.42,
+    crustThicknessRatio: 0.11,
+    collisionPadding: 26,
+    // Larger illustrated food pieces (~1.35–1.5× prior)
+    ingredientSizeMin: 68,
+    ingredientSizeMax: 86,
+    spawnIntervalStart: 760,
+    spawnIntervalMin: 420,
+    fallSpeedStart: 165,
+    fallSpeedMax: 300,
+    badChanceStart: 0.18,
+    badChanceMax: 0.34,
+    goalSpawnBias: 0.78,
+    wobbleAmp: 14,
+    wobbleSpeed: 1.7,
+    landDuration: 0.32,
+    minSpawnGapX: 70,
+    goalTypesMin: 2,
+    goalTypesMax: 3,
+    qtyMin: 2,
+    qtyMax: 4,
+    goodPoints: 10,
+    badPoints: -10,
+    completeDelayMs: 1100,
+    orderUrl: null,
+  };
+
+  const GOOD = [
+    { id: "pepperoni", label: "Pepperoni", emoji: "🔴" },
+    { id: "cheese", label: "Cheese", emoji: "🧀" },
+    { id: "tomato", label: "Tomato", emoji: "🍅" },
+    { id: "mushroom", label: "Mushroom", emoji: "🍄" },
+    { id: "pepper", label: "Peppers", emoji: "🫑" },
+    { id: "olive", label: "Olives", emoji: "🫒" },
+  ];
+
+  const BAD = [
+    { id: "pineapple", label: "Pineapple", emoji: "🍍" },
+    { id: "fish", label: "Fish", emoji: "🐟" },
+    { id: "sardine", label: "Sardine", emoji: "🐟" },
+    { id: "gummy", label: "Gummy", emoji: "🍬" },
+  ];
+
+  // ——— DOM ———
+  const shell = document.getElementById("game-shell");
+  const screenStart = document.getElementById("screen-start");
+  const screenPlay = document.getElementById("screen-play");
+  const screenEnd = document.getElementById("screen-end");
+  const btnStart = document.getElementById("btn-start");
+  const btnAgain = document.getElementById("btn-again");
+  const btnOrder = document.getElementById("btn-order");
+  const scoreEl = document.getElementById("score-value");
+  const playHint = document.getElementById("play-hint");
+  const endMessage = document.getElementById("end-message");
+  const endHeadline = document.getElementById("end-headline");
+  const finalScore = document.getElementById("final-score");
+  const goalItemsEl = document.getElementById("goal-items");
+  const goalSummaryEl = document.getElementById("goal-summary");
+  const scoreStat = document.querySelector(".score-stat");
+  const canvas = document.getElementById("game-canvas");
+  const ctx = canvas.getContext("2d");
+  const endCanvas = document.getElementById("end-pizza-canvas");
+  const endCtx = endCanvas.getContext("2d");
+
+  // ——— Demo / Auto-play mode ———
+  // Set to true to have the game play itself (useful for arcade display)
+  const DEMO_MODE = true;
+
+  // ——— State ———
+  let state = "start";
+  let score = 0;
+  let goal = [];
+  let ingredients = [];
+  let landedToppings = [];
+  let landings = []; // in-flight land animations
+  let particles = [];
+  let floatTexts = [];
+  let crustX = 0.5;
+  let crustTargetX = 0.5;
+  let lastTs = 0;
+  let spawnTimer = 0;
+  let rafId = 0;
+  let dragging = false;
+  let hintHidden = false;
+  let dpr = 1;
+  let W = 390;
+  let H = 700;
+  let crustBounce = 0;
+  let crustShake = 0;
+  let completing = false;
+  let completeTimer = 0;
+  let lastSpawnX = -999;
+  let demoThinkT = 0; // demo AI throttle timer
+
+  function showScreen(name) {
+    const map = { start: screenStart, play: screenPlay, end: screenEnd };
+    Object.entries(map).forEach(([key, el]) => {
+      const active = key === name;
+      el.classList.toggle("is-active", active);
+      if (active) el.removeAttribute("hidden");
+      else el.setAttribute("hidden", "");
+    });
+    state = name;
+  }
+
+  function resizeCanvas() {
+    const rect = canvas.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(280, Math.floor(rect.width));
+    H = Math.max(360, Math.floor(rect.height));
+    canvas.width = Math.floor(W * dpr);
+    canvas.height = Math.floor(H * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function randInt(min, max) {
+    return min + Math.floor(Math.random() * (max - min + 1));
+  }
+
+  function generateGoal() {
+    const typeCount = randInt(CONFIG.goalTypesMin, CONFIG.goalTypesMax);
+    return shuffle(GOOD)
+      .slice(0, typeCount)
+      .map((ing) => ({
+        id: ing.id,
+        label: ing.label,
+        emoji: ing.emoji,
+        needed: randInt(CONFIG.qtyMin, CONFIG.qtyMax),
+        collected: 0,
+      }));
+  }
+
+  function goalNeededTotal() {
+    return goal.reduce((s, g) => s + g.needed, 0);
+  }
+
+  function goalCollectedTotal() {
+    return goal.reduce((s, g) => s + Math.min(g.collected, g.needed), 0);
+  }
+
+  function goalProgress() {
+    const total = goalNeededTotal();
+    return total ? goalCollectedTotal() / total : 0;
+  }
+
+  function isGoalComplete() {
+    return goal.length > 0 && goal.every((g) => g.collected >= g.needed);
+  }
+
+  function renderGoalBanner(flashId, celebrateId) {
+    goalItemsEl.innerHTML = "";
+    goal.forEach((g) => {
+      const done = g.collected >= g.needed;
+      const el = document.createElement("div");
+      el.className = "goal-item" + (done ? " is-done" : "");
+      if (flashId === g.id) el.classList.add("is-bump");
+      if (celebrateId === g.id) el.classList.add("is-celebrate");
+      el.dataset.id = g.id;
+      const countText = done
+        ? `✓ ${g.needed}/${g.needed}`
+        : `${g.collected}/${g.needed}`;
+      el.innerHTML =
+        `<span class="goal-emoji">${g.emoji}</span>` +
+        `<span class="goal-count">${countText}</span>`;
+      goalItemsEl.appendChild(el);
+    });
+    goalSummaryEl.textContent = `${goalCollectedTotal()} / ${goalNeededTotal()} toppings collected`;
+  }
+
+  function easeOutBack(t) {
+    const c1 = 1.70158;
+    const c3 = c1 + 1;
+    return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+  }
+
+  function pizzaWidth() {
+    return Math.min(CONFIG.pizzaMaxWidth, W * CONFIG.pizzaWidthRatio);
+  }
+
+  function pizzaCenter() {
+    const w = pizzaWidth();
+    const half = w / 2;
+    const shakeX = crustShake > 0 ? Math.sin(crustShake * 42) * 10 * crustShake : 0;
+    const x = half + crustX * (W - w) + shakeX;
+    const y = H - CONFIG.pizzaYFromBottom;
+    return {
+      x,
+      y,
+      half,
+      rx: half,
+      ry: half * CONFIG.pizzaSquash,
+    };
+  }
+
+  /** Soft ground shadow under the pizza */
+  function drawPizzaShadow(c, cx, cy, width) {
+    const rx = width / 2;
+    const ry = rx * CONFIG.pizzaSquash;
+    const crustThick = Math.max(8, rx * CONFIG.crustThicknessRatio);
+    c.save();
+    c.fillStyle = "rgba(80, 30, 15, 0.2)";
+    c.beginPath();
+    c.ellipse(cx, cy + ry + crustThick * 0.7, rx * 0.9, ry * 0.38, 0, 0, Math.PI * 2);
+    c.fill();
+    // Warm contact glow under pizza
+    const glow = c.createRadialGradient(cx, cy + ry * 0.2, rx * 0.2, cx, cy + ry * 0.3, rx * 1.1);
+    glow.addColorStop(0, "rgba(238, 58, 35, 0.08)");
+    glow.addColorStop(1, "rgba(238, 58, 35, 0)");
+    c.fillStyle = glow;
+    c.beginPath();
+    c.ellipse(cx, cy + ry * 0.15, rx * 1.05, ry * 1.2, 0, 0, Math.PI * 2);
+    c.fill();
+    c.restore();
+  }
+
+  /**
+   * Pizza surface: thinner crust ring + sauce + bubbly cheese.
+   * Front rim drawn separately AFTER toppings.
+   */
+  function drawPizzaSurface(c, cx, cy, width) {
+    const rx = width / 2;
+    const ry = rx * CONFIG.pizzaSquash;
+
+    c.save();
+
+    // Outer crust ring (slightly irregular warm dough)
+    const crustGrad = c.createLinearGradient(cx, cy - ry, cx, cy + ry);
+    crustGrad.addColorStop(0, "#F4C878");
+    crustGrad.addColorStop(0.4, "#E8A84A");
+    crustGrad.addColorStop(0.75, "#D4893A");
+    crustGrad.addColorStop(1, "#B86A28");
+    c.fillStyle = crustGrad;
+    c.beginPath();
+    c.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Inner crust lip
+    c.fillStyle = "#C4783A";
+    c.beginPath();
+    c.ellipse(cx, cy + 0.5, rx * 0.86, ry * 0.86, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Sauce
+    const sauce = c.createRadialGradient(cx - rx * 0.1, cy - ry * 0.25, rx * 0.06, cx, cy, rx * 0.8);
+    sauce.addColorStop(0, "#FF5A42");
+    sauce.addColorStop(0.65, "#D93A2C");
+    sauce.addColorStop(1, "#B02820");
+    c.fillStyle = sauce;
+    c.beginPath();
+    c.ellipse(cx, cy - 1, rx * 0.8, ry * 0.8, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Melted cheese with bubbles
+    const cheese = c.createRadialGradient(cx - rx * 0.08, cy - ry * 0.3, rx * 0.04, cx, cy + ry * 0.05, rx * 0.72);
+    cheese.addColorStop(0, "#FFF0A8");
+    cheese.addColorStop(0.35, "#F5C84A");
+    cheese.addColorStop(0.75, "#E8A830");
+    cheese.addColorStop(1, "#D49220");
+    c.fillStyle = cheese;
+    c.beginPath();
+    c.ellipse(cx, cy - 1.5, rx * 0.72, ry * 0.7, 0, 0, Math.PI * 2);
+    c.fill();
+
+    // Cheese bubbles / melted texture
+    c.fillStyle = "rgba(255, 245, 200, 0.55)";
+    [
+      [-0.3, -0.22, 0.09, 0.055],
+      [0.24, -0.16, 0.08, 0.05],
+      [-0.12, 0.18, 0.11, 0.065],
+      [0.28, 0.14, 0.07, 0.04],
+      [0.05, -0.05, 0.06, 0.035],
+      [-0.22, 0.05, 0.05, 0.03],
+    ].forEach(([dx, dy, rrx, rry]) => {
+      c.beginPath();
+      c.ellipse(cx + rx * dx, cy + ry * dy, rx * rrx, ry * rry, dx * 0.5, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    // Soft browned spots
+    c.fillStyle = "rgba(200, 120, 40, 0.22)";
+    [
+      [0.18, 0.22, 0.05],
+      [-0.25, 0.12, 0.04],
+      [0.32, -0.05, 0.035],
+    ].forEach(([dx, dy, rr]) => {
+      c.beginPath();
+      c.ellipse(cx + rx * dx, cy + ry * dy, rx * rr, ry * rr * 0.7, 0, 0, Math.PI * 2);
+      c.fill();
+    });
+
+    c.restore();
+  }
+
+  /** Slimmer front crust rim for 3/4 depth */
+  function drawPizzaFrontCrust(c, cx, cy, width) {
+    const rx = width / 2;
+    const ry = rx * CONFIG.pizzaSquash;
+    const crustThick = Math.max(8, rx * CONFIG.crustThicknessRatio);
+
+    c.save();
+
+    c.beginPath();
+    c.ellipse(cx, cy, rx, ry, 0, 0.08 * Math.PI, 0.92 * Math.PI, false);
+    c.ellipse(cx, cy + crustThick * 0.95, rx * 0.97, ry * 0.88, 0, 0.92 * Math.PI, 0.08 * Math.PI, true);
+    c.closePath();
+    const frontGrad = c.createLinearGradient(cx, cy, cx, cy + crustThick + ry * 0.35);
+    frontGrad.addColorStop(0, "#E8A84A");
+    frontGrad.addColorStop(0.35, "#C4783A");
+    frontGrad.addColorStop(0.7, "#8B4A1A");
+    frontGrad.addColorStop(1, "#6A3410");
+    c.fillStyle = frontGrad;
+    c.fill();
+
+    // Soft baked highlight on front lip
+    c.strokeStyle = "rgba(255, 220, 150, 0.4)";
+    c.lineWidth = 1.5;
+    c.beginPath();
+    c.ellipse(cx, cy + 1, rx * 0.9, ry * 0.85, 0, 0.18 * Math.PI, 0.82 * Math.PI);
+    c.stroke();
+
+    c.restore();
+  }
+
+  function withPizzaBounce(c, cx, cy, bounce, drawFn) {
+    const bounceScale = 1 + (bounce || 0) * 0.08;
+    c.save();
+    c.translate(cx, cy);
+    c.scale(bounceScale, 2 - bounceScale);
+    c.translate(-cx, -cy);
+    drawFn();
+    c.restore();
+  }
+
+  /** Perspective scale: back of pizza slightly smaller, front slightly larger */
+  function toppingDepthScale(oy, rx) {
+    const t = (oy / (rx * 0.55) + 1) * 0.5; // 0 back → 1 front
+    return 0.82 + Math.max(0, Math.min(1, t)) * 0.22;
+  }
+
+  function drawLandedToppings(c, cx, cy, toppings) {
+    const p = { rx: pizzaWidth() / 2 };
+    const sorted = toppings.slice().sort((a, b) => a.oy - b.oy);
+    for (const t of sorted) {
+      const depth = toppingDepthScale(t.oy, p.rx);
+      const landScale = (1 + (t.bounce || 0) * 0.3) * depth;
+      const px = cx + t.ox;
+      const py = cy + t.oy * CONFIG.pizzaSquash;
+      drawIngredientAt(c, t, px, py, t.size, t.rot, landScale, "pizza");
+    }
+  }
+
+  function drawLandingAnimations(c, cx, cy, activeLandings) {
+    if (!activeLandings) return;
+    const rx = pizzaWidth() / 2;
+    for (const land of activeLandings) {
+      const t = Math.min(1, land.t);
+      const e = easeOutBack(t);
+      const depth = toppingDepthScale(land.toOy, rx);
+      const tx = cx + land.toOx;
+      const ty = cy + land.toOy * CONFIG.pizzaSquash;
+      const x = land.fromX + (tx - land.fromX) * e;
+      const y = land.fromY + (ty - land.fromY) * e;
+      const size = land.size + (land.finalSize - land.size) * e;
+      const rot = land.rot + (land.rotTarget - land.rot) * e;
+      // Squash/stretch on impact
+      const squash = t > 0.65 ? 1 + Math.sin((t - 0.65) / 0.35 * Math.PI) * 0.12 : 1;
+      const pop = 1 + Math.sin(t * Math.PI) * 0.14;
+      const scale = pop * (t > 0.5 ? depth : 1);
+      const mode = t > 0.55 ? "pizza" : "falling";
+      c.save();
+      c.translate(x, y);
+      c.scale(scale, scale * (2 - squash));
+      c.rotate(rot);
+      if (mode === "pizza") drawPizzaTopping(c, land.id, size, 0);
+      else drawFallingIngredient(c, land.id, size, true);
+      c.restore();
+    }
+  }
+
+  /** End-screen / composite pizza (correct layer order) */
+  function drawPizzaWithToppings(c, cx, cy, width, toppings, bounce, activeLandings) {
+    withPizzaBounce(c, cx, cy, bounce, () => {
+      drawPizzaShadow(c, cx, cy, width);
+      drawPizzaSurface(c, cx, cy, width);
+      drawLandedToppings(c, cx, cy, toppings);
+      drawLandingAnimations(c, cx, cy, activeLandings);
+      drawPizzaFrontCrust(c, cx, cy, width);
+    });
+  }
+
+  function drawMotionTrail(item, visX) {
+    // Soft single brush-stroke motion cue (not hard UI lines)
+    ctx.save();
+    const tipY = item.y - item.size * 0.55;
+    const tailY = item.y - item.size * 1.7;
+    const drift = Math.sin(item.wobblePhase) * 4;
+    const grad = ctx.createLinearGradient(visX, tipY, visX - drift, tailY);
+    grad.addColorStop(0, item.bad ? "rgba(90,140,180,0)" : "rgba(196,90,50,0)");
+    grad.addColorStop(0.35, item.bad ? "rgba(90,140,180,0.16)" : "rgba(196,90,50,0.14)");
+    grad.addColorStop(1, "rgba(196,90,50,0)");
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = Math.max(3, item.size * 0.12);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(visX, tipY);
+    ctx.quadraticCurveTo(visX - drift * 0.4, (tipY + tailY) / 2, visX - drift, tailY);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    drawBackdrop();
+
+    const c = pizzaCenter();
+    const width = pizzaWidth();
+
+    withPizzaBounce(ctx, c.x, c.y, crustBounce, () => {
+      drawPizzaShadow(ctx, c.x, c.y, width);
+      drawPizzaSurface(ctx, c.x, c.y, width);
+      drawLandedToppings(ctx, c.x, c.y, landedToppings);
+    });
+
+    // Falling toppings above the pizza surface
+    for (const item of ingredients) {
+      const amp = item.wobbleAmp || CONFIG.wobbleAmp;
+      const visX = item.baseX + Math.sin(item.wobblePhase) * amp;
+      drawMotionTrail(item, visX);
+      drawIngredientAt(ctx, item, visX, item.y, item.size, item.rot, item.scale, "falling");
+    }
+
+    drawLandingAnimations(ctx, c.x, c.y, landings);
+
+    withPizzaBounce(ctx, c.x, c.y, crustBounce, () => {
+      drawPizzaFrontCrust(ctx, c.x, c.y, width);
+    });
+
+    for (const p of particles) {
+      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
+      ctx.fillStyle = p.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+
+    for (const f of floatTexts) {
+      ctx.globalAlpha = Math.min(1, f.life * 2);
+      ctx.font = "800 20px Nunito, sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillStyle = f.good ? "#2d7a3a" : "#C41E12";
+      ctx.strokeStyle = "rgba(255,255,255,0.9)";
+      ctx.lineWidth = 4;
+      ctx.strokeText(f.text, f.x, f.y);
+      ctx.fillText(f.text, f.x, f.y);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function roundPath(c, x0, y0, w, h, rad) {
+    const r = Math.min(rad, w / 2, h / 2);
+    c.beginPath();
+    c.moveTo(x0 + r, y0);
+    c.arcTo(x0 + w, y0, x0 + w, y0 + h, r);
+    c.arcTo(x0 + w, y0 + h, x0, y0 + h, r);
+    c.arcTo(x0, y0 + h, x0, y0, r);
+    c.arcTo(x0, y0, x0 + w, y0, r);
+    c.closePath();
+  }
+
+  /** Falling / free-floating ingredient art — illustrated food pieces */
+  function drawFallingIngredient(c, id, size, withShadow) {
+    const s = size;
+    switch (id) {
+      case "pepperoni":
+        if (withShadow) {
+          c.fillStyle = "rgba(100,30,20,0.2)";
+          c.beginPath();
+          c.ellipse(2, 5, s * 0.5, s * 0.22, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        // thickness edge
+        c.fillStyle = "#8B241C";
+        c.beginPath();
+        c.ellipse(0, s * 0.1, s * 0.48, s * 0.18, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#C0392B";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.5, s * 0.42, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#E04535";
+        c.beginPath();
+        c.ellipse(-s * 0.04, -s * 0.06, s * 0.38, s * 0.3, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "rgba(255,180,160,0.4)";
+        c.beginPath();
+        c.ellipse(-s * 0.14, -s * 0.14, s * 0.14, s * 0.09, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#7A1E18";
+        [[0.16, 0.08], [-0.18, 0.12], [0.04, -0.18], [-0.08, 0.02]].forEach(([dx, dy]) => {
+          c.beginPath();
+          c.ellipse(s * dx, s * dy, s * 0.05, s * 0.035, 0, 0, Math.PI * 2);
+          c.fill();
+        });
+        break;
+
+      case "cheese":
+        if (withShadow) {
+          c.fillStyle = "rgba(160,100,20,0.18)";
+          c.beginPath();
+          c.ellipse(2, 6, s * 0.42, s * 0.16, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        {
+          const cg = c.createLinearGradient(-s * 0.35, -s * 0.25, s * 0.35, s * 0.3);
+          cg.addColorStop(0, "#FFE58F");
+          cg.addColorStop(0.5, "#F5C84A");
+          cg.addColorStop(1, "#E09820");
+          c.fillStyle = cg;
+        }
+        // irregular shredded cluster
+        c.beginPath();
+        c.moveTo(-s * 0.35, -s * 0.05);
+        c.quadraticCurveTo(-s * 0.4, -s * 0.3, -s * 0.1, -s * 0.32);
+        c.quadraticCurveTo(s * 0.15, -s * 0.38, s * 0.35, -s * 0.18);
+        c.quadraticCurveTo(s * 0.45, 0.05 * s, s * 0.28, s * 0.28);
+        c.quadraticCurveTo(0, s * 0.38, -s * 0.25, s * 0.22);
+        c.quadraticCurveTo(-s * 0.42, s * 0.08, -s * 0.35, -s * 0.05);
+        c.fill();
+        c.fillStyle = "rgba(255,240,180,0.5)";
+        c.beginPath();
+        c.ellipse(-s * 0.08, -s * 0.1, s * 0.14, s * 0.08, -0.4, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#D48918";
+        c.beginPath();
+        c.ellipse(s * 0.12, s * 0.08, s * 0.06, s * 0.04, 0.3, 0, Math.PI * 2);
+        c.ellipse(-s * 0.15, s * 0.05, s * 0.05, s * 0.03, -0.2, 0, Math.PI * 2);
+        c.fill();
+        break;
+
+      case "tomato":
+        if (withShadow) {
+          c.fillStyle = "rgba(120,30,20,0.18)";
+          c.beginPath();
+          c.ellipse(2, 5, s * 0.42, s * 0.16, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.fillStyle = "#C62828";
+        c.beginPath();
+        c.ellipse(0, s * 0.08, s * 0.42, s * 0.18, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#E53935";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.45, s * 0.4, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "rgba(255,180,160,0.45)";
+        c.beginPath();
+        c.ellipse(-s * 0.12, -s * 0.12, s * 0.14, s * 0.1, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#43A047";
+        c.beginPath();
+        c.ellipse(0, -s * 0.38, s * 0.12, s * 0.08, 0, 0, Math.PI * 2);
+        c.fill();
+        break;
+
+      case "mushroom":
+        if (withShadow) {
+          c.fillStyle = "rgba(100,70,40,0.18)";
+          c.beginPath();
+          c.ellipse(2, 6, s * 0.38, s * 0.14, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        // cap
+        c.fillStyle = "#C4A06A";
+        c.beginPath();
+        c.ellipse(0, -s * 0.08, s * 0.42, s * 0.26, 0, Math.PI, 0);
+        c.lineTo(s * 0.42, -s * 0.02);
+        c.quadraticCurveTo(0, s * 0.08, -s * 0.42, -s * 0.02);
+        c.closePath();
+        c.fill();
+        c.fillStyle = "#A87848";
+        c.beginPath();
+        c.ellipse(-s * 0.12, -s * 0.12, s * 0.07, s * 0.045, 0, 0, Math.PI * 2);
+        c.ellipse(s * 0.14, -s * 0.08, s * 0.055, s * 0.035, 0, 0, Math.PI * 2);
+        c.fill();
+        // stem
+        c.fillStyle = "#E8C9A0";
+        roundPath(c, -s * 0.14, -s * 0.02, s * 0.28, s * 0.4, 7);
+        c.fill();
+        c.fillStyle = "rgba(180,140,90,0.35)";
+        roundPath(c, -s * 0.08, s * 0.08, s * 0.1, s * 0.2, 4);
+        c.fill();
+        break;
+
+      case "pepper":
+        if (withShadow) {
+          c.fillStyle = "rgba(40,100,40,0.18)";
+          c.beginPath();
+          c.ellipse(2, 5, s * 0.2, s * 0.16, 0.3, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.fillStyle = "#2E7D32";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.2, s * 0.42, 0.35, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#66BB6A";
+        c.beginPath();
+        c.ellipse(-s * 0.05, -s * 0.08, s * 0.09, s * 0.22, 0.35, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = "#1B5E20";
+        c.lineWidth = 2.5;
+        c.lineCap = "round";
+        c.beginPath();
+        c.moveTo(0, -s * 0.38);
+        c.lineTo(s * 0.04, -s * 0.52);
+        c.stroke();
+        break;
+
+      case "olive":
+        if (withShadow) {
+          c.fillStyle = "rgba(20,20,20,0.18)";
+          c.beginPath();
+          c.ellipse(2, 5, s * 0.36, s * 0.14, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        // thickness
+        c.fillStyle = "#0A0A0A";
+        c.beginPath();
+        c.ellipse(0, s * 0.08, s * 0.36, s * 0.16, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#1A1A1A";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.38, s * 0.32, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#F5C84A";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.14, s * 0.11, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "rgba(255,255,255,0.18)";
+        c.beginPath();
+        c.ellipse(-s * 0.12, -s * 0.1, s * 0.08, s * 0.05, 0, 0, Math.PI * 2);
+        c.fill();
+        break;
+
+      case "pineapple":
+        if (withShadow) {
+          c.fillStyle = "rgba(180,140,20,0.2)";
+          c.beginPath();
+          c.ellipse(2, 5, s * 0.32, s * 0.14, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.fillStyle = "#F4C430";
+        c.beginPath();
+        c.moveTo(0, -s * 0.38);
+        c.lineTo(s * 0.38, s * 0.28);
+        c.lineTo(-s * 0.38, s * 0.28);
+        c.closePath();
+        c.fill();
+        c.strokeStyle = "#E0A820";
+        c.lineWidth = 1.5;
+        c.beginPath();
+        c.moveTo(-s * 0.12, -s * 0.1);
+        c.lineTo(s * 0.08, s * 0.15);
+        c.moveTo(s * 0.05, -s * 0.15);
+        c.lineTo(-s * 0.05, s * 0.18);
+        c.stroke();
+        c.fillStyle = "#43A047";
+        [[-0.1, -0.42], [0, -0.48], [0.1, -0.42]].forEach(([dx, dy], i) => {
+          c.beginPath();
+          c.ellipse(s * dx, s * dy, s * 0.07, s * 0.14, (i - 1) * 0.35, 0, Math.PI * 2);
+          c.fill();
+        });
+        drawXBadge(c, s);
+        break;
+
+      case "fish":
+      case "sardine":
+        if (withShadow) {
+          c.fillStyle = "rgba(40,80,120,0.18)";
+          c.beginPath();
+          c.ellipse(2, 4, s * 0.4, s * 0.14, 0, 0, Math.PI * 2);
+          c.fill();
+        }
+        c.fillStyle = id === "sardine" ? "#7EAEB8" : "#5BA3D9";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.42, s * 0.22, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = id === "sardine" ? "#5A8A94" : "#3D7FB0";
+        c.beginPath();
+        c.moveTo(s * 0.35, 0);
+        c.lineTo(s * 0.58, -s * 0.2);
+        c.lineTo(s * 0.58, s * 0.2);
+        c.closePath();
+        c.fill();
+        // X eye
+        c.strokeStyle = "#1a1a1a";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(-s * 0.28, -s * 0.08);
+        c.lineTo(-s * 0.14, 0.04 * s);
+        c.moveTo(-s * 0.14, -s * 0.08);
+        c.lineTo(-s * 0.28, 0.04 * s);
+        c.stroke();
+        drawXBadge(c, s);
+        break;
+
+      case "gummy":
+        if (withShadow) {
+          c.fillStyle = "rgba(160,40,120,0.18)";
+          roundPath(c, -s * 0.28 + 2, -s * 0.32 + 3, s * 0.56, s * 0.65, 12);
+          c.fill();
+        }
+        c.fillStyle = "#E91E8C";
+        roundPath(c, -s * 0.28, -s * 0.32, s * 0.56, s * 0.65, 12);
+        c.fill();
+        c.fillStyle = "rgba(255,200,230,0.5)";
+        roundPath(c, -s * 0.16, -s * 0.24, s * 0.2, s * 0.22, 6);
+        c.fill();
+        drawXBadge(c, s);
+        break;
+
+      default:
+        c.fillStyle = "#ccc";
+        c.beginPath();
+        c.arc(0, 0, s * 0.4, 0, Math.PI * 2);
+        c.fill();
+    }
+  }
+
+  function drawXBadge(c, s) {
+    c.fillStyle = "rgba(238,58,35,0.92)";
+    c.beginPath();
+    c.arc(s * 0.28, -s * 0.28, s * 0.16, 0, Math.PI * 2);
+    c.fill();
+    c.strokeStyle = "#fff";
+    c.lineWidth = 2.5;
+    c.beginPath();
+    c.moveTo(s * 0.2, -s * 0.36);
+    c.lineTo(s * 0.36, -s * 0.2);
+    c.moveTo(s * 0.36, -s * 0.36);
+    c.lineTo(s * 0.2, -s * 0.2);
+    c.stroke();
+  }
+
+  /**
+   * Toppings ON the pizza — flattened to perspective with contact shadows.
+   */
+  function drawPizzaTopping(c, id, size, rot) {
+    const s = size;
+    const squash = CONFIG.pizzaSquash;
+    c.save();
+    c.rotate(rot);
+    c.scale(1, squash * 1.15);
+
+    // Soft contact shadow in cheese
+    c.fillStyle = "rgba(100, 50, 15, 0.2)";
+    c.beginPath();
+    c.ellipse(1.5, 3, s * 0.48, s * 0.38, 0, 0, Math.PI * 2);
+    c.fill();
+
+    switch (id) {
+      case "pepperoni": {
+        c.fillStyle = "#8B241C";
+        c.beginPath();
+        c.ellipse(0, 1.5, s * 0.5, s * 0.42, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#D44535";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.48, s * 0.4, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "rgba(255,170,150,0.32)";
+        c.beginPath();
+        c.ellipse(-s * 0.12, -s * 0.12, s * 0.14, s * 0.09, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#7A1E18";
+        [[0.14, 0.08], [-0.16, 0.1], [0.02, -0.16]].forEach(([dx, dy]) => {
+          c.beginPath();
+          c.ellipse(s * dx, s * dy, s * 0.045, s * 0.032, 0, 0, Math.PI * 2);
+          c.fill();
+        });
+        break;
+      }
+      case "cheese": {
+        const cg = c.createLinearGradient(-s * 0.3, -s * 0.2, s * 0.3, s * 0.2);
+        cg.addColorStop(0, "#FFE58F");
+        cg.addColorStop(1, "#E09820");
+        c.fillStyle = cg;
+        c.beginPath();
+        c.moveTo(-s * 0.35, 0);
+        c.quadraticCurveTo(-s * 0.3, -s * 0.28, 0, -s * 0.25);
+        c.quadraticCurveTo(s * 0.32, -s * 0.22, s * 0.35, 0.05 * s);
+        c.quadraticCurveTo(s * 0.2, s * 0.28, -s * 0.1, s * 0.25);
+        c.quadraticCurveTo(-s * 0.35, s * 0.12, -s * 0.35, 0);
+        c.fill();
+        break;
+      }
+      case "tomato": {
+        c.fillStyle = "#C62828";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.4, s * 0.34, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#E53935";
+        c.beginPath();
+        c.ellipse(-s * 0.04, -s * 0.04, s * 0.3, s * 0.25, 0, 0, Math.PI * 2);
+        c.fill();
+        break;
+      }
+      case "mushroom": {
+        c.fillStyle = "#B89060";
+        c.beginPath();
+        c.ellipse(0, -s * 0.04, s * 0.38, s * 0.2, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#E8C9A0";
+        c.beginPath();
+        c.ellipse(0, s * 0.1, s * 0.16, s * 0.14, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#9A7048";
+        c.beginPath();
+        c.ellipse(-s * 0.1, -s * 0.06, s * 0.055, s * 0.035, 0, 0, Math.PI * 2);
+        c.fill();
+        break;
+      }
+      case "pepper": {
+        c.fillStyle = "#2E7D32";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.16, s * 0.34, 0.4, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#66BB6A";
+        c.beginPath();
+        c.ellipse(-s * 0.04, -s * 0.05, s * 0.07, s * 0.18, 0.4, 0, Math.PI * 2);
+        c.fill();
+        break;
+      }
+      case "olive": {
+        c.fillStyle = "#111";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.34, s * 0.28, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "#F5C84A";
+        c.beginPath();
+        c.ellipse(0, 0, s * 0.13, s * 0.1, 0, 0, Math.PI * 2);
+        c.fill();
+        c.fillStyle = "rgba(255,255,255,0.15)";
+        c.beginPath();
+        c.ellipse(-s * 0.1, -s * 0.08, s * 0.07, s * 0.04, 0, 0, Math.PI * 2);
+        c.fill();
+        break;
+      }
+      default:
+        drawFallingIngredient(c, id, size, false);
+    }
+    c.restore();
+  }
+
+  function drawIngredientAt(c, item, x, y, size, rot, scale, mode) {
+    c.save();
+    c.translate(x, y);
+    c.rotate(rot);
+    c.scale(scale, scale);
+    if (mode === "pizza") drawPizzaTopping(c, item.id || item, size, 0);
+    else drawFallingIngredient(c, item.id || item, size, true);
+    c.restore();
+  }
+
+  function spawnBurst(x, y, good) {
+    const colors = good
+      ? ["#F5C84A", "#EE3A23", "#FFE58F", "#fff", "#E09A28"]
+      : ["#EE3A23", "#9B150C", "#888"];
+    for (let i = 0; i < (good ? 12 : 7); i++) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = 80 + Math.random() * 140;
+      particles.push({
+        x,
+        y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp - 55,
+        life: 0.35 + Math.random() * 0.28,
+        maxLife: 0.55,
+        r: 3 + Math.random() * 5,
+        color: colors[i % colors.length],
+      });
+    }
+  }
+
+  function spawnFloatText(x, y, text, good) {
+    floatTexts.push({ x, y, text, life: 0.75, good });
+  }
+
+  function currentFallSpeed() {
+    const t = goalProgress();
+    return CONFIG.fallSpeedStart + (CONFIG.fallSpeedMax - CONFIG.fallSpeedStart) * t;
+  }
+
+  function currentSpawnInterval() {
+    const t = goalProgress();
+    return (
+      CONFIG.spawnIntervalStart +
+      (CONFIG.spawnIntervalMin - CONFIG.spawnIntervalStart) * t
+    );
+  }
+
+  function currentBadChance() {
+    const t = goalProgress();
+    return CONFIG.badChanceStart + (CONFIG.badChanceMax - CONFIG.badChanceStart) * t;
+  }
+
+  function pickGoodDef() {
+    const unfinished = goal.filter((g) => g.collected < g.needed);
+    if (unfinished.length && Math.random() < CONFIG.goalSpawnBias) {
+      const pick = unfinished[Math.floor(Math.random() * unfinished.length)];
+      return GOOD.find((g) => g.id === pick.id) || pick;
+    }
+    return GOOD[Math.floor(Math.random() * GOOD.length)];
+  }
+
+  function spawnIngredient() {
+    if (completing) return;
+    const bad = Math.random() < currentBadChance();
+    const def = bad ? BAD[Math.floor(Math.random() * BAD.length)] : pickGoodDef();
+    // Slight per-type size personality
+    const typeScale =
+      def.id === "pepperoni" || def.id === "olive"
+        ? 0.92
+        : def.id === "cheese" || def.id === "mushroom"
+          ? 1.05
+          : 1;
+    const size =
+      (CONFIG.ingredientSizeMin +
+        Math.random() * (CONFIG.ingredientSizeMax - CONFIG.ingredientSizeMin)) *
+      typeScale;
+    const margin = size + 10;
+
+    // Varied horizontal spawn — avoid stacking in the same column
+    let baseX = margin + Math.random() * (W - margin * 2);
+    let tries = 0;
+    while (Math.abs(baseX - lastSpawnX) < CONFIG.minSpawnGapX && tries < 8) {
+      baseX = margin + Math.random() * (W - margin * 2);
+      tries += 1;
+    }
+    lastSpawnX = baseX;
+
+    // Staggered start height so they don't feel like a marching row
+    const startY = -size - Math.random() * 40;
+
+    ingredients.push({
+      ...def,
+      bad,
+      baseX,
+      x: baseX,
+      y: startY,
+      size,
+      rot: Math.random() * Math.PI * 2,
+      rotSpeed: (Math.random() - 0.5) * 1.6,
+      speed: currentFallSpeed() * (0.82 + Math.random() * 0.36),
+      wobblePhase: Math.random() * Math.PI * 2,
+      wobbleAmp: CONFIG.wobbleAmp * (0.7 + Math.random() * 0.6),
+      scale: 1,
+      caught: false,
+      remove: false,
+    });
+  }
+
+  function setCrustFromClientX(clientX) {
+    const rect = canvas.getBoundingClientRect();
+    const localX = ((clientX - rect.left) / rect.width) * W;
+    const half = pizzaWidth() / 2;
+    const clamped = Math.max(half, Math.min(W - half, localX));
+    crustTargetX = (clamped - half) / (W - pizzaWidth());
+  }
+
+  function flashScore(kind) {
+    if (!scoreStat) return;
+    scoreStat.classList.remove("bump", "miss");
+    void scoreStat.offsetWidth;
+    scoreStat.classList.add(kind === "good" ? "bump" : "miss");
+  }
+
+  function updateScore(delta) {
+    score = Math.max(0, score + delta);
+    scoreEl.textContent = String(score);
+    flashScore(delta >= 0 ? "good" : "bad");
+  }
+
+  function pickToppingSlot(catchX) {
+    const p = pizzaCenter();
+    // Prefer non-overlapping slots on the cheese surface (ring distribution)
+    for (let attempt = 0; attempt < 16; attempt++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist = p.rx * (0.14 + Math.random() * 0.42);
+      const biasX = ((catchX - p.x) / p.rx) * p.rx * 0.1;
+      const ox = Math.cos(angle) * dist + biasX;
+      const oy = Math.sin(angle) * dist * 0.95;
+      const clampedOx = Math.max(-p.rx * 0.52, Math.min(p.rx * 0.52, ox));
+      const clampedOy = Math.max(-p.rx * 0.48, Math.min(p.rx * 0.48, oy));
+      const minDist = p.rx * 0.18;
+      const tooClose = landedToppings.some((t) => {
+        const dx = t.ox - clampedOx;
+        const dy = t.oy - clampedOy;
+        return dx * dx + dy * dy < minDist * minDist;
+      });
+      if (!tooClose || attempt === 15) {
+        return { ox: clampedOx, oy: clampedOy };
+      }
+    }
+    return { ox: 0, oy: 0 };
+  }
+
+  function startLanding(item) {
+    const slot = pickToppingSlot(item.x);
+    const topSize = item.size * (0.36 + Math.random() * 0.1);
+    landings.push({
+      id: item.id,
+      fromX: item.x,
+      fromY: item.y,
+      toOx: slot.ox,
+      toOy: slot.oy,
+      size: item.size,
+      finalSize: topSize,
+      rot: item.rot,
+      rotTarget: item.rot + (Math.random() - 0.5) * 0.8,
+      t: 0,
+      duration: CONFIG.landDuration,
+    });
+  }
+
+  function settleTopping(landing) {
+    landedToppings.push({
+      id: landing.id,
+      ox: landing.toOx,
+      oy: landing.toOy,
+      rot: landing.rotTarget,
+      size: landing.finalSize,
+      bounce: 1,
+    });
+  }
+
+  function onGoodCatch(item) {
+    updateScore(CONFIG.goodPoints);
+    spawnBurst(item.x, item.y, true);
+    spawnFloatText(item.x, item.y - 24, `+${CONFIG.goodPoints}`, true);
+    crustBounce = 1;
+    startLanding(item);
+
+    const goalEntry = goal.find((g) => g.id === item.id);
+    let celebrateId = null;
+    if (goalEntry && goalEntry.collected < goalEntry.needed) {
+      goalEntry.collected += 1;
+      if (goalEntry.collected >= goalEntry.needed) {
+        celebrateId = goalEntry.id;
+        spawnBurst(item.x, item.y - 10, true);
+      }
+      renderGoalBanner(item.id, celebrateId);
+    }
+
+    if (isGoalComplete() && !completing) {
+      beginCompletion(item.x, item.y);
+    }
+  }
+
+  function onBadCatch(item) {
+    updateScore(CONFIG.badPoints);
+    spawnBurst(item.x, item.y, false);
+    spawnFloatText(item.x, item.y - 24, String(CONFIG.badPoints), false);
+    crustShake = 1;
+  }
+
+  function beginCompletion(x, y) {
+    completing = true;
+    completeTimer = CONFIG.completeDelayMs / 1000;
+    crustBounce = 1.4;
+    spawnBurst(x, y, true);
+    spawnBurst(pizzaCenter().x, pizzaCenter().y, true);
+    spawnFloatText(pizzaCenter().x, pizzaCenter().y - 40, "DONE!", true);
+  }
+
+  function checkCollisions() {
+    const c = pizzaCenter();
+    const pad = CONFIG.collisionPadding;
+
+    for (const item of ingredients) {
+      if (item.caught || item.remove) continue;
+      // Use visual x (with wobble) for collision so it matches what player sees
+      const amp = item.wobbleAmp || CONFIG.wobbleAmp;
+      const visX = item.baseX + Math.sin(item.wobblePhase) * amp;
+      const dx = visX - c.x;
+      const dy = item.y - c.y;
+      const rx = c.rx + item.size * 0.2 + pad * 0.3;
+      const ry = c.ry + item.size * 0.15 + pad * 0.25;
+      const hit = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry) <= 1 && dy > -c.ry * 0.55;
+
+      if (hit) {
+        item.caught = true;
+        item.remove = true;
+        item.x = visX;
+        if (item.bad) onBadCatch(item);
+        else onGoodCatch(item);
+      } else if (item.y > H + item.size) {
+        item.remove = true;
+      }
+    }
+    ingredients = ingredients.filter((i) => !i.remove);
+  }
+
+  function update(dt) {
+    if (completing) {
+      completeTimer -= dt;
+      if (completeTimer <= 0 && landings.length === 0) {
+        endGame();
+        return;
+      }
+    } else {
+      spawnTimer -= dt * 1000;
+      if (spawnTimer <= 0) {
+        spawnIngredient();
+        spawnTimer = currentSpawnInterval();
+      }
+    }
+
+    // Demo AI: steer pizza toward nearest good ingredient, dodge bad ones
+    if (DEMO_MODE) {
+      demoThinkT -= dt;
+      if (demoThinkT <= 0) {
+        demoThinkT = 0.08; // re-evaluate ~12× per second
+        const active = ingredients.filter(i => !i.caught && !i.remove);
+        const good   = active.filter(i => !i.bad);
+        const bad    = active.filter(i =>  i.bad);
+        const pw   = pizzaWidth();
+        const half = pw / 2;
+
+        if (good.length > 0) {
+          // Chase the lowest (closest to pizza) good ingredient
+          const nearest = good.reduce((a, b) => b.y > a.y ? b : a);
+          crustTargetX = Math.max(0, Math.min(1, (nearest.x - half) / (W - pw)));
+        } else if (bad.length > 0) {
+          // No good ingredients falling — slide away from nearest bad one
+          const nearest = bad.reduce((a, b) => b.y > a.y ? b : a);
+          crustTargetX = nearest.x < W / 2 ? 1 : 0;
+        }
+      }
+    }
+
+    // Smooth pizza follow
+    crustX += (crustTargetX - crustX) * Math.min(1, dt * 16);
+    if (crustBounce > 0) crustBounce = Math.max(0, crustBounce - dt * 3.2);
+    if (crustShake > 0) crustShake = Math.max(0, crustShake - dt * 4);
+
+    // Smooth falling — gentle drift + rotation; wobble applied at draw time
+    for (const item of ingredients) {
+      item.y += item.speed * dt;
+      item.rot += item.rotSpeed * dt;
+      item.wobblePhase += CONFIG.wobbleSpeed * dt;
+      const amp = item.wobbleAmp || CONFIG.wobbleAmp;
+      item.x = item.baseX + Math.sin(item.wobblePhase) * amp;
+    }
+
+    if (!completing) checkCollisions();
+
+    // Landing animations
+    for (const land of landings) {
+      land.t += dt / land.duration;
+      if (land.t >= 1) {
+        land.t = 1;
+        land.done = true;
+        settleTopping(land);
+        const p = pizzaCenter();
+        spawnBurst(p.x + land.toOx, p.y + land.toOy * CONFIG.pizzaSquash, true);
+      }
+    }
+    landings = landings.filter((l) => !l.done);
+
+    for (const t of landedToppings) {
+      if (t.bounce > 0) t.bounce = Math.max(0, t.bounce - dt * 4.5);
+    }
+
+    for (const p of particles) {
+      p.life -= dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.vy += 300 * dt;
+    }
+    particles = particles.filter((p) => p.life > 0);
+
+    for (const f of floatTexts) {
+      f.life -= dt;
+      f.y -= 48 * dt;
+    }
+    floatTexts = floatTexts.filter((f) => f.life > 0);
+  }
+
+  function drawBackdrop() {
+    // Warm cream wash on the canvas so it never reads as blank white
+    const wash = ctx.createLinearGradient(0, 0, 0, H);
+    wash.addColorStop(0, "rgba(255, 248, 240, 0.55)");
+    wash.addColorStop(0.55, "rgba(255, 242, 230, 0.35)");
+    wash.addColorStop(1, "rgba(252, 230, 210, 0.45)");
+    ctx.fillStyle = wash;
+    ctx.fillRect(0, 0, W, H);
+
+    // Soft paper grain (very light)
+    ctx.save();
+    ctx.globalAlpha = 0.035;
+    for (let i = 0; i < 40; i++) {
+      const x = (i * 97 + 13) % W;
+      const y = (i * 53 + 29) % H;
+      ctx.fillStyle = i % 2 ? "#C4783A" : "#EE3A23";
+      ctx.beginPath();
+      ctx.arc(x, y, 1.2, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.restore();
+
+    const c = pizzaCenter();
+    ctx.save();
+    const g = ctx.createRadialGradient(c.x, c.y, 4, c.x, c.y, c.rx * 1.7);
+    g.addColorStop(0, "rgba(238, 58, 35, 0.1)");
+    g.addColorStop(0.45, "rgba(232, 168, 72, 0.07)");
+    g.addColorStop(1, "rgba(238, 58, 35, 0)");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.ellipse(c.x, c.y + 10, c.rx * 1.5, c.ry * 1.9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function loop(ts) {
+    if (state !== "play") return;
+    if (!lastTs) lastTs = ts;
+    // Cap dt to avoid jumps after tab-switch, keep motion smooth
+    const dt = Math.min(0.033, (ts - lastTs) / 1000);
+    lastTs = ts;
+    update(dt);
+    if (state === "play") {
+      draw();
+      rafId = requestAnimationFrame(loop);
+    }
+  }
+
+  function renderEndPizza() {
+    const sizeW = 320;
+    const sizeH = 280;
+    const d = Math.min(window.devicePixelRatio || 1, 2);
+    endCanvas.width = sizeW * d;
+    endCanvas.height = sizeH * d;
+    endCtx.setTransform(d, 0, 0, d, 0, 0);
+    endCtx.clearRect(0, 0, sizeW, sizeH);
+    const cx = sizeW / 2;
+    const cy = sizeH / 2 + 6;
+    const width = sizeW * 0.88;
+    const playR = pizzaWidth() / 2 || 1;
+    const endR = width / 2;
+    const scale = endR / playR;
+    const scaled = landedToppings.map((t) => ({
+      ...t,
+      ox: t.ox * scale,
+      oy: t.oy * scale,
+      size: Math.max(14, t.size * scale * 1.05),
+      bounce: 0,
+    }));
+    drawPizzaWithToppings(endCtx, cx, cy, width, scaled, 0, null);
+  }
+
+  function endMessageForScore(s) {
+    if (s >= 100) return "Perfect pizza! 🍕";
+    if (s >= 60) return "That's a pizza worth celebrating! 🍕";
+    return "Your pizza is ready — nice work! 🍕";
+  }
+
+  function startGame() {
+    score = 0;
+    goal = generateGoal();
+    ingredients = [];
+    landedToppings = [];
+    landings = [];
+    particles = [];
+    floatTexts = [];
+    crustX = 0.5;
+    crustTargetX = 0.5;
+    spawnTimer = 220;
+    lastTs = 0;
+    crustBounce = 0;
+    crustShake = 0;
+    completing = false;
+    completeTimer = 0;
+    lastSpawnX = -999;
+    hintHidden = false;
+    playHint.classList.remove("is-hidden");
+    scoreEl.textContent = "0";
+    renderGoalBanner();
+
+    showScreen("play");
+    resizeCanvas();
+    draw();
+
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(loop);
+  }
+
+  function endGame() {
+    cancelAnimationFrame(rafId);
+    completing = false;
+    // Flush any remaining landings
+    for (const land of landings) settleTopping(land);
+    landings = [];
+    finalScore.textContent = String(score);
+    endHeadline.textContent = "🍕 YOUR PIZZA IS READY!";
+    endMessage.textContent = endMessageForScore(score);
+    renderEndPizza();
+    showScreen("end");
+    if (DEMO_MODE) setTimeout(startGame, 3000);
+  }
+
+  function onPointerDown(e) {
+    if (state !== "play") return;
+    dragging = true;
+    canvas.setPointerCapture?.(e.pointerId);
+    setCrustFromClientX(e.clientX);
+    if (!hintHidden) {
+      hintHidden = true;
+      playHint.classList.add("is-hidden");
+    }
+    e.preventDefault();
+  }
+
+  function onPointerMove(e) {
+    if (state !== "play" || !dragging) return;
+    setCrustFromClientX(e.clientX);
+    e.preventDefault();
+  }
+
+  function onPointerUp(e) {
+    dragging = false;
+    try {
+      canvas.releasePointerCapture?.(e.pointerId);
+    } catch (_) {
+      /* ignore */
+    }
+  }
+
+  function preventScroll(e) {
+    if (state === "play" || e.target.closest?.(".game-shell")) {
+      e.preventDefault();
+    }
+  }
+
+  canvas.addEventListener("pointerdown", onPointerDown, { passive: false });
+  canvas.addEventListener("pointermove", onPointerMove, { passive: false });
+  canvas.addEventListener("pointerup", onPointerUp);
+  canvas.addEventListener("pointercancel", onPointerUp);
+  canvas.addEventListener("lostpointercapture", () => {
+    dragging = false;
+  });
+
+  shell.addEventListener("touchmove", preventScroll, { passive: false });
+  document.body.addEventListener(
+    "touchmove",
+    (e) => {
+      if (state === "play") e.preventDefault();
+    },
+    { passive: false }
+  );
+
+  window.addEventListener("resize", () => {
+    if (state === "play") {
+      resizeCanvas();
+      draw();
+    }
+  });
+
+  window.addEventListener("keydown", (e) => {
+    if (state !== "play") return;
+    const step = 0.06;
+    if (e.key === "ArrowLeft" || e.key === "a") {
+      crustTargetX = Math.max(0, crustTargetX - step);
+      e.preventDefault();
+    } else if (e.key === "ArrowRight" || e.key === "d") {
+      crustTargetX = Math.min(1, crustTargetX + step);
+      e.preventDefault();
+    }
+  });
+
+  btnStart.addEventListener("click", startGame);
+  btnAgain.addEventListener("click", startGame);
+
+  // Demo mode: auto-start on load, auto-restart is handled in endGame
+  if (DEMO_MODE) setTimeout(startGame, 1200);
+
+  btnOrder.addEventListener("click", () => {
+    if (CONFIG.orderUrl) {
+      window.open(CONFIG.orderUrl, "_blank", "noopener,noreferrer");
+    } else {
+      btnOrder.textContent = "Coming soon!";
+      setTimeout(() => {
+        btnOrder.textContent = "ORDER NOW";
+      }, 1400);
+    }
+  });
+
+  showScreen("start");
+})();
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,3202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="theme-color" content="#f7f1e8" />
+  <title>Atelier Merge — Jewelry</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+/* Atelier Merge — luxury jewelry × cozy mobile game */
+
+:root {
+  --cream: #f7f1e8;
+  --cream-deep: #efe6d8;
+  --paper: rgba(255, 252, 247, 0.82);
+  --ink: #2c2620;
+  --ink-soft: #6a5f54;
+  --gold: #b8923e;
+  --gold-bright: #d4a84b;
+  --gold-pale: #f0e0b8;
+  --line: rgba(184, 146, 62, 0.28);
+  --shadow: 0 8px 28px rgba(60, 42, 20, 0.1);
+  --radius: 16px;
+  --dock-h: 108px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --font-display: "Cormorant Garamond", Georgia, serif;
+  --font-ui: "Outfit", system-ui, sans-serif;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--cream);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background:
+    radial-gradient(ellipse 120% 80% at 50% -10%, #fff9f0 0%, transparent 55%),
+    radial-gradient(ellipse 80% 50% at 100% 100%, rgba(212, 168, 75, 0.12), transparent 50%),
+    radial-gradient(ellipse 60% 40% at 0% 80%, rgba(180, 150, 120, 0.1), transparent 45%),
+    linear-gradient(180deg, #faf4eb 0%, var(--cream) 40%, #f0e8dc 100%);
+}
+
+.app {
+  width: 100%;
+  max-width: 430px;
+  margin: 0 auto;
+  height: 100%;
+  max-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 12px calc(10px + var(--safe-bottom));
+  position: relative;
+}
+
+/* —— Top bar —— */
+.top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-shrink: 0;
+  margin-bottom: 8px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 35% 30%, #fff6e0, transparent 40%),
+    conic-gradient(from 210deg, #c9a24a, #f0e0b8, #8a6a2a, #d4a84b);
+  box-shadow: 0 2px 8px rgba(184, 146, 62, 0.35);
+  position: relative;
+}
+.brand-mark::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
+}
+.brand-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: 0.18em;
+  color: var(--ink);
+}
+.brand-sub {
+  font-size: 9px;
+  letter-spacing: 0.28em;
+  color: var(--gold);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.top-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-weight: 600;
+  font-size: 13px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(8px);
+}
+
+.coin-icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f0d78a, #c9962e);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.5);
+}
+
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink-soft);
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: var(--shadow);
+  display: grid;
+  place-items: center;
+}
+.icon-btn.muted { opacity: 0.55; }
+.icon-btn:active { transform: scale(0.94); }
+
+/* —— Goal card —— */
+.goal-card {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 10px 12px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  flex-shrink: 0;
+  overflow: hidden;
+}
+.goal-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(240, 224, 184, 0.35), transparent 50%);
+  pointer-events: none;
+}
+.goal-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+.goal-label {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  font-weight: 600;
+  margin-bottom: 0;
+}
+.hint-btn {
+  border: 1px solid var(--line);
+  background: rgba(255, 252, 247, 0.9);
+  color: var(--gold);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(60, 42, 20, 0.06);
+}
+.hint-btn:active { transform: scale(0.96); }
+.goal-body {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  position: relative;
+}
+.goal-preview {
+  width: 56px;
+  height: 56px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  background: linear-gradient(160deg, #fffdf8, var(--cream-deep));
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.goal-preview svg {
+  width: 44px;
+  height: 44px;
+}
+.goal-info { flex: 1; min-width: 0; }
+.goal-title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--ink);
+}
+.goal-progress-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.goal-bar {
+  flex: 1;
+  height: 6px;
+  border-radius: 99px;
+  background: rgba(44, 38, 32, 0.08);
+  overflow: hidden;
+}
+.goal-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gold), var(--gold-bright));
+  transition: width 0.35s ease;
+}
+.goal-progress {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  white-space: nowrap;
+}
+.recipe-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(184, 146, 62, 0.18);
+  position: relative;
+  z-index: 1;
+}
+.recipe-part {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 2px;
+  border-radius: 10px;
+  background: rgba(255, 252, 247, 0.7);
+  border: 1px solid transparent;
+}
+.recipe-part.have { border-color: rgba(106, 170, 122, 0.45); background: rgba(106, 170, 122, 0.08); }
+.recipe-part.need { border-color: rgba(184, 146, 62, 0.25); }
+.recipe-part.result { border-color: rgba(184, 146, 62, 0.4); }
+.recipe-art {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+}
+.recipe-art svg { width: 100%; height: 100%; }
+.recipe-part span {
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--ink);
+  text-align: center;
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recipe-part em {
+  font-style: normal;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+.recipe-part.have em { color: #4f8a5c; }
+.recipe-part.need em { color: var(--gold); }
+.recipe-plus {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gold);
+  padding: 0 1px;
+}
+.recipe-fallback {
+  font-size: 11px;
+  color: var(--ink-soft);
+  width: 100%;
+  text-align: center;
+}
+.goal-near {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  animation: nearPulse 1.4s ease-in-out infinite;
+}
+.goal-card.near-miss {
+  border-color: rgba(184, 146, 62, 0.55);
+  box-shadow: 0 0 0 3px rgba(212, 168, 75, 0.15), var(--shadow);
+}
+.goal-card.pulse {
+  animation: goalPulse 0.4s ease;
+}
+
+@keyframes nearPulse {
+  0%, 100% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
+@keyframes goalPulse {
+  0%, 100% { transform: scale(1); }
+  40% { transform: scale(1.02); }
+}
+
+.meta-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 4px 4px;
+  font-size: 10px;
+  color: var(--ink-soft);
+  flex-shrink: 0;
+}
+.meta-row strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* —— Board —— */
+.board-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  margin: 4px 0 8px;
+}
+
+.board {
+  --cols: 5;
+  --rows: 6;
+  display: grid;
+  grid-template-columns: repeat(var(--cols), 1fr);
+  grid-template-rows: repeat(var(--rows), 1fr);
+  gap: 5px;
+  flex: 0 1 auto;
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  max-height: 100%;
+  align-self: center;
+  min-height: 0;
+  padding: 5px;
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.35), transparent),
+    rgba(255, 250, 242, 0.55);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), var(--shadow);
+  touch-action: none;
+}
+
+.cell {
+  position: relative;
+  border-radius: 12px;
+  background: rgba(255, 252, 247, 0.65);
+  border: 1px dashed rgba(184, 146, 62, 0.18);
+  display: grid;
+  place-items: center;
+  min-height: 0;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.cell.filled {
+  border-style: solid;
+  border-color: rgba(184, 146, 62, 0.22);
+  background: linear-gradient(160deg, #fffdf9, #f5ebe0);
+  box-shadow: 0 2px 6px rgba(60, 42, 20, 0.06);
+}
+.cell.selected {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 2px rgba(212, 168, 75, 0.45);
+  z-index: 2;
+}
+.cell.pressing .item { transform: scale(0.92); }
+.cell.dragging-source { opacity: 0.35; }
+.cell.drop-valid {
+  border-color: #6aaa7a;
+  background: rgba(106, 170, 122, 0.18);
+  box-shadow: 0 0 0 2px rgba(106, 170, 122, 0.35);
+}
+.cell.drop-invalid {
+  border-color: #c07070;
+  background: rgba(192, 112, 112, 0.12);
+}
+.cell.booster-target {
+  animation: targetPulse 1s ease infinite;
+}
+@keyframes targetPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(184, 146, 62, 0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(184, 146, 62, 0.15); }
+}
+
+.item {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  padding: 2px;
+  pointer-events: none;
+}
+.item-art {
+  width: 72%;
+  max-width: 48px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  position: relative;
+}
+.item-art svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 3px rgba(40, 30, 20, 0.15));
+}
+.item-name {
+  font-size: 8px;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--ink-soft);
+  font-weight: 500;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 2px;
+}
+.item.tier-4 .item-art svg,
+.item.tier-5 .item-art svg {
+  filter: drop-shadow(0 2px 6px rgba(184, 146, 62, 0.35));
+}
+.item.rarity-5 .item-name { color: var(--gold); font-weight: 600; }
+
+.cell.merge-pop .item {
+  animation: mergePop 0.4s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+.cell.shine .item-art::after {
+  content: "";
+  position: absolute;
+  inset: 15%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.7), transparent 70%);
+  animation: shineFlash 0.5s ease;
+  pointer-events: none;
+}
+.cell.spawn-in .item { animation: spawnIn 0.35s ease; }
+.cell.shake { animation: shake 0.35s ease; }
+
+@keyframes mergePop {
+  0% { transform: scale(0.6); }
+  55% { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+@keyframes shineFlash {
+  0% { opacity: 0; transform: scale(0.5); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.4); }
+}
+@keyframes spawnIn {
+  from { transform: scale(0.4); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.fx-layer, .toast-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 5;
+}
+
+.spark {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2px;
+  border-radius: 50%;
+  background: hsl(var(--hue, 45), 70%, 60%);
+  box-shadow: 0 0 6px hsl(var(--hue, 45), 80%, 70%);
+  animation: sparkFly 0.45s ease-out forwards;
+}
+@keyframes sparkFly {
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0);
+    opacity: 0;
+  }
+}
+
+.float-text {
+  position: absolute;
+  transform: translate(-50%, 0);
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--gold);
+  text-shadow: 0 1px 0 rgba(255,255,255,0.8);
+  animation: floatUp 0.85s ease-out forwards;
+  white-space: nowrap;
+}
+@keyframes floatUp {
+  to { transform: translate(-50%, -28px); opacity: 0; }
+}
+
+.toast {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  transform: translateX(-50%);
+  background: rgba(44, 38, 32, 0.88);
+  color: #f7f1e8;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  animation: toastIn 1.1s ease forwards;
+  white-space: nowrap;
+}
+.toast.order {
+  background: linear-gradient(135deg, #8a6a2a, #c9a24a);
+  font-size: 13px;
+}
+.toast.rare { background: linear-gradient(135deg, #3a4a6a, #6a8ab8); }
+.toast.nice { background: rgba(60, 90, 70, 0.9); }
+.toast.warn { background: rgba(120, 60, 50, 0.9); }
+@keyframes toastIn {
+  0% { opacity: 0; transform: translate(-50%, 8px); }
+  15% { opacity: 1; transform: translate(-50%, 0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.combo-banner, .chain-banner {
+  position: absolute;
+  left: 50%;
+  z-index: 6;
+  transform: translateX(-50%);
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  pointer-events: none;
+  text-shadow: 0 2px 12px rgba(255, 250, 240, 0.9);
+}
+.combo-banner {
+  top: 12%;
+  font-size: 22px;
+  color: var(--gold);
+}
+.chain-banner {
+  top: 22%;
+  font-size: 18px;
+  color: #6a8ab8;
+}
+.combo-banner.pop, .chain-banner.pop {
+  animation: bannerPop 0.65s cubic-bezier(0.22, 1.4, 0.36, 1);
+}
+@keyframes bannerPop {
+  0% { opacity: 0; transform: translateX(-50%) scale(0.6); }
+  30% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+  100% { opacity: 0; transform: translateX(-50%) scale(1) translateY(-10px); }
+}
+
+.order-flash {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(247, 241, 232, 0.72);
+  backdrop-filter: blur(4px);
+  z-index: 8;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s;
+}
+.order-flash.show { opacity: 1; }
+.order-flash-inner {
+  text-align: center;
+  animation: orderPop 0.5s cubic-bezier(0.22, 1.3, 0.36, 1);
+}
+.order-flash-preview {
+  width: 88px;
+  height: 88px;
+  margin: 0 auto 8px;
+  border-radius: 20px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  box-shadow: var(--shadow);
+}
+.order-flash-preview svg { width: 72px; height: 72px; }
+.order-flash-text {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.order-flash-reward {
+  margin-top: 4px;
+  font-weight: 700;
+  color: var(--gold);
+  font-size: 16px;
+}
+@keyframes orderPop {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.fly-coin {
+  position: fixed;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #f0d78a, #c9962e);
+  z-index: 100;
+  pointer-events: none;
+  animation: flyCoin 0.65s ease-in forwards;
+}
+@keyframes flyCoin {
+  to {
+    transform: translate(var(--dx), var(--dy)) scale(0.4);
+    opacity: 0.2;
+  }
+}
+
+.drag-ghost {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 56px;
+  height: 56px;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0.92;
+  filter: drop-shadow(0 8px 16px rgba(40, 30, 20, 0.25));
+}
+.drag-ghost .item { width: 100%; height: 100%; }
+.drag-ghost .item-art { width: 90%; max-width: none; }
+
+/* —— Dock —— */
+.dock {
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+.booster-row {
+  display: flex;
+  gap: 6px;
+  justify-content: space-between;
+}
+.booster {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 4px 6px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  position: relative;
+  color: var(--ink);
+  font-family: inherit;
+}
+.booster:active { transform: scale(0.96); }
+.booster.active {
+  border-color: var(--gold-bright);
+  box-shadow: 0 0 0 2px rgba(212, 168, 75, 0.35);
+}
+.booster.empty { opacity: 0.45; }
+.booster-art {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+  margin-bottom: 1px;
+}
+.hammer-art {
+  background:
+    linear-gradient(135deg, transparent 40%, #8a7060 40% 55%, transparent 55%),
+    linear-gradient(90deg, #b0a090, #7a6a5a);
+  clip-path: polygon(20% 10%, 80% 10%, 70% 45%, 55% 45%, 55% 90%, 45% 90%, 45% 45%, 30% 45%);
+}
+.shuffle-art {
+  background: conic-gradient(from 45deg, var(--gold-pale), var(--gold), var(--gold-pale));
+  border-radius: 50%;
+  mask: radial-gradient(transparent 35%, #000 36%);
+  -webkit-mask: radial-gradient(transparent 35%, #000 36%);
+}
+.magic-art {
+  background: radial-gradient(circle at 40% 35%, #fff, #c8b8e8 40%, #7a6aaa);
+  border-radius: 50%;
+  box-shadow: 0 0 8px rgba(140, 120, 200, 0.4);
+}
+.extra-art {
+  background: linear-gradient(145deg, #e8d8b0, #c9a24a);
+  border-radius: 4px;
+  position: relative;
+}
+.extra-art::before, .extra-art::after {
+  content: "";
+  position: absolute;
+  background: #fff;
+  border-radius: 1px;
+}
+.extra-art::before { width: 10px; height: 2px; left: 6px; top: 10px; }
+.extra-art::after { width: 2px; height: 10px; left: 10px; top: 6px; }
+.undo-art {
+  background: conic-gradient(from 200deg, transparent 40%, var(--gold) 40% 75%, transparent 75%);
+  border-radius: 50%;
+  border: 2px solid var(--gold);
+  position: relative;
+}
+.undo-art::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  top: 4px;
+  border: 4px solid transparent;
+  border-right-color: var(--gold);
+  transform: rotate(-20deg);
+}
+.booster-name {
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+.booster-count {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 99px;
+  background: var(--ink);
+  color: var(--cream);
+  font-size: 9px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+.dock-hint {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: 10px;
+  color: var(--ink-soft);
+  opacity: 0.75;
+}
+
+/* —— Modal —— */
+.cell.hint-glow {
+  border-color: var(--gold-bright) !important;
+  box-shadow: 0 0 0 3px rgba(212, 168, 75, 0.45), 0 0 16px rgba(212, 168, 75, 0.25);
+  animation: hintPulse 1s ease-in-out infinite;
+  z-index: 3;
+}
+@keyframes hintPulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.help-modal {
+  text-align: left;
+  max-height: min(80vh, 560px);
+  overflow-y: auto;
+}
+.help-modal h2 { text-align: center; }
+.help-lead {
+  text-align: center;
+  margin-bottom: 14px !important;
+}
+.help-recipe {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.help-piece {
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 6px;
+  border-radius: 14px;
+  background: #fffdf8;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.help-piece svg { width: 44px; height: 44px; }
+.help-piece strong {
+  font-size: 11px;
+  line-height: 1.2;
+  color: var(--ink);
+}
+.help-piece span {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.help-piece .on-board { color: #4f8a5c; }
+.help-piece .missing { color: #a07040; }
+.help-op {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gold);
+}
+.help-steps {
+  background: rgba(255, 252, 247, 0.8);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px 10px 28px;
+  margin-bottom: 12px;
+}
+.help-steps ol {
+  margin: 0;
+  padding: 0;
+}
+.help-steps li {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.35;
+}
+.help-steps li:last-child { margin-bottom: 0; }
+.help-tip {
+  font-size: 11px !important;
+  color: var(--ink-soft) !important;
+  text-align: center;
+  margin-bottom: 14px !important;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(40, 32, 24, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+.overlay[hidden] { display: none !important; }
+.modal {
+  width: min(340px, 100%);
+  background: var(--cream);
+  border-radius: 20px;
+  padding: 22px 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 50px rgba(40, 30, 20, 0.25);
+  text-align: center;
+}
+.modal h2 {
+  margin: 0 0 8px;
+  font-family: var(--font-display);
+  font-size: 24px;
+}
+.modal p {
+  margin: 0 0 16px;
+  color: var(--ink-soft);
+  font-size: 14px;
+}
+.modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.btn-primary, .btn-ghost, .btn-danger {
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+}
+.btn-primary {
+  background: linear-gradient(135deg, #a8842e, #d4a84b);
+  color: #fff;
+}
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink);
+}
+.btn-danger {
+  background: rgba(140, 60, 50, 0.1);
+  color: #8a4038;
+}
+
+/* —— Responsive widths —— */
+@media (max-width: 360px) {
+  .app { padding: 8px 8px calc(8px + var(--safe-bottom)); }
+  .goal-title { font-size: 16px; }
+  .goal-preview { width: 48px; height: 48px; }
+  .board { gap: 4px; padding: 4px; }
+  .item-name { font-size: 7px; }
+  .booster-name { font-size: 8px; }
+  .meta-row { font-size: 9px; }
+}
+
+@media (min-width: 390px) {
+  .board { gap: 7px; }
+  .item-name { font-size: 9px; }
+}
+
+@media (min-height: 780px) {
+  .goal-title { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .goal-near { animation: none; }
+}
+
+  </style>
+</head>
+<body>
+
+  <div id="app" class="app">
+    <header class="top-bar">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div class="brand-text">
+          <span class="brand-name">ATELIER</span>
+          <span class="brand-sub">MERGE</span>
+        </div>
+      </div>
+      <div class="top-stats">
+        <div class="stat-pill coin-pill" id="coinDisplay" title="Coins">
+          <span class="stat-icon coin-icon" aria-hidden="true"></span>
+          <span id="coinValue">0</span>
+        </div>
+        <button type="button" class="icon-btn" id="soundBtn" aria-label="Toggle sound" title="Sound">
+          <span id="soundIcon">♪</span>
+        </button>
+        <button type="button" class="icon-btn" id="restartBtn" aria-label="Restart" title="Restart">↻</button>
+      </div>
+    </header>
+
+    <section class="goal-card" id="goalCard" aria-live="polite">
+      <div class="goal-label-row">
+        <div class="goal-label">Jewelry Order</div>
+        <button type="button" class="hint-btn" id="hintBtn" aria-label="Show recipe hint">Hint</button>
+      </div>
+      <div class="goal-body">
+        <div class="goal-preview" id="goalPreview"></div>
+        <div class="goal-info">
+          <h1 class="goal-title" id="goalTitle">Create a Gold Ring</h1>
+          <div class="goal-progress-row">
+            <div class="goal-bar"><div class="goal-bar-fill" id="goalBarFill"></div></div>
+            <span class="goal-progress" id="goalProgress">0 / 1</span>
+          </div>
+        </div>
+      </div>
+      <div class="recipe-strip" id="recipeStrip" aria-label="Merge recipe"></div>
+      <div class="goal-near" id="goalNear" hidden>ONE MORE!</div>
+    </section>
+
+    <div class="meta-row">
+      <span>Orders <strong id="ordersValue">0</strong></span>
+      <span>Streak <strong id="streakValue">0</strong></span>
+      <span>Best <strong id="bestStreakValue">0</strong></span>
+      <span>Score <strong id="scoreValue">0</strong></span>
+    </div>
+
+    <main class="board-wrap">
+      <div class="board" id="board" role="grid" aria-label="Merge board"></div>
+      <div class="fx-layer" id="fxLayer" aria-hidden="true"></div>
+      <div class="toast-layer" id="toastLayer" aria-hidden="true"></div>
+      <div class="combo-banner" id="comboBanner" hidden></div>
+      <div class="chain-banner" id="chainBanner" hidden></div>
+      <div class="order-flash" id="orderFlash" hidden>
+        <div class="order-flash-inner">
+          <div class="order-flash-preview" id="orderFlashPreview"></div>
+          <div class="order-flash-text">ORDER COMPLETE!</div>
+          <div class="order-flash-reward" id="orderFlashReward">+100</div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="dock">
+      <div class="booster-row">
+        <button type="button" class="booster" data-booster="hammer" id="btnHammer">
+          <span class="booster-art hammer-art" aria-hidden="true"></span>
+          <span class="booster-name">Hammer</span>
+          <span class="booster-count" id="countHammer">2</span>
+        </button>
+        <button type="button" class="booster" data-booster="shuffle" id="btnShuffle">
+          <span class="booster-art shuffle-art" aria-hidden="true"></span>
+          <span class="booster-name">Shuffle</span>
+          <span class="booster-count" id="countShuffle">2</span>
+        </button>
+        <button type="button" class="booster" data-booster="magic" id="btnMagic">
+          <span class="booster-art magic-art" aria-hidden="true"></span>
+          <span class="booster-name">Magic</span>
+          <span class="booster-count" id="countMagic">1</span>
+        </button>
+        <button type="button" class="booster" data-booster="extra" id="btnExtra">
+          <span class="booster-art extra-art" aria-hidden="true"></span>
+          <span class="booster-name">Extra</span>
+          <span class="booster-count" id="countExtra">2</span>
+        </button>
+        <button type="button" class="booster" id="btnUndo" title="Undo last move">
+          <span class="booster-art undo-art" aria-hidden="true"></span>
+          <span class="booster-name">Undo</span>
+        </button>
+      </div>
+      <p class="dock-hint" id="dockHint">Drag matching items together — or tap, then tap again</p>
+    </footer>
+
+    <div class="overlay" id="boardFullOverlay" hidden aria-hidden="true">
+      <div class="modal">
+        <h2>Board is full</h2>
+        <p>Use a booster to clear space, or restart fresh.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-primary" id="fullUseHammer">Use Hammer</button>
+          <button type="button" class="btn-ghost" id="fullShuffle">Shuffle</button>
+          <button type="button" class="btn-danger" id="fullRestart">Restart</button>
+          <button type="button" class="btn-ghost" id="fullDismiss">Keep Playing</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="overlay" id="helpOverlay" hidden aria-hidden="true">
+      <div class="modal help-modal">
+        <h2>How to craft</h2>
+        <p class="help-lead" id="helpLead">Merge these two pieces to finish your order.</p>
+        <div class="help-recipe" id="helpRecipe"></div>
+        <div class="help-steps" id="helpSteps"></div>
+        <p class="help-tip">Tip: merge two identical items to upgrade them. Different pieces only merge when they form a recipe.</p>
+        <div class="modal-actions">
+          <button type="button" class="btn-primary" id="helpFind">Highlight on board</button>
+          <button type="button" class="btn-ghost" id="helpClose">Got it</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+  
+  
+  
+  
+
+  <script>
+/** Item catalog, merge rules, and SVG art for Atelier Merge */
+
+const GEMS = {
+  ruby: { hue: 350, sat: 72, light: 42, name: 'Ruby', glow: '#e85a6b' },
+  emerald: { hue: 155, sat: 55, light: 38, name: 'Emerald', glow: '#3cb89a' },
+  diamond: { hue: 210, sat: 25, light: 78, name: 'Diamond', glow: '#c8e4ff' },
+  sapphire: { hue: 220, sat: 65, light: 45, name: 'Sapphire', glow: '#5b7fd6' },
+  gold: { hue: 42, sat: 70, light: 52, name: 'Gold', glow: '#d4a84b' },
+  silver: { hue: 210, sat: 8, light: 70, name: 'Silver', glow: '#b8c0cc' },
+};
+
+/** @typedef {{ id: string, name: string, tier: number, family: string, kind: string, mergeTo?: string, score: number, rarity: number }} ItemDef */
+
+/** @type {Record<string, ItemDef>} */
+const ITEMS = {};
+
+function def(id, name, opts) {
+  ITEMS[id] = { id, name, tier: opts.tier, family: opts.family, kind: opts.kind, mergeTo: opts.mergeTo, score: opts.score, rarity: opts.rarity ?? 1 };
+}
+
+// —— Gem material chains ——
+def('rough_ruby', 'Rough Ruby', { tier: 1, family: 'ruby', kind: 'raw', mergeTo: 'cut_ruby', score: 5, rarity: 1 });
+def('cut_ruby', 'Cut Ruby', { tier: 2, family: 'ruby', kind: 'cut', mergeTo: 'polished_ruby', score: 12, rarity: 2 });
+def('polished_ruby', 'Polished Ruby', { tier: 3, family: 'ruby', kind: 'polished', mergeTo: 'ruby_gem', score: 28, rarity: 3 });
+def('ruby_gem', 'Ruby Gem', { tier: 4, family: 'ruby', kind: 'gem', score: 60, rarity: 4 });
+
+def('rough_emerald', 'Rough Emerald', { tier: 1, family: 'emerald', kind: 'raw', mergeTo: 'cut_emerald', score: 5, rarity: 1 });
+def('cut_emerald', 'Cut Emerald', { tier: 2, family: 'emerald', kind: 'cut', mergeTo: 'polished_emerald', score: 12, rarity: 2 });
+def('polished_emerald', 'Polished Emerald', { tier: 3, family: 'emerald', kind: 'polished', mergeTo: 'emerald_gem', score: 28, rarity: 3 });
+def('emerald_gem', 'Emerald Gem', { tier: 4, family: 'emerald', kind: 'gem', score: 60, rarity: 4 });
+
+def('rough_diamond', 'Rough Diamond', { tier: 1, family: 'diamond', kind: 'raw', mergeTo: 'cut_diamond', score: 8, rarity: 2 });
+def('cut_diamond', 'Cut Diamond', { tier: 2, family: 'diamond', kind: 'cut', mergeTo: 'brilliant_diamond', score: 20, rarity: 3 });
+def('brilliant_diamond', 'Brilliant Diamond', { tier: 3, family: 'diamond', kind: 'polished', mergeTo: 'diamond_gem', score: 45, rarity: 4 });
+def('diamond_gem', 'Diamond Gem', { tier: 4, family: 'diamond', kind: 'gem', score: 90, rarity: 5 });
+
+def('rough_sapphire', 'Rough Sapphire', { tier: 1, family: 'sapphire', kind: 'raw', mergeTo: 'cut_sapphire', score: 6, rarity: 2 });
+def('cut_sapphire', 'Cut Sapphire', { tier: 2, family: 'sapphire', kind: 'cut', mergeTo: 'polished_sapphire', score: 15, rarity: 3 });
+def('polished_sapphire', 'Polished Sapphire', { tier: 3, family: 'sapphire', kind: 'polished', mergeTo: 'sapphire_gem', score: 35, rarity: 4 });
+def('sapphire_gem', 'Sapphire Gem', { tier: 4, family: 'sapphire', kind: 'gem', score: 75, rarity: 5 });
+
+// —— Metals ——
+def('gold_nugget', 'Gold Nugget', { tier: 1, family: 'gold', kind: 'raw', mergeTo: 'gold_piece', score: 6, rarity: 1 });
+def('gold_piece', 'Gold Piece', { tier: 2, family: 'gold', kind: 'cut', mergeTo: 'refined_gold', score: 14, rarity: 2 });
+def('refined_gold', 'Refined Gold', { tier: 3, family: 'gold', kind: 'polished', mergeTo: 'gold_bar', score: 32, rarity: 3 });
+def('gold_bar', 'Gold Bar', { tier: 4, family: 'gold', kind: 'gem', score: 70, rarity: 4 });
+// Early-friendly alternate: two gold pieces can leap toward a bar via refined already
+
+def('silver_ore', 'Silver Ore', { tier: 1, family: 'silver', kind: 'raw', mergeTo: 'silver_piece', score: 4, rarity: 1 });
+def('silver_piece', 'Silver Piece', { tier: 2, family: 'silver', kind: 'cut', mergeTo: 'refined_silver', score: 10, rarity: 2 });
+def('refined_silver', 'Refined Silver', { tier: 3, family: 'silver', kind: 'polished', mergeTo: 'silver_ingot', score: 24, rarity: 3 });
+def('silver_ingot', 'Silver Ingot', { tier: 4, family: 'silver', kind: 'gem', score: 50, rarity: 4 });
+
+// —— Settings ——
+def('blank_setting', 'Blank Setting', { tier: 1, family: 'setting', kind: 'raw', mergeTo: 'shaped_setting', score: 5, rarity: 1 });
+def('shaped_setting', 'Shaped Setting', { tier: 2, family: 'setting', kind: 'cut', mergeTo: 'polished_setting', score: 12, rarity: 2 });
+def('polished_setting', 'Polished Setting', { tier: 3, family: 'setting', kind: 'polished', score: 28, rarity: 3 });
+
+def('ring_setting', 'Ring Setting', { tier: 4, family: 'ring', kind: 'setting', score: 40, rarity: 3 });
+def('earring_setting', 'Earring Setting', { tier: 4, family: 'earring', kind: 'setting', score: 40, rarity: 3 });
+def('necklace_setting', 'Necklace Setting', { tier: 4, family: 'necklace', kind: 'setting', score: 45, rarity: 3 });
+def('bracelet_setting', 'Bracelet Setting', { tier: 4, family: 'bracelet', kind: 'setting', score: 45, rarity: 3 });
+def('pendant_setting', 'Pendant Setting', { tier: 4, family: 'pendant', kind: 'setting', score: 42, rarity: 3 });
+
+// —— Finished jewelry ——
+const FINISHED = [
+  ['ruby_ring', 'Ruby Ring', 'ruby', 'ring', 150],
+  ['emerald_ring', 'Emerald Ring', 'emerald', 'ring', 150],
+  ['diamond_ring', 'Diamond Ring', 'diamond', 'ring', 220],
+  ['sapphire_ring', 'Sapphire Ring', 'sapphire', 'ring', 180],
+  ['gold_ring', 'Gold Ring', 'gold', 'ring', 140],
+  ['ruby_earrings', 'Ruby Earrings', 'ruby', 'earring', 160],
+  ['emerald_earrings', 'Emerald Earrings', 'emerald', 'earring', 160],
+  ['diamond_earrings', 'Diamond Earrings', 'diamond', 'earring', 240],
+  ['sapphire_earrings', 'Sapphire Earrings', 'sapphire', 'earring', 190],
+  ['ruby_necklace', 'Ruby Necklace', 'ruby', 'necklace', 200],
+  ['emerald_necklace', 'Emerald Necklace', 'emerald', 'necklace', 200],
+  ['diamond_necklace', 'Diamond Necklace', 'diamond', 'necklace', 280],
+  ['sapphire_necklace', 'Sapphire Necklace', 'sapphire', 'necklace', 230],
+  ['gold_bracelet', 'Gold Bracelet', 'gold', 'bracelet', 180],
+  ['diamond_bracelet', 'Diamond Bracelet', 'diamond', 'bracelet', 260],
+  ['ruby_pendant', 'Ruby Pendant', 'ruby', 'pendant', 170],
+  ['emerald_pendant', 'Emerald Pendant', 'emerald', 'pendant', 170],
+  ['sapphire_pendant', 'Sapphire Pendant', 'sapphire', 'pendant', 200],
+  ['diamond_pendant', 'Diamond Pendant', 'diamond', 'pendant', 250],
+];
+
+FINISHED.forEach(([id, name, family, piece, score]) => {
+  def(id, name, { tier: 5, family, kind: 'jewelry', score, rarity: 5 });
+});
+
+/** Cross-recipes: gem/metal + setting → jewelry */
+const RECIPES = {
+  'ruby_gem+ring_setting': 'ruby_ring',
+  'ring_setting+ruby_gem': 'ruby_ring',
+  'emerald_gem+ring_setting': 'emerald_ring',
+  'ring_setting+emerald_gem': 'emerald_ring',
+  'diamond_gem+ring_setting': 'diamond_ring',
+  'ring_setting+diamond_gem': 'diamond_ring',
+  'sapphire_gem+ring_setting': 'sapphire_ring',
+  'ring_setting+sapphire_gem': 'sapphire_ring',
+  'gold_bar+ring_setting': 'gold_ring',
+  'ring_setting+gold_bar': 'gold_ring',
+
+  'ruby_gem+earring_setting': 'ruby_earrings',
+  'earring_setting+ruby_gem': 'ruby_earrings',
+  'emerald_gem+earring_setting': 'emerald_earrings',
+  'earring_setting+emerald_gem': 'emerald_earrings',
+  'diamond_gem+earring_setting': 'diamond_earrings',
+  'earring_setting+diamond_gem': 'diamond_earrings',
+  'sapphire_gem+earring_setting': 'sapphire_earrings',
+  'earring_setting+sapphire_gem': 'sapphire_earrings',
+
+  'ruby_gem+necklace_setting': 'ruby_necklace',
+  'necklace_setting+ruby_gem': 'ruby_necklace',
+  'emerald_gem+necklace_setting': 'emerald_necklace',
+  'necklace_setting+emerald_gem': 'emerald_necklace',
+  'diamond_gem+necklace_setting': 'diamond_necklace',
+  'necklace_setting+diamond_gem': 'diamond_necklace',
+  'sapphire_gem+necklace_setting': 'sapphire_necklace',
+  'necklace_setting+sapphire_gem': 'sapphire_necklace',
+
+  'gold_bar+bracelet_setting': 'gold_bracelet',
+  'bracelet_setting+gold_bar': 'gold_bracelet',
+  'diamond_gem+bracelet_setting': 'diamond_bracelet',
+  'bracelet_setting+diamond_gem': 'diamond_bracelet',
+
+  'ruby_gem+pendant_setting': 'ruby_pendant',
+  'pendant_setting+ruby_gem': 'ruby_pendant',
+  'emerald_gem+pendant_setting': 'emerald_pendant',
+  'pendant_setting+emerald_gem': 'emerald_pendant',
+  'sapphire_gem+pendant_setting': 'sapphire_pendant',
+  'pendant_setting+sapphire_gem': 'sapphire_pendant',
+  'diamond_gem+pendant_setting': 'diamond_pendant',
+  'pendant_setting+diamond_gem': 'diamond_pendant',
+};
+
+/** polished_setting + type specialty via merge with metal? Simpler: spawn specialty settings, or craft: */
+const SETTING_CRAFT = {
+  'polished_setting+gold_piece': 'ring_setting',
+  'gold_piece+polished_setting': 'ring_setting',
+  'polished_setting+silver_piece': 'earring_setting',
+  'silver_piece+polished_setting': 'earring_setting',
+  'polished_setting+gold_nugget': 'pendant_setting',
+  'gold_nugget+polished_setting': 'pendant_setting',
+  'polished_setting+refined_silver': 'necklace_setting',
+  'refined_silver+polished_setting': 'necklace_setting',
+  'polished_setting+refined_gold': 'bracelet_setting',
+  'refined_gold+polished_setting': 'bracelet_setting',
+  // Faster early jewelry paths
+  'refined_gold+ring_setting': 'gold_ring',
+  'ring_setting+refined_gold': 'gold_ring',
+  'polished_ruby+ring_setting': 'ruby_ring',
+  'ring_setting+polished_ruby': 'ruby_ring',
+  'polished_emerald+ring_setting': 'emerald_ring',
+  'ring_setting+polished_emerald': 'emerald_ring',
+};
+
+Object.assign(RECIPES, SETTING_CRAFT);
+
+/** Primary (easiest) recipe parts for each finished jewelry goal */
+const GOAL_RECIPES = {
+  gold_ring: ['refined_gold', 'ring_setting'],
+  ruby_ring: ['polished_ruby', 'ring_setting'],
+  emerald_ring: ['polished_emerald', 'ring_setting'],
+  diamond_ring: ['diamond_gem', 'ring_setting'],
+  sapphire_ring: ['sapphire_gem', 'ring_setting'],
+  ruby_earrings: ['ruby_gem', 'earring_setting'],
+  emerald_earrings: ['emerald_gem', 'earring_setting'],
+  diamond_earrings: ['diamond_gem', 'earring_setting'],
+  sapphire_earrings: ['sapphire_gem', 'earring_setting'],
+  ruby_necklace: ['ruby_gem', 'necklace_setting'],
+  emerald_necklace: ['emerald_gem', 'necklace_setting'],
+  diamond_necklace: ['diamond_gem', 'necklace_setting'],
+  sapphire_necklace: ['sapphire_gem', 'necklace_setting'],
+  gold_bracelet: ['gold_bar', 'bracelet_setting'],
+  diamond_bracelet: ['diamond_gem', 'bracelet_setting'],
+  ruby_pendant: ['ruby_gem', 'pendant_setting'],
+  emerald_pendant: ['emerald_gem', 'pendant_setting'],
+  sapphire_pendant: ['sapphire_gem', 'pendant_setting'],
+  diamond_pendant: ['diamond_gem', 'pendant_setting'],
+};
+
+function getGoalRecipe(goalId) {
+  return GOAL_RECIPES[goalId] || null;
+}
+
+/** Short upgrade chain text, e.g. Rough → Cut → Polished */
+function getUpgradeChain(itemId) {
+  const item = ITEMS[itemId];
+  if (!item) return [];
+  const parents = Object.values(ITEMS).filter((d) => d.mergeTo === itemId);
+  if (!parents.length) return [item.name];
+  let cur = itemId;
+  const reverse = [item.name];
+  for (let step = 0; step < 6; step++) {
+    const prev = Object.values(ITEMS).find((d) => d.mergeTo === cur);
+    if (!prev) break;
+    reverse.unshift(prev.name);
+    cur = prev.id;
+  }
+  return reverse;
+}
+
+function howToGet(itemId) {
+  // Settings are specialty pieces — explain simply
+  if (itemId.endsWith('_setting') && itemId !== 'blank_setting') {
+    return `Look for ${ITEMS[itemId].name} on the board (or craft via Extra/Magic)`;
+  }
+  const chain = getUpgradeChain(itemId);
+  if (chain.length <= 1) return `Find ${ITEMS[itemId]?.name || itemId} on the board`;
+  return `Merge matching pairs: ${chain.join(' → ')}`;
+}
+
+/** Basic spawnable items that feed into a goal */
+function getGoalFeeders(goalId) {
+  const item = ITEMS[goalId];
+  if (!item) return ['gold_nugget', 'gold_nugget', 'blank_setting', 'blank_setting'];
+  const feeders = [];
+  const fam = item.family;
+  if (fam === 'gold') {
+    feeders.push('gold_nugget', 'gold_nugget', 'gold_piece', 'gold_piece');
+  } else if (fam === 'ruby') {
+    feeders.push('rough_ruby', 'rough_ruby', 'cut_ruby', 'cut_ruby');
+  } else if (fam === 'emerald') {
+    feeders.push('rough_emerald', 'rough_emerald', 'cut_emerald', 'cut_emerald');
+  } else if (fam === 'diamond') {
+    feeders.push('rough_diamond', 'rough_diamond', 'cut_diamond', 'cut_diamond');
+  } else if (fam === 'sapphire') {
+    feeders.push('rough_sapphire', 'rough_sapphire', 'cut_sapphire', 'cut_sapphire');
+  }
+  if (goalId.includes('ring')) feeders.push('blank_setting', 'blank_setting', 'shaped_setting');
+  if (goalId.includes('earring')) feeders.push('blank_setting', 'blank_setting', 'silver_ore', 'silver_ore');
+  if (goalId.includes('necklace')) feeders.push('blank_setting', 'silver_ore', 'silver_ore');
+  if (goalId.includes('bracelet')) feeders.push('gold_nugget', 'blank_setting');
+  if (goalId.includes('pendant')) feeders.push('blank_setting', 'gold_nugget');
+  return feeders;
+}
+
+function getMergeResult(idA, idB) {
+  if (!idA || !idB) return null;
+  if (idA === idB) {
+    const defA = ITEMS[idA];
+    return defA?.mergeTo || null;
+  }
+  return RECIPES[`${idA}+${idB}`] || null;
+}
+
+function canMerge(idA, idB) {
+  return !!getMergeResult(idA, idB);
+}
+
+/** Order pool with difficulty weight (1 = easy) */
+const ORDER_POOL = [
+  { id: 'gold_ring', difficulty: 1, reward: 80, need: 1 },
+  { id: 'ruby_ring', difficulty: 1, reward: 90, need: 1 },
+  { id: 'emerald_ring', difficulty: 2, reward: 100, need: 1 },
+  { id: 'ruby_pendant', difficulty: 2, reward: 110, need: 1 },
+  { id: 'emerald_pendant', difficulty: 2, reward: 110, need: 1 },
+  { id: 'ruby_earrings', difficulty: 2, reward: 120, need: 1 },
+  { id: 'emerald_earrings', difficulty: 3, reward: 130, need: 1 },
+  { id: 'sapphire_ring', difficulty: 3, reward: 140, need: 1 },
+  { id: 'gold_bracelet', difficulty: 3, reward: 150, need: 1 },
+  { id: 'sapphire_earrings', difficulty: 3, reward: 160, need: 1 },
+  { id: 'ruby_necklace', difficulty: 4, reward: 180, need: 1 },
+  { id: 'emerald_necklace', difficulty: 4, reward: 180, need: 1 },
+  { id: 'diamond_ring', difficulty: 4, reward: 200, need: 1 },
+  { id: 'sapphire_necklace', difficulty: 4, reward: 210, need: 1 },
+  { id: 'sapphire_pendant', difficulty: 4, reward: 190, need: 1 },
+  { id: 'diamond_earrings', difficulty: 5, reward: 240, need: 1 },
+  { id: 'diamond_pendant', difficulty: 5, reward: 250, need: 1 },
+  { id: 'diamond_bracelet', difficulty: 5, reward: 260, need: 1 },
+  { id: 'diamond_necklace', difficulty: 5, reward: 300, need: 1 },
+];
+
+function gemColor(family) {
+  const g = GEMS[family] || GEMS.gold;
+  return {
+    fill: `hsl(${g.hue}, ${g.sat}%, ${g.light}%)`,
+    dark: `hsl(${g.hue}, ${g.sat}%, ${Math.max(18, g.light - 18)}%)`,
+    light: `hsl(${g.hue}, ${Math.min(90, g.sat + 10)}%, ${Math.min(88, g.light + 28)}%)`,
+    glow: g.glow,
+  };
+}
+
+function svgShell(inner, view = '0 0 64 64') {
+  return `<svg viewBox="${view}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
+}
+
+let _svgUid = 0;
+function gemFacet(family, size = 22, cx = 32, cy = 30) {
+  const c = gemColor(family);
+  const uid = `g${++_svgUid}`;
+  const isDiamond = family === 'diamond';
+  if (isDiamond) {
+    return `
+      <defs>
+        <linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#f8fbff"/>
+          <stop offset="45%" stop-color="#d4e8f8"/>
+          <stop offset="100%" stop-color="#9eb8d4"/>
+        </linearGradient>
+      </defs>
+      <polygon points="${cx},${cy - size * 0.55} ${cx + size * 0.45},${cy - size * 0.1} ${cx + size * 0.28},${cy + size * 0.4} ${cx},${cy + size * 0.55} ${cx - size * 0.28},${cy + size * 0.4} ${cx - size * 0.45},${cy - size * 0.1}"
+        fill="url(#${uid})" stroke="${c.dark}" stroke-width="0.8"/>
+      <polygon points="${cx},${cy - size * 0.55} ${cx + size * 0.2},${cy - size * 0.05} ${cx},${cy + size * 0.15}" fill="#fff" opacity="0.55"/>
+      <polygon points="${cx},${cy - size * 0.55} ${cx - size * 0.2},${cy - size * 0.05} ${cx},${cy + size * 0.15}" fill="#c5d9ef" opacity="0.5"/>
+    `;
+  }
+  return `
+    <defs>
+      <linearGradient id="${uid}" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="${c.light}"/>
+        <stop offset="50%" stop-color="${c.fill}"/>
+        <stop offset="100%" stop-color="${c.dark}"/>
+      </linearGradient>
+    </defs>
+    <polygon points="${cx},${cy - size * 0.5} ${cx + size * 0.42},${cy - size * 0.05} ${cx + size * 0.25},${cy + size * 0.38} ${cx},${cy + size * 0.5} ${cx - size * 0.25},${cy + size * 0.38} ${cx - size * 0.42},${cy - size * 0.05}"
+      fill="url(#${uid})" stroke="${c.dark}" stroke-width="0.7"/>
+    <polygon points="${cx},${cy - size * 0.5} ${cx + size * 0.18},${cy - size * 0.02} ${cx},${cy + size * 0.12}" fill="#fff" opacity="0.4"/>
+  `;
+}
+
+function rawNugget(family) {
+  const c = gemColor(family);
+  return `
+    <ellipse cx="32" cy="34" rx="16" ry="13" fill="${c.fill}" stroke="${c.dark}" stroke-width="1"/>
+    <ellipse cx="26" cy="30" rx="5" ry="3.5" fill="${c.light}" opacity="0.55"/>
+    <path d="M22 38 Q32 42 42 36" fill="none" stroke="${c.dark}" stroke-width="0.8" opacity="0.4"/>
+  `;
+}
+
+function metalBar(family) {
+  const c = gemColor(family);
+  return `
+    <rect x="14" y="24" width="36" height="16" rx="3" fill="${c.fill}" stroke="${c.dark}" stroke-width="1"/>
+    <rect x="16" y="26" width="32" height="4" rx="1" fill="${c.light}" opacity="0.45"/>
+    <rect x="18" y="34" width="10" height="2" rx="1" fill="${c.dark}" opacity="0.25"/>
+  `;
+}
+
+function ringArt(family) {
+  const c = gemColor(family);
+  const metal = family === 'silver' ? gemColor('silver') : gemColor('gold');
+  return `
+    <ellipse cx="32" cy="40" rx="16" ry="10" fill="none" stroke="${metal.fill}" stroke-width="4.5"/>
+    <ellipse cx="32" cy="40" rx="16" ry="10" fill="none" stroke="${metal.light}" stroke-width="1.2" opacity="0.5"/>
+    ${gemFacet(family === 'gold' ? 'gold' : family, 14, 32, 24)}
+    <circle cx="28" cy="21" r="1.6" fill="#fff" opacity="0.7"/>
+  `;
+}
+
+function earringArt(family) {
+  const metal = gemColor('gold');
+  return `
+    <circle cx="24" cy="14" r="3" fill="none" stroke="${metal.fill}" stroke-width="2"/>
+    <path d="M24 17 L24 26" stroke="${metal.fill}" stroke-width="1.5"/>
+    <g transform="translate(-8,4)">${gemFacet(family, 12, 32, 34)}</g>
+    <circle cx="40" cy="14" r="3" fill="none" stroke="${metal.fill}" stroke-width="2"/>
+    <path d="M40 17 L40 26" stroke="${metal.fill}" stroke-width="1.5"/>
+    <g transform="translate(8,4)">${gemFacet(family, 12, 32, 34)}</g>
+  `;
+}
+
+function necklaceArt(family) {
+  const metal = gemColor('gold');
+  return `
+    <path d="M12 18 Q32 36 52 18" fill="none" stroke="${metal.fill}" stroke-width="2.2"/>
+    <path d="M12 18 Q32 34 52 18" fill="none" stroke="${metal.light}" stroke-width="0.8" opacity="0.5"/>
+    ${gemFacet(family, 14, 32, 40)}
+    <circle cx="20" cy="22" r="1.4" fill="${metal.light}"/>
+    <circle cx="44" cy="22" r="1.4" fill="${metal.light}"/>
+  `;
+}
+
+function braceletArt(family) {
+  const metal = gemColor(family === 'diamond' ? 'gold' : family);
+  return `
+    <ellipse cx="32" cy="32" rx="20" ry="14" fill="none" stroke="${metal.fill}" stroke-width="5"/>
+    <ellipse cx="32" cy="32" rx="20" ry="14" fill="none" stroke="${metal.light}" stroke-width="1.5" opacity="0.45"/>
+    ${family === 'diamond' || family === 'ruby' || family === 'emerald' || family === 'sapphire'
+      ? gemFacet(family, 10, 32, 20)
+      : `<circle cx="32" cy="20" r="4" fill="${metal.light}" opacity="0.6"/>`}
+  `;
+}
+
+function pendantArt(family) {
+  const metal = gemColor('gold');
+  return `
+    <circle cx="32" cy="12" r="3.5" fill="none" stroke="${metal.fill}" stroke-width="2"/>
+    <path d="M32 16 L32 24" stroke="${metal.fill}" stroke-width="1.8"/>
+    <path d="M32 24 L22 42 L32 50 L42 42 Z" fill="${gemColor(family).fill}" stroke="${gemColor(family).dark}" stroke-width="0.8"/>
+    <path d="M32 24 L27 38 L32 42 Z" fill="#fff" opacity="0.35"/>
+    ${gemFacet(family, 9, 32, 36)}
+  `;
+}
+
+function settingArt(type) {
+  const metal = gemColor('gold');
+  if (type === 'ring') {
+    return `<ellipse cx="32" cy="38" rx="15" ry="9" fill="none" stroke="${metal.fill}" stroke-width="3.5"/><circle cx="32" cy="24" r="7" fill="none" stroke="${metal.fill}" stroke-width="2" stroke-dasharray="3 2"/>`;
+  }
+  if (type === 'earring') {
+    return `<circle cx="32" cy="14" r="3" fill="none" stroke="${metal.fill}" stroke-width="2"/><path d="M32 17 L32 28" stroke="${metal.fill}" stroke-width="1.5"/><rect x="24" y="28" width="16" height="20" rx="3" fill="none" stroke="${metal.fill}" stroke-width="2" stroke-dasharray="2 2"/>`;
+  }
+  if (type === 'necklace') {
+    return `<path d="M14 20 Q32 34 50 20" fill="none" stroke="${metal.fill}" stroke-width="2"/><rect x="24" y="34" width="16" height="16" rx="2" fill="none" stroke="${metal.fill}" stroke-width="1.8" stroke-dasharray="2 2"/>`;
+  }
+  if (type === 'bracelet') {
+    return `<ellipse cx="32" cy="32" rx="18" ry="12" fill="none" stroke="${metal.fill}" stroke-width="3.5" stroke-dasharray="4 2"/>`;
+  }
+  return `<circle cx="32" cy="12" r="3" fill="none" stroke="${metal.fill}" stroke-width="2"/><path d="M32 16 L32 26" stroke="${metal.fill}" stroke-width="1.5"/><path d="M32 26 L24 42 L32 48 L40 42 Z" fill="none" stroke="${metal.fill}" stroke-width="1.8" stroke-dasharray="2 2"/>`;
+}
+
+function blankSettingArt(tier) {
+  const metal = gemColor('silver');
+  const op = 0.4 + tier * 0.15;
+  return `
+    <rect x="18" y="18" width="28" height="28" rx="6" fill="${metal.fill}" opacity="${op}" stroke="${metal.dark}" stroke-width="1"/>
+    <circle cx="32" cy="32" r="8" fill="none" stroke="${metal.dark}" stroke-width="1.5" stroke-dasharray="3 2"/>
+  `;
+}
+
+function itemSvg(itemId) {
+  const item = ITEMS[itemId];
+  if (!item) return svgShell('');
+  const f = item.family;
+  let inner = '';
+
+  if (item.kind === 'raw') {
+    if (f === 'setting') inner = blankSettingArt(1);
+    else if (f === 'gold' || f === 'silver') inner = rawNugget(f);
+    else inner = rawNugget(f);
+  } else if (item.kind === 'cut') {
+    if (f === 'setting') inner = blankSettingArt(2);
+    else if (f === 'gold' || f === 'silver') {
+      const c = gemColor(f);
+      inner = `<polygon points="32,16 46,28 40,46 24,46 18,28" fill="${c.fill}" stroke="${c.dark}" stroke-width="1"/><polygon points="32,16 38,28 32,34 26,28" fill="${c.light}" opacity="0.5"/>`;
+    } else {
+      inner = gemFacet(f, 16 + item.tier * 2);
+    }
+  } else if (item.kind === 'polished') {
+    if (f === 'setting') inner = blankSettingArt(3);
+    else if (f === 'gold' || f === 'silver') {
+      const c = gemColor(f);
+      inner = `<ellipse cx="32" cy="32" rx="18" ry="12" fill="${c.fill}" stroke="${c.dark}"/><ellipse cx="26" cy="28" rx="6" ry="3" fill="${c.light}" opacity="0.55"/>`;
+    } else {
+      inner = gemFacet(f, 18 + item.tier);
+    }
+  } else if (item.kind === 'gem') {
+    if (f === 'gold' || f === 'silver') inner = metalBar(f);
+    else inner = gemFacet(f, 24);
+  } else if (item.kind === 'setting') {
+    inner = settingArt(f);
+  } else if (item.kind === 'jewelry') {
+    if (item.id.includes('earring')) inner = earringArt(f);
+    else if (item.id.includes('necklace')) inner = necklaceArt(f);
+    else if (item.id.includes('bracelet')) inner = braceletArt(f);
+    else if (item.id.includes('pendant')) inner = pendantArt(f);
+    else inner = ringArt(f);
+  }
+
+  return svgShell(inner);
+}
+
+function itemLabel(itemId) {
+  return ITEMS[itemId]?.name || itemId;
+}
+
+/** Spawn weights by game phase (orders completed) */
+function getSpawnTable(ordersCompleted) {
+  const phase = Math.min(5, Math.floor(ordersCompleted / 3));
+  const table = [
+    { id: 'rough_ruby', w: 14 },
+    { id: 'rough_emerald', w: 12 },
+    { id: 'gold_nugget', w: 14 },
+    { id: 'silver_ore', w: 10 },
+    { id: 'blank_setting', w: 12 },
+    { id: 'cut_ruby', w: phase >= 0 ? 4 : 0 },
+    { id: 'gold_piece', w: 3 },
+    { id: 'shaped_setting', w: 2 },
+  ];
+  if (phase >= 1) {
+    table.push({ id: 'rough_sapphire', w: 6 }, { id: 'cut_emerald', w: 3 });
+  }
+  if (phase >= 2) {
+    table.push({ id: 'rough_diamond', w: 5 }, { id: 'polished_ruby', w: 2 }, { id: 'ring_setting', w: 2 });
+  }
+  if (phase >= 3) {
+    table.push({ id: 'cut_diamond', w: 2 }, { id: 'earring_setting', w: 2 }, { id: 'pendant_setting', w: 1 });
+  }
+  if (phase >= 4) {
+    table.push({ id: 'necklace_setting', w: 1 }, { id: 'bracelet_setting', w: 1 }, { id: 'brilliant_diamond', w: 1 });
+  }
+  // Early game: ensure settings & gold appear so first orders are finishable
+  if (ordersCompleted < 2) {
+    table.push({ id: 'gold_piece', w: 8 }, { id: 'ring_setting', w: 5 }, { id: 'cut_ruby', w: 6 }, { id: 'polished_setting', w: 3 });
+  }
+  return table.filter((t) => t.w > 0);
+}
+
+function weightedPick(table, rng = Math.random) {
+  const total = table.reduce((s, t) => s + t.w, 0);
+  let r = rng() * total;
+  for (const t of table) {
+    r -= t.w;
+    if (r <= 0) return t.id;
+  }
+  return table[0].id;
+}
+
+function pickSpawnItem(ordersCompleted, goalItemId) {
+  const table = getSpawnTable(ordersCompleted).map((t) => ({ ...t }));
+  // Bias toward goal components
+  const goal = ITEMS[goalItemId];
+  if (goal) {
+    if (goal.family === 'ruby') table.push({ id: 'rough_ruby', w: 10 });
+    if (goal.family === 'emerald') table.push({ id: 'rough_emerald', w: 10 });
+    if (goal.family === 'diamond') table.push({ id: 'rough_diamond', w: 8 });
+    if (goal.family === 'sapphire') table.push({ id: 'rough_sapphire', w: 8 });
+    if (goal.family === 'gold') table.push({ id: 'gold_nugget', w: 10 });
+    if (goal.id.includes('ring')) table.push({ id: 'blank_setting', w: 6 }, { id: 'ring_setting', w: 3 });
+    if (goal.id.includes('earring')) table.push({ id: 'blank_setting', w: 5 }, { id: 'earring_setting', w: 3 });
+    if (goal.id.includes('necklace')) table.push({ id: 'blank_setting', w: 5 }, { id: 'necklace_setting', w: 2 });
+    if (goal.id.includes('bracelet')) table.push({ id: 'blank_setting', w: 5 }, { id: 'bracelet_setting', w: 2 });
+    if (goal.id.includes('pendant')) table.push({ id: 'blank_setting', w: 5 }, { id: 'pendant_setting', w: 2 });
+  }
+  return weightedPick(table);
+}
+
+function pickOrder(ordersCompleted, lastId) {
+  const maxDiff = Math.min(5, 1 + Math.floor(ordersCompleted / 2));
+  const eligible = ORDER_POOL.filter((o) => o.difficulty <= maxDiff && o.id !== lastId);
+  const pool = eligible.length ? eligible : ORDER_POOL.filter((o) => o.difficulty <= maxDiff);
+  // Prefer easier early
+  const weighted = pool.map((o) => ({
+    ...o,
+    w: Math.max(1, 6 - o.difficulty) + (o.difficulty <= Math.max(1, maxDiff - 1) ? 3 : 0),
+  }));
+  const pick = weightedPick(weighted.map((o) => ({ id: o.id, w: o.w })));
+  return ORDER_POOL.find((o) => o.id === pick) || ORDER_POOL[0];
+}
+
+window.JewelryData = {
+  ITEMS,
+  GEMS,
+  RECIPES,
+  ORDER_POOL,
+  GOAL_RECIPES,
+  getMergeResult,
+  canMerge,
+  itemSvg,
+  itemLabel,
+  pickSpawnItem,
+  pickOrder,
+  gemColor,
+  getGoalRecipe,
+  getGoalFeeders,
+  howToGet,
+  getUpgradeChain,
+};
+
+/** Soft premium Web Audio synthesis for Atelier Merge */
+
+const AudioFX = (() => {
+  let ctx = null;
+  let muted = false;
+  let unlocked = false;
+
+  function getCtx() {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC();
+    }
+    return ctx;
+  }
+
+  async function unlock() {
+    const c = getCtx();
+    if (!c) return;
+    if (c.state === 'suspended') {
+      try { await c.resume(); } catch (_) { /* ignore */ }
+    }
+    unlocked = true;
+  }
+
+  function isMuted() { return muted; }
+  function setMuted(v) { muted = !!v; localStorage.setItem('atelier_mute', muted ? '1' : '0'); }
+  function toggleMute() { setMuted(!muted); return muted; }
+
+  function loadMute() {
+    muted = localStorage.getItem('atelier_mute') === '1';
+  }
+
+  function envGain(g, t, a = 0.01, d = 0.15, peak = 0.15) {
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(peak, t + a);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + a + d);
+  }
+
+  function tone(freq, dur, type = 'sine', peak = 0.12, delay = 0) {
+    if (muted) return;
+    const c = getCtx();
+    if (!c || c.state !== 'running') return;
+    const t = c.currentTime + delay;
+    const o = c.createOscillator();
+    const g = c.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    envGain(g, t, 0.012, dur, peak);
+    o.connect(g);
+    g.connect(c.destination);
+    o.start(t);
+    o.stop(t + dur + 0.05);
+  }
+
+  function chord(freqs, dur, peak = 0.08) {
+    freqs.forEach((f, i) => tone(f, dur, 'sine', peak * (1 - i * 0.15), i * 0.02));
+  }
+
+  function noiseBurst(dur = 0.08, peak = 0.04) {
+    if (muted) return;
+    const c = getCtx();
+    if (!c || c.state !== 'running') return;
+    const n = c.createBufferSource();
+    const len = Math.max(1, Math.floor(c.sampleRate * dur));
+    const buf = c.createBuffer(1, len, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * (1 - i / len);
+    n.buffer = buf;
+    const g = c.createGain();
+    const f = c.createBiquadFilter();
+    f.type = 'highpass';
+    f.frequency.value = 1800;
+    const t = c.currentTime;
+    g.gain.setValueAtTime(peak, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    n.connect(f);
+    f.connect(g);
+    g.connect(c.destination);
+    n.start(t);
+    n.stop(t + dur);
+  }
+
+  function tap() {
+    tone(880, 0.06, 'sine', 0.06);
+    tone(1320, 0.04, 'triangle', 0.03, 0.01);
+  }
+
+  function select() {
+    tone(660, 0.08, 'sine', 0.07);
+  }
+
+  function merge(tier = 1) {
+    const base = 420 + tier * 60;
+    tone(base, 0.12, 'sine', 0.1);
+    tone(base * 1.5, 0.14, 'triangle', 0.07, 0.04);
+    noiseBurst(0.05, 0.025 + tier * 0.005);
+  }
+
+  function mergeHigh(tier = 4) {
+    chord([523, 659, 784, 1046], 0.22, 0.07);
+    tone(1318, 0.18, 'sine', 0.05, 0.08);
+    noiseBurst(0.1, 0.04);
+  }
+
+  function combo(n) {
+    const f = 500 + n * 80;
+    tone(f, 0.1, 'sine', 0.09);
+    tone(f * 1.25, 0.12, 'triangle', 0.06, 0.05);
+  }
+
+  function chain(n) {
+    for (let i = 0; i < Math.min(n, 5); i++) {
+      tone(600 + i * 120, 0.08, 'sine', 0.07, i * 0.06);
+    }
+  }
+
+  function orderComplete() {
+    chord([523, 659, 784], 0.28, 0.09);
+    tone(1046, 0.25, 'sine', 0.08, 0.12);
+    tone(1568, 0.2, 'triangle', 0.05, 0.22);
+  }
+
+  function coins() {
+    tone(988, 0.07, 'sine', 0.06);
+    tone(1318, 0.08, 'sine', 0.05, 0.05);
+    tone(1760, 0.1, 'triangle', 0.04, 0.1);
+  }
+
+  function booster() {
+    tone(400, 0.1, 'triangle', 0.08);
+    tone(800, 0.12, 'sine', 0.06, 0.06);
+  }
+
+  function invalid() {
+    tone(180, 0.1, 'sawtooth', 0.04);
+  }
+
+  loadMute();
+
+  return {
+    unlock, isMuted, setMuted, toggleMute, tap, select, merge, mergeHigh,
+    combo, chain, orderComplete, coins, booster, invalid,
+  };
+})();
+
+window.AudioFX = AudioFX;
+
+/** Core merge board & progression logic */
+
+const COLS = 5;
+const ROWS = 6;
+const CELL_COUNT = COLS * ROWS;
+
+class GameState {
+  constructor() {
+    this.reset();
+  }
+
+  reset() {
+    this.board = Array(CELL_COUNT).fill(null);
+    this.coins = 100;
+    this.score = 0;
+    this.ordersCompleted = 0;
+    this.streak = 0;
+    this.bestStreak = 0;
+    this.boosters = { hammer: 2, shuffle: 2, magic: 1, extra: 2 };
+    this.combo = 0;
+    this.lastMergeAt = 0;
+    this.chainDepth = 0;
+    this.selectedIndex = null;
+    this.boosterMode = null;
+    this.undoStack = [];
+    this.busy = false;
+    this.order = null;
+    this.orderProgress = 0;
+    this._uid = 1;
+    this.generateOrder();
+    this.seedBoard();
+  }
+
+  uid() {
+    return this._uid++;
+  }
+
+  cell(i) {
+    return this.board[i];
+  }
+
+  setCell(i, itemId) {
+    if (itemId == null) {
+      this.board[i] = null;
+      return;
+    }
+    this.board[i] = { id: itemId, key: this.uid() };
+  }
+
+  emptyIndices() {
+    const out = [];
+    for (let i = 0; i < CELL_COUNT; i++) if (!this.board[i]) out.push(i);
+    return out;
+  }
+
+  isFull() {
+    return this.emptyIndices().length === 0;
+  }
+
+  neighbors(index) {
+    const r = Math.floor(index / COLS);
+    const c = index % COLS;
+    const n = [];
+    if (c > 0) n.push(index - 1);
+    if (c < COLS - 1) n.push(index + 1);
+    if (r > 0) n.push(index - COLS);
+    if (r < ROWS - 1) n.push(index + COLS);
+    return n;
+  }
+
+  seedBoard() {
+    const goalId = this.order.itemId;
+    const recipe = JewelryData.getGoalRecipe(goalId) || ['refined_gold', 'ring_setting'];
+    const feeders = JewelryData.getGoalFeeders(goalId);
+
+    // Build a pack of guaranteed-useful items (with duplicates for merges)
+    const pack = [
+      recipe[0], recipe[1],
+      ...feeders,
+      feeders[0], feeders[1], // extra copies of first feeders
+      'gold_nugget', 'gold_nugget',
+      'blank_setting', 'blank_setting',
+    ];
+
+    // Fill to ~85% leaving a few empty cells
+    const targetFill = Math.min(CELL_COUNT - 3, Math.max(pack.length, Math.floor(CELL_COUNT * 0.85)));
+    while (pack.length < targetFill) {
+      pack.push(JewelryData.pickSpawnItem(this.ordersCompleted, goalId));
+    }
+
+    // Place recipe parts in adjacent cells so the goal merge is obvious
+    const center = Math.floor(CELL_COUNT / 2) - Math.floor(COLS / 2);
+    const recipeSlots = [center, center + 1];
+    this.setCell(recipeSlots[0], recipe[0]);
+    this.setCell(recipeSlots[1], recipe[1]);
+
+    // Place remaining items, preferring adjacent pairs of identical mergeables
+    const remaining = pack.slice(2);
+    this.placeWithMergePairs(remaining);
+
+    this.ensureBoardPlayable();
+  }
+
+  /** Place items so identical mergeable pairs sit next to each other when possible */
+  placeWithMergePairs(itemIds) {
+    const counts = {};
+    itemIds.forEach((id) => { counts[id] = (counts[id] || 0) + 1; });
+    const singles = [];
+    const pairQueue = [];
+
+    Object.keys(counts).forEach((id) => {
+      let n = counts[id];
+      while (n >= 2 && JewelryData.ITEMS[id]?.mergeTo) {
+        pairQueue.push(id);
+        n -= 2;
+      }
+      while (n > 0) {
+        singles.push(id);
+        n -= 1;
+      }
+    });
+
+    shuffleInPlace(pairQueue);
+    shuffleInPlace(singles);
+
+    // Place pairs into adjacent empty cells
+    for (const id of pairQueue) {
+      const slot = this.findAdjacentEmptyPair();
+      if (slot) {
+        this.setCell(slot[0], id);
+        this.setCell(slot[1], id);
+      } else {
+        singles.push(id, id);
+      }
+    }
+
+    const empties = this.emptyIndices();
+    shuffleInPlace(empties);
+    for (let i = 0; i < singles.length && i < empties.length; i++) {
+      this.setCell(empties[i], singles[i]);
+    }
+  }
+
+  findAdjacentEmptyPair() {
+    const empties = new Set(this.emptyIndices());
+    const list = [...empties];
+    shuffleInPlace(list);
+    for (const i of list) {
+      for (const n of this.neighbors(i)) {
+        if (empties.has(n)) return [i, n];
+      }
+    }
+    return null;
+  }
+
+  hasAnyValidMerge() {
+    for (let i = 0; i < CELL_COUNT; i++) {
+      const a = this.board[i];
+      if (!a) continue;
+      for (let j = i + 1; j < CELL_COUNT; j++) {
+        const b = this.board[j];
+        if (b && JewelryData.canMerge(a.id, b.id)) return true;
+      }
+    }
+    return false;
+  }
+
+  /** Ensure goal recipe parts exist and at least one merge is possible */
+  ensureBoardPlayable() {
+    const goalId = this.order?.itemId;
+    const recipe = JewelryData.getGoalRecipe(goalId);
+    if (recipe) {
+      const [partA, partB] = recipe;
+      if (this.countOnBoard(partA) === 0) this.injectOrReplace(partA);
+      if (this.countOnBoard(partB) === 0) this.injectOrReplace(partB);
+    }
+
+    if (!this.hasAnyValidMerge()) {
+      // Duplicate a random mergeable item already on the board, or add a basic pair
+      const mergeables = this.board
+        .filter((c) => c && JewelryData.ITEMS[c.id]?.mergeTo)
+        .map((c) => c.id);
+      if (mergeables.length) {
+        this.injectOrReplace(mergeables[Math.floor(Math.random() * mergeables.length)]);
+      } else {
+        this.injectOrReplace('gold_nugget');
+        this.injectOrReplace('gold_nugget');
+      }
+    }
+
+    // Still stuck? force a basic adjacent pair
+    if (!this.hasAnyValidMerge()) {
+      const slot = this.findAdjacentEmptyPair();
+      if (slot) {
+        this.setCell(slot[0], 'rough_ruby');
+        this.setCell(slot[1], 'rough_ruby');
+      } else {
+        // overwrite two random cells
+        const idxs = [...Array(CELL_COUNT).keys()];
+        shuffleInPlace(idxs);
+        this.setCell(idxs[0], 'gold_nugget');
+        this.setCell(idxs[1], 'gold_nugget');
+      }
+    }
+  }
+
+  injectOrReplace(itemId) {
+    const empties = this.emptyIndices();
+    if (empties.length) {
+      this.setCell(empties[Math.floor(Math.random() * empties.length)], itemId);
+      return;
+    }
+    // Replace a non-goal-critical item
+    const recipe = JewelryData.getGoalRecipe(this.order?.itemId) || [];
+    const candidates = [];
+    for (let i = 0; i < CELL_COUNT; i++) {
+      const c = this.board[i];
+      if (!c) continue;
+      if (recipe.includes(c.id) && this.countOnBoard(c.id) <= 1) continue;
+      candidates.push(i);
+    }
+    if (candidates.length) {
+      this.setCell(candidates[Math.floor(Math.random() * candidates.length)], itemId);
+    }
+  }
+
+  generateOrder() {
+    const last = this.order?.itemId;
+    let picked;
+    if (this.ordersCompleted === 0) {
+      picked = JewelryData.ORDER_POOL.find((o) => o.id === 'gold_ring') || JewelryData.ORDER_POOL[0];
+    } else if (this.ordersCompleted === 1) {
+      picked = JewelryData.ORDER_POOL.find((o) => o.id === 'ruby_ring') || JewelryData.pickOrder(1, last);
+    } else {
+      picked = JewelryData.pickOrder(this.ordersCompleted, last);
+    }
+    this.order = {
+      itemId: picked.id,
+      need: picked.need || 1,
+      reward: picked.reward,
+      difficulty: picked.difficulty,
+    };
+    this.orderProgress = 0;
+  }
+
+  snapshot() {
+    return {
+      board: this.board.map((c) => (c ? { id: c.id } : null)),
+      coins: this.coins,
+      score: this.score,
+      ordersCompleted: this.ordersCompleted,
+      streak: this.streak,
+      bestStreak: this.bestStreak,
+      boosters: { ...this.boosters },
+      order: { ...this.order },
+      orderProgress: this.orderProgress,
+    };
+  }
+
+  pushUndo() {
+    this.undoStack.push(this.snapshot());
+    if (this.undoStack.length > 15) this.undoStack.shift();
+  }
+
+  restore(snap) {
+    this.board = snap.board.map((c) => (c ? { id: c.id, key: this.uid() } : null));
+    this.coins = snap.coins;
+    this.score = snap.score;
+    this.ordersCompleted = snap.ordersCompleted;
+    this.streak = snap.streak;
+    this.bestStreak = snap.bestStreak;
+    this.boosters = { ...snap.boosters };
+    this.order = { ...snap.order };
+    this.orderProgress = snap.orderProgress;
+    this.selectedIndex = null;
+    this.boosterMode = null;
+  }
+
+  undo() {
+    if (!this.undoStack.length) return false;
+    this.restore(this.undoStack.pop());
+    return true;
+  }
+
+  tryMerge(fromIndex, toIndex) {
+    if (fromIndex === toIndex) return { ok: false, reason: 'same' };
+    const a = this.board[fromIndex];
+    const b = this.board[toIndex];
+    if (!a || !b) return { ok: false, reason: 'empty' };
+    const resultId = JewelryData.getMergeResult(a.id, b.id);
+    if (!resultId) return { ok: false, reason: 'invalid' };
+
+    this.pushUndo();
+    const now = performance.now();
+    if (now - this.lastMergeAt < 2200) this.combo += 1;
+    else this.combo = 1;
+    this.lastMergeAt = now;
+
+    // Place result on target cell
+    this.board[fromIndex] = null;
+    this.setCell(toIndex, resultId);
+
+    const resultDef = JewelryData.ITEMS[resultId];
+    let coinsGain = Math.round((resultDef?.score || 10) * (1 + (this.combo - 1) * 0.25));
+    this.coins += coinsGain;
+    this.score += resultDef?.score || 10;
+
+    const progressEvents = this.applyGoalProgress(resultId);
+
+    return {
+      ok: true,
+      resultId,
+      resultIndex: toIndex,
+      combo: this.combo,
+      coinsGain,
+      tier: resultDef?.tier || 1,
+      progressEvents,
+    };
+  }
+
+  applyGoalProgress(resultId) {
+    const events = [];
+    if (resultId === this.order.itemId) {
+      this.orderProgress += 1;
+      if (this.orderProgress >= this.order.need) {
+        events.push({ type: 'orderComplete' });
+      } else {
+        events.push({ type: 'progress' });
+      }
+    }
+    return events;
+  }
+
+  completeOrder() {
+    const reward = this.order.reward + Math.floor(this.streak * 8);
+    this.coins += reward;
+    this.score += reward;
+    this.ordersCompleted += 1;
+    this.streak += 1;
+    this.bestStreak = Math.max(this.bestStreak, this.streak);
+    // Chance to earn booster
+    if (Math.random() < 0.35) {
+      const keys = ['hammer', 'shuffle', 'magic', 'extra'];
+      const k = keys[Math.floor(Math.random() * keys.length)];
+      this.boosters[k] += 1;
+    }
+    this.generateOrder();
+    this.ensureBoardPlayable();
+    // Drop a couple of feeder items for the new goal
+    const feeders = JewelryData.getGoalFeeders(this.order.itemId);
+    if (feeders.length && !this.isFull()) this.spawnItem(feeders[0]);
+    if (feeders.length > 1 && !this.isFull()) this.spawnItem(feeders[1]);
+    this.ensureBoardPlayable();
+    return reward;
+  }
+
+  /** Find chain merge: result adjacent to matching item */
+  findChainFrom(index) {
+    const cell = this.board[index];
+    if (!cell) return null;
+    for (const n of this.neighbors(index)) {
+      const other = this.board[n];
+      if (other && JewelryData.canMerge(cell.id, other.id)) {
+        return { from: index, to: n };
+      }
+    }
+    return null;
+  }
+
+  /** Also allow any adjacent mergeable pair after a move (gentle assist) */
+  findAnyAdjacentMerge() {
+    for (let i = 0; i < CELL_COUNT; i++) {
+      const cell = this.board[i];
+      if (!cell) continue;
+      for (const n of this.neighbors(i)) {
+        if (n < i) continue;
+        const other = this.board[n];
+        if (other && JewelryData.canMerge(cell.id, other.id)) {
+          return { from: i, to: n };
+        }
+      }
+    }
+    return null;
+  }
+
+  spawnItem(preferredId) {
+    const empties = this.emptyIndices();
+    if (!empties.length) return null;
+    const idx = empties[Math.floor(Math.random() * empties.length)];
+    const id = preferredId || JewelryData.pickSpawnItem(this.ordersCompleted, this.order.itemId);
+    this.setCell(idx, id);
+    return { index: idx, id };
+  }
+
+  useHammer(index) {
+    if (this.boosters.hammer <= 0) return false;
+    if (!this.board[index]) return false;
+    this.pushUndo();
+    this.boosters.hammer -= 1;
+    this.board[index] = null;
+    this.boosterMode = null;
+    return true;
+  }
+
+  useShuffle() {
+    if (this.boosters.shuffle <= 0) return false;
+    this.pushUndo();
+    this.boosters.shuffle -= 1;
+    const items = this.board.filter(Boolean).map((c) => c.id);
+    shuffleInPlace(items);
+    let k = 0;
+    for (let i = 0; i < CELL_COUNT; i++) {
+      if (this.board[i]) {
+        this.setCell(i, items[k++]);
+      }
+    }
+    this.boosterMode = null;
+    return true;
+  }
+
+  useMagic(index) {
+    if (this.boosters.magic <= 0) return false;
+    const cell = this.board[index];
+    if (!cell) return false;
+    const next = JewelryData.ITEMS[cell.id]?.mergeTo;
+    if (!next) return false;
+    this.pushUndo();
+    this.boosters.magic -= 1;
+    this.setCell(index, next);
+    this.boosterMode = null;
+    const progressEvents = this.applyGoalProgress(next);
+    return { id: next, progressEvents };
+  }
+
+  useExtra() {
+    if (this.boosters.extra <= 0) return false;
+    if (this.isFull()) return false;
+    this.pushUndo();
+    this.boosters.extra -= 1;
+    // Useful item toward goal
+    const useful = helpfulItemForGoal(this.order.itemId);
+    const spawned = this.spawnItem(useful);
+    this.boosterMode = null;
+    return spawned;
+  }
+
+  countOnBoard(itemId) {
+    return this.board.filter((c) => c && c.id === itemId).length;
+  }
+
+  isNearMiss() {
+    if (!this.order) return false;
+    // Progress-based: one short of multi-need orders
+    if (this.order.need > 1 && this.orderProgress === this.order.need - 1) return true;
+    // Component-based: both recipe parts present for current jewelry goal
+    if (this.orderProgress >= this.order.need) return false;
+    return this.hasRecipeComponents(this.order.itemId);
+  }
+
+  hasRecipeComponents(goalId) {
+    const pairs = [
+      ['refined_gold', 'ring_setting'],
+      ['gold_bar', 'ring_setting'],
+      ['polished_ruby', 'ring_setting'],
+      ['ruby_gem', 'ring_setting'],
+      ['polished_emerald', 'ring_setting'],
+      ['emerald_gem', 'ring_setting'],
+      ['diamond_gem', 'ring_setting'],
+      ['sapphire_gem', 'ring_setting'],
+      ['ruby_gem', 'earring_setting'],
+      ['emerald_gem', 'earring_setting'],
+      ['diamond_gem', 'earring_setting'],
+      ['sapphire_gem', 'earring_setting'],
+      ['ruby_gem', 'necklace_setting'],
+      ['emerald_gem', 'necklace_setting'],
+      ['diamond_gem', 'necklace_setting'],
+      ['sapphire_gem', 'necklace_setting'],
+      ['gold_bar', 'bracelet_setting'],
+      ['diamond_gem', 'bracelet_setting'],
+      ['ruby_gem', 'pendant_setting'],
+      ['emerald_gem', 'pendant_setting'],
+      ['sapphire_gem', 'pendant_setting'],
+      ['diamond_gem', 'pendant_setting'],
+    ];
+    const relevant = pairs.filter(([a, b]) => {
+      const r = JewelryData.getMergeResult(a, b);
+      return r === goalId;
+    });
+    return relevant.some(([a, b]) => this.countOnBoard(a) > 0 && this.countOnBoard(b) > 0);
+  }
+}
+
+function helpfulItemForGoal(goalId) {
+  const recipe = JewelryData.getGoalRecipe(goalId);
+  if (recipe && Math.random() < 0.55) {
+    return recipe[Math.floor(Math.random() * recipe.length)];
+  }
+  const feeders = JewelryData.getGoalFeeders(goalId);
+  if (feeders.length) return feeders[Math.floor(Math.random() * feeders.length)];
+  return 'gold_nugget';
+}
+
+function shuffleInPlace(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+window.GameState = GameState;
+window.BOARD = { COLS, ROWS, CELL_COUNT };
+window.helpfulItemForGoal = helpfulItemForGoal;
+
+/** UI rendering, drag/tap interactions, FX */
+
+const UI = (() => {
+  const els = {};
+  let game = null;
+  let dragState = null;
+  let reducedMotion = false;
+
+  function $(id) { return document.getElementById(id); }
+
+  function init(g) {
+    game = g;
+    reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    cacheEls();
+    buildBoard();
+    bindControls();
+    render();
+    maybeSpawnIdle();
+  }
+
+  function cacheEls() {
+    [
+      'board', 'fxLayer', 'toastLayer', 'comboBanner', 'chainBanner', 'orderFlash',
+      'orderFlashPreview', 'orderFlashReward', 'goalCard', 'goalPreview', 'goalTitle',
+      'goalProgress', 'goalBarFill', 'goalNear', 'coinValue', 'scoreValue',
+      'ordersValue', 'streakValue', 'bestStreakValue', 'soundBtn', 'soundIcon',
+      'restartBtn', 'dockHint', 'boardFullOverlay', 'countHammer', 'countShuffle',
+      'countMagic', 'countExtra', 'btnHammer', 'btnShuffle', 'btnMagic', 'btnExtra',
+      'btnUndo', 'fullUseHammer', 'fullShuffle', 'fullRestart', 'fullDismiss',
+      'hintBtn', 'recipeStrip', 'helpOverlay', 'helpLead', 'helpRecipe', 'helpSteps',
+      'helpFind', 'helpClose',
+    ].forEach((id) => { els[id] = $(id); });
+  }
+
+  function buildBoard() {
+    const board = els.board;
+    board.style.setProperty('--cols', BOARD.COLS);
+    board.style.setProperty('--rows', BOARD.ROWS);
+    board.innerHTML = '';
+    for (let i = 0; i < BOARD.CELL_COUNT; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.dataset.index = String(i);
+      cell.setAttribute('role', 'gridcell');
+      board.appendChild(cell);
+    }
+  }
+
+  function bindControls() {
+    els.soundBtn.addEventListener('click', () => {
+      AudioFX.unlock();
+      const m = AudioFX.toggleMute();
+      els.soundIcon.textContent = m ? '✕' : '♪';
+      els.soundBtn.classList.toggle('muted', m);
+      render();
+    });
+    els.soundIcon.textContent = AudioFX.isMuted() ? '✕' : '♪';
+    els.soundBtn.classList.toggle('muted', AudioFX.isMuted());
+
+    els.restartBtn.addEventListener('click', () => {
+      if (confirm('Restart the atelier? Progress will reset.')) {
+        game.reset();
+        render();
+        toast('Fresh atelier', 'nice');
+      }
+    });
+
+    document.body.addEventListener('pointerdown', () => AudioFX.unlock(), { once: true });
+
+    els.board.addEventListener('pointerdown', onPointerDown);
+    window.addEventListener('pointermove', onPointerMove);
+    window.addEventListener('pointerup', onPointerUp);
+    window.addEventListener('pointercancel', onPointerUp);
+
+    els.btnHammer.addEventListener('click', () => toggleBooster('hammer'));
+    els.btnShuffle.addEventListener('click', () => {
+      AudioFX.unlock();
+      if (game.useShuffle()) {
+        AudioFX.booster();
+        toast('Shuffled', 'nice');
+        render();
+        checkBoardFull();
+      }
+    });
+    els.btnMagic.addEventListener('click', () => toggleBooster('magic'));
+    els.btnExtra.addEventListener('click', () => {
+      AudioFX.unlock();
+      const r = game.useExtra();
+      if (r) {
+        AudioFX.booster();
+        toast('Extra item!', 'nice');
+        bounceCell(r.index);
+        render();
+      } else if (game.isFull()) {
+        showBoardFull();
+      }
+    });
+    els.btnUndo.addEventListener('click', () => {
+      AudioFX.unlock();
+      if (game.undo()) {
+        AudioFX.tap();
+        toast('Undone', 'nice');
+        render();
+      } else {
+        AudioFX.invalid();
+        toast('Nothing to undo', 'warn');
+      }
+    });
+
+    els.fullUseHammer.addEventListener('click', () => {
+      hideBoardFull();
+      toggleBooster('hammer');
+    });
+    els.fullShuffle.addEventListener('click', () => {
+      if (game.useShuffle()) {
+        AudioFX.booster();
+        hideBoardFull();
+        render();
+      }
+    });
+    els.fullRestart.addEventListener('click', () => {
+      hideBoardFull();
+      game.reset();
+      render();
+    });
+    els.fullDismiss.addEventListener('click', hideBoardFull);
+
+    els.hintBtn.addEventListener('click', () => {
+      AudioFX.unlock();
+      AudioFX.select();
+      openHelp();
+    });
+    els.helpClose.addEventListener('click', hideHelp);
+    els.helpOverlay.addEventListener('click', (e) => {
+      if (e.target === els.helpOverlay) hideHelp();
+    });
+    els.helpFind.addEventListener('click', () => {
+      hideHelp();
+      highlightRecipeParts();
+    });
+  }
+
+  function toggleBooster(mode) {
+    AudioFX.unlock();
+    if (game.boosters[mode] <= 0) {
+      toast('None left', 'warn');
+      AudioFX.invalid();
+      return;
+    }
+    if (game.boosterMode === mode) {
+      game.boosterMode = null;
+      els.dockHint.textContent = 'Drag matching items together — or tap, then tap again';
+    } else {
+      game.boosterMode = mode;
+      game.selectedIndex = null;
+      els.dockHint.textContent = mode === 'hammer'
+        ? 'Tap an item to remove it'
+        : 'Tap an item to upgrade it';
+      AudioFX.select();
+    }
+    render();
+  }
+
+  function onPointerDown(e) {
+    if (game.busy) return;
+    const cellEl = e.target.closest('.cell');
+    if (!cellEl) return;
+    const index = Number(cellEl.dataset.index);
+    AudioFX.unlock();
+
+    if (game.boosterMode === 'hammer') {
+      if (game.useHammer(index)) {
+        AudioFX.booster();
+        sparkleAt(cellEl);
+        toast('Removed', 'nice');
+        render();
+        checkBoardFull();
+      }
+      return;
+    }
+    if (game.boosterMode === 'magic') {
+      const r = game.useMagic(index);
+      if (r) {
+        AudioFX.mergeHigh(3);
+        mergeFx(cellEl, 3);
+        toast('Enchanted!', 'rare');
+        handleProgress(r.progressEvents, index, r.id);
+        render();
+      } else {
+        AudioFX.invalid();
+      }
+      return;
+    }
+
+    if (!game.board[index]) {
+      // tap empty: clear selection
+      game.selectedIndex = null;
+      render();
+      return;
+    }
+
+    AudioFX.tap();
+    dragState = {
+      from: index,
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startY: e.clientY,
+      dragging: false,
+      ghost: null,
+    };
+    cellEl.setPointerCapture?.(e.pointerId);
+    cellEl.classList.add('pressing');
+  }
+
+  function onPointerMove(e) {
+    if (!dragState || e.pointerId !== dragState.pointerId) return;
+    const dx = e.clientX - dragState.startX;
+    const dy = e.clientY - dragState.startY;
+    if (!dragState.dragging && (dx * dx + dy * dy) > 36) {
+      dragState.dragging = true;
+      game.selectedIndex = null;
+      createGhost(dragState.from);
+      const fromEl = cellEl(dragState.from);
+      if (fromEl) fromEl.classList.add('dragging-source');
+    }
+    if (dragState.ghost) {
+      dragState.ghost.style.transform = `translate(${e.clientX - 28}px, ${e.clientY - 28}px)`;
+      highlightDropTarget(e.clientX, e.clientY);
+    }
+  }
+
+  function onPointerUp(e) {
+    if (!dragState || (e.pointerId !== undefined && e.pointerId !== dragState.pointerId)) return;
+    const from = dragState.from;
+    const wasDrag = dragState.dragging;
+    const fromEl = cellEl(from);
+    if (fromEl) {
+      fromEl.classList.remove('pressing', 'dragging-source');
+    }
+    clearDropHighlights();
+    removeGhost();
+
+    if (wasDrag) {
+      const target = elementFromPointCell(e.clientX, e.clientY);
+      dragState = null;
+      if (target != null && target !== from) {
+        performMerge(from, target);
+      } else {
+        render();
+      }
+      return;
+    }
+
+    dragState = null;
+    // Tap select / merge
+    if (game.selectedIndex == null) {
+      game.selectedIndex = from;
+      AudioFX.select();
+      render();
+      return;
+    }
+    if (game.selectedIndex === from) {
+      game.selectedIndex = null;
+      render();
+      return;
+    }
+    const sel = game.selectedIndex;
+    game.selectedIndex = null;
+    performMerge(sel, from);
+  }
+
+  function createGhost(index) {
+    const cell = game.board[index];
+    if (!cell) return;
+    const ghost = document.createElement('div');
+    ghost.className = 'drag-ghost';
+    ghost.innerHTML = itemCardHtml(cell.id, true);
+    document.body.appendChild(ghost);
+    dragState.ghost = ghost;
+  }
+
+  function removeGhost() {
+    if (dragState?.ghost) {
+      dragState.ghost.remove();
+      dragState.ghost = null;
+    }
+  }
+
+  function elementFromPointCell(x, y) {
+    const el = document.elementFromPoint(x, y);
+    const cell = el?.closest?.('.cell');
+    return cell ? Number(cell.dataset.index) : null;
+  }
+
+  function highlightDropTarget(x, y) {
+    clearDropHighlights();
+    const idx = elementFromPointCell(x, y);
+    if (idx == null || idx === dragState.from) return;
+    const el = cellEl(idx);
+    if (!el) return;
+    const a = game.board[dragState.from];
+    const b = game.board[idx];
+    if (a && b && JewelryData.canMerge(a.id, b.id)) el.classList.add('drop-valid');
+    else if (b) el.classList.add('drop-invalid');
+    else el.classList.add('drop-empty');
+  }
+
+  function clearDropHighlights() {
+    els.board.querySelectorAll('.drop-valid, .drop-invalid, .drop-empty')
+      .forEach((el) => el.classList.remove('drop-valid', 'drop-invalid', 'drop-empty'));
+  }
+
+  function cellEl(i) {
+    return els.board.querySelector(`.cell[data-index="${i}"]`);
+  }
+
+  async function performMerge(from, to) {
+    if (game.busy) return;
+    const result = game.tryMerge(from, to);
+    if (!result.ok) {
+      AudioFX.invalid();
+      if (result.reason === 'invalid') {
+        shakeCell(to);
+        toast('Cannot merge', 'warn');
+      }
+      // If invalid, select the target instead for better UX
+      if (game.board[to]) game.selectedIndex = to;
+      render();
+      return;
+    }
+
+    game.busy = true;
+    game.selectedIndex = null;
+    render();
+
+    const el = cellEl(result.resultIndex);
+    const tier = result.tier;
+    if (tier >= 4) AudioFX.mergeHigh(tier);
+    else AudioFX.merge(tier);
+    mergeFx(el, tier);
+    showFloating(`+${result.coinsGain}`, el, 'coin');
+    if (result.combo >= 2) {
+      showCombo(result.combo);
+      AudioFX.combo(result.combo);
+      if (result.combo >= 3) praise(result.combo);
+    }
+
+    await handleProgress(result.progressEvents, result.resultIndex, result.resultId);
+
+    // Soft spawn after player merge — bias toward goal progress
+    if (!game.isFull() && Math.random() < 0.78) {
+      await wait(reducedMotion ? 40 : 120);
+      const prefer = helpfulBias(game.order.itemId);
+      const spawned = game.spawnItem(prefer);
+      if (spawned) {
+        bounceCell(spawned.index);
+        render();
+      }
+    }
+
+    game.ensureBoardPlayable();
+    game.busy = false;
+    render();
+    checkBoardFull();
+  }
+
+  async function handleProgress(events, index, resultId) {
+    if (!events?.length) return;
+    for (const ev of events) {
+      if (ev.type === 'orderComplete') {
+        await celebrateOrder(resultId);
+      } else if (ev.type === 'progress') {
+        pulseGoal();
+      }
+    }
+    updateNearMiss();
+  }
+
+  async function celebrateOrder(itemId) {
+    const reward = game.completeOrder();
+    AudioFX.orderComplete();
+    els.orderFlashPreview.innerHTML = JewelryData.itemSvg(itemId);
+    els.orderFlashReward.textContent = `+${reward}`;
+    els.orderFlash.hidden = false;
+    els.orderFlash.classList.add('show');
+    flyCoins(reward);
+    AudioFX.coins();
+    toast('ORDER COMPLETE!', 'order');
+    await wait(reducedMotion ? 500 : 1100);
+    els.orderFlash.classList.remove('show');
+    els.orderFlash.hidden = true;
+    // Helpful drop for next order
+    if (!game.isFull()) {
+      game.spawnItem(helpfulBias(game.order.itemId));
+    }
+    render();
+  }
+
+  function helpfulBias(goalId) {
+    return typeof helpfulItemForGoal === 'function'
+      ? helpfulItemForGoal(goalId)
+      : JewelryData.pickSpawnItem(game.ordersCompleted, goalId);
+  }
+
+  function praise(combo) {
+    const lines = ['Nice!', 'Beautiful!', 'Perfect!', 'Brilliant!', 'Rare!'];
+    if (combo >= 4) toast(lines[4], 'rare');
+    else if (combo === 3) toast(lines[2], 'nice');
+  }
+
+  function render() {
+    renderBoard();
+    renderGoal();
+    renderStats();
+    renderBoosters();
+    updateNearMiss();
+  }
+
+  function renderBoard() {
+    const cells = els.board.children;
+    for (let i = 0; i < BOARD.CELL_COUNT; i++) {
+      const el = cells[i];
+      const cell = game.board[i];
+      el.classList.toggle('selected', game.selectedIndex === i);
+      el.classList.toggle('booster-target', !!game.boosterMode && !!cell);
+      const prevKey = el.dataset.key;
+      if (!cell) {
+        el.innerHTML = '';
+        el.dataset.key = '';
+        el.classList.remove('filled');
+        continue;
+      }
+      el.classList.add('filled');
+      if (el.dataset.key !== String(cell.key)) {
+        el.dataset.key = String(cell.key);
+        el.innerHTML = itemCardHtml(cell.id);
+      }
+    }
+  }
+
+  function itemCardHtml(itemId, bare = false) {
+    const name = JewelryData.itemLabel(itemId);
+    const tier = JewelryData.ITEMS[itemId]?.tier || 1;
+    const rarity = JewelryData.ITEMS[itemId]?.rarity || 1;
+    return `
+      <div class="item tier-${tier} rarity-${rarity}" data-id="${itemId}" title="${name}">
+        <div class="item-art">${JewelryData.itemSvg(itemId)}</div>
+        ${bare ? '' : `<span class="item-name">${shortName(name)}</span>`}
+      </div>
+    `;
+  }
+
+  function shortName(name) {
+    if (name.length <= 11) return name;
+    return name
+      .replace('Rough ', 'R. ')
+      .replace('Polished ', 'Pol. ')
+      .replace('Brilliant ', 'Bril. ')
+      .replace('Ring Setting', 'Ring Set.')
+      .replace('Earring Setting', 'Ear Set.')
+      .replace('Necklace Setting', 'Neck Set.')
+      .replace('Bracelet Setting', 'Brace Set.')
+      .replace('Pendant Setting', 'Pend Set.')
+      .replace(' Setting', '')
+      .replace('Earrings', 'Ears')
+      .replace('Necklace', 'Neck')
+      .replace('Bracelet', 'Brace')
+      .replace('Pendant', 'Pend');
+  }
+
+  function renderGoal() {
+    const o = game.order;
+    const name = JewelryData.itemLabel(o.itemId);
+    els.goalTitle.textContent = `Create ${article(name)} ${name}`;
+    els.goalPreview.innerHTML = JewelryData.itemSvg(o.itemId);
+    els.goalProgress.textContent = `${game.orderProgress} / ${o.need}`;
+    const pct = Math.min(100, (game.orderProgress / o.need) * 100);
+    els.goalBarFill.style.width = `${pct}%`;
+    renderRecipeStrip(o.itemId);
+  }
+
+  function renderRecipeStrip(goalId) {
+    const recipe = JewelryData.getGoalRecipe(goalId);
+    if (!recipe) {
+      els.recipeStrip.innerHTML = '<span class="recipe-fallback">Merge matching pieces to upgrade</span>';
+      return;
+    }
+    const [a, b] = recipe;
+    const haveA = game.countOnBoard(a) > 0;
+    const haveB = game.countOnBoard(b) > 0;
+    els.recipeStrip.innerHTML = `
+      <div class="recipe-part ${haveA ? 'have' : 'need'}" title="${JewelryData.itemLabel(a)}">
+        <div class="recipe-art">${JewelryData.itemSvg(a)}</div>
+        <span>${shortName(JewelryData.itemLabel(a))}</span>
+        <em>${haveA ? 'Ready' : 'Need'}</em>
+      </div>
+      <span class="recipe-plus">+</span>
+      <div class="recipe-part ${haveB ? 'have' : 'need'}" title="${JewelryData.itemLabel(b)}">
+        <div class="recipe-art">${JewelryData.itemSvg(b)}</div>
+        <span>${shortName(JewelryData.itemLabel(b))}</span>
+        <em>${haveB ? 'Ready' : 'Need'}</em>
+      </div>
+      <span class="recipe-plus">→</span>
+      <div class="recipe-part result" title="${JewelryData.itemLabel(goalId)}">
+        <div class="recipe-art">${JewelryData.itemSvg(goalId)}</div>
+        <span>${shortName(JewelryData.itemLabel(goalId))}</span>
+        <em>Goal</em>
+      </div>
+    `;
+  }
+
+  function openHelp() {
+    const goalId = game.order.itemId;
+    const recipe = JewelryData.getGoalRecipe(goalId);
+    const goalName = JewelryData.itemLabel(goalId);
+    els.helpLead.textContent = recipe
+      ? `To create ${goalName}, merge these two pieces together:`
+      : `Merge matching items to upgrade toward ${goalName}.`;
+
+    if (recipe) {
+      const [a, b] = recipe;
+      els.helpRecipe.innerHTML = `
+        <div class="help-piece">
+          ${JewelryData.itemSvg(a)}
+          <strong>${JewelryData.itemLabel(a)}</strong>
+          <span class="${game.countOnBoard(a) ? 'on-board' : 'missing'}">${game.countOnBoard(a) ? 'On board' : 'Not on board'}</span>
+        </div>
+        <span class="help-op">+</span>
+        <div class="help-piece">
+          ${JewelryData.itemSvg(b)}
+          <strong>${JewelryData.itemLabel(b)}</strong>
+          <span class="${game.countOnBoard(b) ? 'on-board' : 'missing'}">${game.countOnBoard(b) ? 'On board' : 'Not on board'}</span>
+        </div>
+        <span class="help-op">→</span>
+        <div class="help-piece">
+          ${JewelryData.itemSvg(goalId)}
+          <strong>${goalName}</strong>
+          <span class="on-board">Order</span>
+        </div>
+      `;
+      els.helpSteps.innerHTML = `
+        <ol>
+          <li>${JewelryData.howToGet(a)}</li>
+          <li>${JewelryData.howToGet(b)}</li>
+          <li>Then merge <strong>${JewelryData.itemLabel(a)}</strong> with <strong>${JewelryData.itemLabel(b)}</strong></li>
+        </ol>
+      `;
+    } else {
+      els.helpRecipe.innerHTML = '';
+      els.helpSteps.innerHTML = '<p>Merge two identical items to create the next tier.</p>';
+    }
+
+    els.helpOverlay.hidden = false;
+    els.helpOverlay.setAttribute('aria-hidden', 'false');
+  }
+
+  function hideHelp() {
+    els.helpOverlay.hidden = true;
+    els.helpOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function highlightRecipeParts() {
+    clearHighlights();
+    const recipe = JewelryData.getGoalRecipe(game.order.itemId);
+    if (!recipe) return;
+    let found = 0;
+    for (let i = 0; i < BOARD.CELL_COUNT; i++) {
+      const cell = game.board[i];
+      if (cell && recipe.includes(cell.id)) {
+        cellEl(i)?.classList.add('hint-glow');
+        found += 1;
+      }
+    }
+    if (found) {
+      toast('Recipe pieces highlighted', 'nice');
+      AudioFX.select();
+      clearTimeout(highlightRecipeParts._t);
+      highlightRecipeParts._t = setTimeout(clearHighlights, 3500);
+    } else {
+      toast('Parts not on board yet — merge upgrades', 'warn');
+    }
+  }
+
+  function clearHighlights() {
+    els.board.querySelectorAll('.hint-glow').forEach((el) => el.classList.remove('hint-glow'));
+  }
+
+  function article(name) {
+    return /^[AEIOU]/i.test(name) ? 'an' : 'a';
+  }
+
+  function renderStats() {
+    els.coinValue.textContent = String(game.coins);
+    els.scoreValue.textContent = String(game.score);
+    els.ordersValue.textContent = String(game.ordersCompleted);
+    els.streakValue.textContent = String(game.streak);
+    els.bestStreakValue.textContent = String(game.bestStreak);
+  }
+
+  function renderBoosters() {
+    els.countHammer.textContent = String(game.boosters.hammer);
+    els.countShuffle.textContent = String(game.boosters.shuffle);
+    els.countMagic.textContent = String(game.boosters.magic);
+    els.countExtra.textContent = String(game.boosters.extra);
+    els.btnHammer.classList.toggle('active', game.boosterMode === 'hammer');
+    els.btnMagic.classList.toggle('active', game.boosterMode === 'magic');
+    els.btnHammer.classList.toggle('empty', game.boosters.hammer <= 0);
+    els.btnShuffle.classList.toggle('empty', game.boosters.shuffle <= 0);
+    els.btnMagic.classList.toggle('empty', game.boosters.magic <= 0);
+    els.btnExtra.classList.toggle('empty', game.boosters.extra <= 0);
+  }
+
+  function updateNearMiss() {
+    const near = game.isNearMiss();
+    els.goalNear.hidden = !near;
+    els.goalCard.classList.toggle('near-miss', near);
+  }
+
+  function pulseGoal() {
+    els.goalCard.classList.add('pulse');
+    setTimeout(() => els.goalCard.classList.remove('pulse'), 400);
+  }
+
+  function mergeFx(el, tier) {
+    if (!el || reducedMotion) return;
+    el.classList.remove('merge-pop');
+    void el.offsetWidth;
+    el.classList.add('merge-pop');
+    sparkleAt(el, tier);
+    if (tier >= 4) el.classList.add('shine');
+    setTimeout(() => el.classList.remove('merge-pop', 'shine'), 500);
+  }
+
+  function bounceCell(index) {
+    const el = cellEl(index);
+    if (!el || reducedMotion) return;
+    el.classList.add('spawn-in');
+    setTimeout(() => el.classList.remove('spawn-in'), 400);
+  }
+
+  function shakeCell(index) {
+    const el = cellEl(index);
+    if (!el) return;
+    el.classList.add('shake');
+    setTimeout(() => el.classList.remove('shake'), 350);
+  }
+
+  function sparkleAt(el, tier = 1) {
+    if (!el || reducedMotion) return;
+    const rect = el.getBoundingClientRect();
+    const boardRect = els.fxLayer.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2 - boardRect.left;
+    const cy = rect.top + rect.height / 2 - boardRect.top;
+    const n = 6 + Math.min(tier, 5) * 2;
+    for (let i = 0; i < n; i++) {
+      const p = document.createElement('span');
+      p.className = 'spark';
+      const ang = (Math.PI * 2 * i) / n + Math.random() * 0.3;
+      const dist = 18 + Math.random() * (12 + tier * 4);
+      p.style.left = `${cx}px`;
+      p.style.top = `${cy}px`;
+      p.style.setProperty('--dx', `${Math.cos(ang) * dist}px`);
+      p.style.setProperty('--dy', `${Math.sin(ang) * dist}px`);
+      p.style.setProperty('--hue', String(35 + tier * 20 + Math.random() * 40));
+      els.fxLayer.appendChild(p);
+      setTimeout(() => p.remove(), 500);
+    }
+  }
+
+  function showFloating(text, el, kind) {
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const boardRect = els.toastLayer.getBoundingClientRect();
+    const f = document.createElement('div');
+    f.className = `float-text ${kind || ''}`;
+    f.textContent = text;
+    f.style.left = `${rect.left + rect.width / 2 - boardRect.left}px`;
+    f.style.top = `${rect.top - boardRect.top}px`;
+    els.toastLayer.appendChild(f);
+    setTimeout(() => f.remove(), 900);
+  }
+
+  function toast(text, kind = '') {
+    const t = document.createElement('div');
+    t.className = `toast ${kind}`;
+    t.textContent = text;
+    els.toastLayer.appendChild(t);
+    setTimeout(() => t.remove(), 1200);
+  }
+
+  function showCombo(n) {
+    els.comboBanner.hidden = false;
+    els.comboBanner.textContent = `COMBO x${n}`;
+    els.comboBanner.classList.remove('pop');
+    void els.comboBanner.offsetWidth;
+    els.comboBanner.classList.add('pop');
+    clearTimeout(showCombo._t);
+    showCombo._t = setTimeout(() => { els.comboBanner.hidden = true; }, 700);
+  }
+
+  function showChain(n) {
+    els.chainBanner.hidden = false;
+    els.chainBanner.textContent = `CHAIN x${n}`;
+    els.chainBanner.classList.remove('pop');
+    void els.chainBanner.offsetWidth;
+    els.chainBanner.classList.add('pop');
+    clearTimeout(showChain._t);
+    showChain._t = setTimeout(() => { els.chainBanner.hidden = true; }, 700);
+  }
+
+  function flyCoins(amount) {
+    const coinPill = document.querySelector('.coin-pill');
+    if (!coinPill || reducedMotion) return;
+    const start = els.orderFlash.getBoundingClientRect();
+    const end = coinPill.getBoundingClientRect();
+    for (let i = 0; i < Math.min(8, 3 + Math.floor(amount / 50)); i++) {
+      const d = document.createElement('div');
+      d.className = 'fly-coin';
+      d.style.left = `${start.left + start.width / 2}px`;
+      d.style.top = `${start.top + start.height / 2}px`;
+      const dx = end.left + end.width / 2 - (start.left + start.width / 2) + (Math.random() * 20 - 10);
+      const dy = end.top + end.height / 2 - (start.top + start.height / 2);
+      d.style.setProperty('--dx', `${dx}px`);
+      d.style.setProperty('--dy', `${dy}px`);
+      d.style.animationDelay = `${i * 40}ms`;
+      document.body.appendChild(d);
+      setTimeout(() => d.remove(), 700);
+    }
+  }
+
+  function checkBoardFull() {
+    if (!game.hasAnyValidMerge()) {
+      game.ensureBoardPlayable();
+      render();
+    }
+    if (game.isFull() && !game.hasAnyValidMerge()) {
+      showBoardFull();
+    }
+  }
+
+  function showBoardFull() {
+    els.boardFullOverlay.hidden = false;
+    els.boardFullOverlay.setAttribute('aria-hidden', 'false');
+  }
+  function hideBoardFull() {
+    els.boardFullOverlay.hidden = true;
+    els.boardFullOverlay.setAttribute('aria-hidden', 'true');
+  }
+
+  function maybeSpawnIdle() {
+    // no-op placeholder
+  }
+
+  function wait(ms) {
+    return new Promise((r) => setTimeout(r, ms));
+  }
+
+  return { init, render };
+})();
+
+window.UI = UI;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const game = new GameState();
+  UI.init(game);
+  window.__atelier = game;
+});
+
+// ── DEMO MODE ──────────────────────────────────────────────
+// Set to false to disable auto-play
+const DEMO_MODE = true;
+
+// Mute audio when embedded in the arcade iframe
+if (window !== window.top) {
+  try { AudioFX.setMuted(true); } catch (_) {}
+}
+
+// Frame-based ticker — reliable inside cross-origin iframes
+// (setTimeout/setInterval can be throttled when tab is hidden)
+let _demoTick = 0;
+const _DEMO_PACE = 90; // frames between moves (~1.5 s at 60 fps)
+
+(function _demoLoop() {
+  requestAnimationFrame(_demoLoop);
+  if (!DEMO_MODE) return;
+  _demoTick++;
+  const g = window.__atelier;
+  if (!g || g.busy) return;
+  if (_demoTick % _DEMO_PACE === 0) _demoAIStep(g);
+})();
+
+/**
+ * One AI move:
+ *  Priority 10 — merge produces the goal jewel
+ *  Priority 6  — merge produces a recipe component for the goal
+ *  Priority 3  — same-id upgrade (chain)
+ *  Priority 1  — any valid merge
+ *  +0.5 bonus  — cells are adjacent (looks more natural)
+ */
+function _demoAIStep(game) {
+  const goalId = game.order && game.order.itemId;
+  const recipe = goalId ? JewelryData.getGoalRecipe(goalId) : null;
+
+  let best = null, bestP = -1;
+
+  for (let i = 0; i < BOARD.CELL_COUNT; i++) {
+    const a = game.board[i];
+    if (!a) continue;
+    for (let j = 0; j < BOARD.CELL_COUNT; j++) {
+      if (j === i) continue;
+      const b = game.board[j];
+      if (!b) continue;
+      const result = JewelryData.getMergeResult(a.id, b.id);
+      if (!result) continue;
+
+      let p = 1;
+      if (result === goalId)                            p = 10;
+      else if (recipe && recipe.includes(result))       p = 6;
+      else if (a.id === b.id)                           p = 3;
+      if (game.neighbors(i).includes(j))               p += 0.5;
+
+      if (p > bestP) { bestP = p; best = { from: i, to: j }; }
+    }
+  }
+
+  if (best) {
+    const res = game.tryMerge(best.from, best.to);
+    if (res.ok) {
+      if (res.progressEvents && res.progressEvents.some(e => e.type === 'orderComplete')) {
+        // completeOrder handles generateOrder + feeders + ensureBoardPlayable
+        game.completeOrder();
+      } else {
+        // Spawn a helpful item after a normal merge
+        if (!game.isFull()) game.spawnItem(helpfulItemForGoal(game.order && game.order.itemId));
+        game.ensureBoardPlayable();
+      }
+      UI.render();
+    }
+  } else {
+    // No valid merges — shake things up
+    if (game.boosters.shuffle > 0) {
+      game.useShuffle();
+    } else {
+      // Force-inject a matching pair so the game can continue
+      const goalFeeders = goalId ? JewelryData.getGoalFeeders(goalId) : ['gold_nugget'];
+      game.injectOrReplace(goalFeeders[0] || 'gold_nugget');
+      game.injectOrReplace(goalFeeders[0] || 'gold_nugget');
+    }
+    game.ensureBoardPlayable();
+    UI.render();
+  }
+}
+
+  </script>
+</body>
+</html>
